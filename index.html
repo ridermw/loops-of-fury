@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Loops of Fury</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" id="theme" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css" />
+
+  <style>
+    :root { --accent: #ff5722; }
+    .reveal h1, .reveal h2, .reveal h3 { color: var(--accent); letter-spacing: -0.02em; }
+    .reveal section img { border: none; box-shadow: none; }
+    .reveal .subtitle { color: #bbb; font-size: 0.6em; }
+    .reveal pre { width: 100%; box-shadow: 0 1px 12px rgba(0,0,0,0.5); }
+    .reveal .tag { display: inline-block; background: var(--accent); color: #111;
+      padding: 0.1em 0.5em; border-radius: 4px; font-size: 0.5em; vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <section data-background-gradient="linear-gradient(to bottom, #1a1a1a, #000)">
+        <h1>Loops of Fury <span class="tag">demo</span></h1>
+        <p class="subtitle">A practical guide to loop engineering</p>
+      </section>
+
+      <section>
+        <h2>Why loops matter</h2>
+        <ul>
+          <li class="fragment">They're where programs spend their time</li>
+          <li class="fragment">Small changes compound across millions of iterations</li>
+          <li class="fragment">Correctness and performance both live here</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Anatomy of a fast loop</h2>
+        <pre><code class="language-js" data-trim data-line-numbers>
+let sum = 0;
+for (let i = 0; i &lt; data.length; i++) {
+  sum += data[i];
+}
+        </code></pre>
+        <p class="subtitle fragment">Hoist invariants. Minimize work per iteration.</p>
+      </section>
+
+      <section>
+        <h2>Patterns we'll cover</h2>
+        <ul>
+          <li class="fragment">Hoisting &amp; strength reduction</li>
+          <li class="fragment">Batching &amp; chunking</li>
+          <li class="fragment">Early exit &amp; short-circuiting</li>
+          <li class="fragment">Vectorization mindset</li>
+        </ul>
+      </section>
+
+      <section data-background-gradient="linear-gradient(to bottom, #000, #1a1a1a)">
+        <h2>Let's go fast</h2>
+        <p class="subtitle">Press <kbd>S</kbd> for speaker notes &middot; <kbd>ESC</kbd> for overview</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      transition: 'slide',
+      plugins: [RevealHighlight, RevealNotes],
+    });
+  </script>
+</body>
+</html>
