@@ -14,35 +14,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Close PR with workshop guidance
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          set -euo pipefail
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `Thanks for joining the workshop. This upstream repo is instructor-controlled and does not accept workshop PRs. Please continue the lab in your own fork instead:
 
-          body="Thanks for joining the workshop. This upstream repo is instructor-controlled and does not accept workshop PRs. Please continue the lab in your own fork instead:
+            \`\`\`powershell
+            gh repo fork ridermw/loops-of-fury --clone=true
+            cd loops-of-fury
+            \`\`\`
 
-\`\`\`powershell
-gh repo fork ridermw/loops-of-fury --clone=true
-cd loops-of-fury
-\`\`\`
+            This PR is being closed automatically so the upstream repo stays clean.`;
 
-This PR is being closed automatically so the upstream repo stays clean."
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
 
-          api="https://api.github.com/repos/${REPO}"
-          curl -fsS \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            -X POST \
-            "${api}/issues/${PR_NUMBER}/comments" \
-            -d "$(jq -n --arg body "$body" '{body: $body}')"
-
-          curl -fsS \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            -X PATCH \
-            "${api}/pulls/${PR_NUMBER}" \
-            -d '{"state":"closed"}'
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              state: 'closed'
+            });
