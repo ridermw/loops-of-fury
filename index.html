@@ -47,6 +47,31 @@
       text-shadow: none;
       box-shadow: 0 2px 14px rgba(255,90,60,0.5); }
     .reveal ul li::marker { color: var(--fury); }
+    .reveal .quote { font-family: var(--font-display); font-size: 1.3em; line-height: 1.18;
+      color: var(--ink); max-width: 980px; margin: 0 auto; }
+    .reveal .quote strong { color: var(--fury); }
+    .reveal .source { color: #c3d2ff; font-size: 0.48em; margin-top: 1.2em; }
+    .reveal .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7em; align-items: stretch; }
+    .reveal .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .reveal .card { background: rgba(8,22,62,0.74); border: 1px solid rgba(156,194,255,0.28);
+      border-radius: 12px; padding: 0.7em; box-shadow: 0 10px 30px rgba(2,8,28,0.35); }
+    .reveal .card h3 { margin-top: 0; font-size: 0.82em; color: var(--fury); }
+    .reveal .card p, .reveal .card li { font-size: 0.55em; }
+    .reveal .kicker { color: var(--fury); font-family: var(--font-display); font-size: 0.46em;
+      letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+    .reveal .big-number { color: var(--fury); font-family: var(--font-display); font-size: 2em; font-weight: 700; }
+    .reveal .flow { display: flex; gap: 0.32em; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .reveal .pill { display: inline-block; border: 1px solid rgba(156,194,255,0.32);
+      background: rgba(77,140,255,0.15); border-radius: 999px; padding: 0.24em 0.6em;
+      font-size: 0.5em; white-space: nowrap; }
+    .reveal .arrow { color: var(--fury); font-family: var(--font-display); font-weight: 700; }
+    .reveal .small { font-size: 0.55em; }
+    .reveal .tiny { font-size: 0.42em; }
+    .reveal table { font-size: 0.48em; }
+    .reveal table th { color: var(--fury); }
+    .reveal .button-link { display: inline-block; margin-top: 0.8em; padding: 0.42em 0.8em;
+      border-radius: 8px; background: var(--fury); color: #1a0a06; font-family: var(--font-display);
+      font-weight: 700; text-decoration: none; text-shadow: none; box-shadow: 0 3px 18px rgba(255,90,60,0.45); }
 
     html, body { background: linear-gradient(to bottom, #0a1b4d, #04102e); }
     .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content { background: transparent !important; }
@@ -64,43 +89,324 @@
     <div class="slides">
 
       <section>
-        <h1>Loops of Fury <span class="tag">demo</span></h1>
-        <p class="subtitle">A practical guide to loop engineering</p>
+        <p class="kicker">Research briefing</p>
+        <h1>Loops of Fury <span class="tag">loop engineering</span></h1>
+        <p class="subtitle">Stop hand-cranking agents. Build the loop that prompts, verifies, remembers, and stops them.</p>
+        <aside class="notes">Open with the idea that this is not another prompt-engineering talk. It is a shift in where engineering effort goes.</aside>
       </section>
 
       <section>
-        <h2>Why loops matter</h2>
-        <ul>
-          <li class="fragment">They're where programs spend their time</li>
-          <li class="fragment">Small changes compound across millions of iterations</li>
-          <li class="fragment">Correctness and performance both live here</li>
-        </ul>
+        <blockquote class="quote">
+          "I don't prompt Claude anymore. I have <strong>loops that are running</strong>. My job is to <strong>write loops</strong>."
+        </blockquote>
+        <p class="source">Boris Cherny, creator of Claude Code</p>
+        <aside class="notes">Let this land. The person who built Claude Code says the work moved from prompting the agent to writing loops around it.</aside>
       </section>
 
       <section>
-        <h2>Anatomy of a fast loop</h2>
-        <pre><code class="language-js" data-trim data-line-numbers>
-let sum = 0;
-for (let i = 0; i &lt; data.length; i++) {
-  sum += data[i];
-}
+        <h2>The shift</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Before</h3>
+            <p>You prompt. The agent responds. You inspect. You prompt again.</p>
+          </div>
+          <div class="card">
+            <h3>Now</h3>
+            <p>A system discovers work, delegates it, checks it, persists state, and decides what comes next.</p>
+          </div>
+        </div>
+        <p class="subtitle">The human moves out of the inner loop and stays accountable at the outer loop.</p>
+      </section>
+
+      <section>
+        <h2>The trivial loop</h2>
+        <pre><code class="language-python" data-trim data-line-numbers>
+while True:
+    response = model(context)
+    if response.has_tool_calls():
+        results = run_tools(response.tool_calls)
+        context += results
+    else:
+        break
         </code></pre>
-        <p class="subtitle fragment">Hoist invariants. Minimize work per iteration.</p>
+        <p class="subtitle">Model &rarr; tools &rarr; context &rarr; repeat. Nobody is competing on the while statement.</p>
       </section>
 
       <section>
-        <h2>Patterns we'll cover</h2>
+        <h2>So what are we engineering?</h2>
+        <div class="flow">
+          <span class="pill">Prompt</span><span class="arrow">&rarr;</span>
+          <span class="pill">Context</span><span class="arrow">&rarr;</span>
+          <span class="pill">Harness</span><span class="arrow">&rarr;</span>
+          <span class="pill">Loop</span>
+        </div>
+        <p class="subtitle">The center of gravity keeps moving away from the model and into the system around it.</p>
+      </section>
+
+      <section>
+        <h2>Four floors</h2>
+        <table>
+          <thead><tr><th>Layer</th><th>Question</th></tr></thead>
+          <tbody>
+            <tr><td>Prompt engineering</td><td>What should I say?</td></tr>
+            <tr><td>Context engineering</td><td>What should the model see?</td></tr>
+            <tr><td>Harness engineering</td><td>What tools, state, errors, and permissions surround one run?</td></tr>
+            <tr><td>Loop engineering</td><td>What recurring system drives work toward a goal?</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Working definition</h2>
+        <p class="quote">Loop engineering is designing a recurring agent system that <strong>discovers</strong>, <strong>delegates</strong>, <strong>verifies</strong>, <strong>persists</strong>, <strong>decides</strong>, and <strong>stops</strong>.</p>
+        <p class="subtitle">A cron job repeats. A loop decides.</p>
+      </section>
+
+      <section>
+        <h2>Loop lifecycle</h2>
+        <div class="flow">
+          <span class="pill">Trigger</span><span class="arrow">&rarr;</span>
+          <span class="pill">Discover</span><span class="arrow">&rarr;</span>
+          <span class="pill">Delegate</span><span class="arrow">&rarr;</span>
+          <span class="pill">Act</span><span class="arrow">&rarr;</span>
+          <span class="pill">Verify</span><span class="arrow">&rarr;</span>
+          <span class="pill">Persist</span><span class="arrow">&rarr;</span>
+          <span class="pill">Decide</span>
+        </div>
+        <p class="subtitle">The load-bearing step is verification.</p>
+      </section>
+
+      <section>
+        <h2>What makes it a loop?</h2>
+        <div class="grid three">
+          <div class="card"><h3>Heartbeat</h3><p>Schedule, event, webhook, failing check, or adaptive cadence.</p></div>
+          <div class="card"><h3>Memory</h3><p>Progress lives outside the conversation: files, issues, boards, traces.</p></div>
+          <div class="card"><h3>Decision</h3><p>Continue, retry, stop, or escalate for a reason.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Five building blocks</h2>
+        <div class="grid">
+          <div class="card"><h3>Automations</h3><p>The heartbeat that starts runs.</p></div>
+          <div class="card"><h3>Worktrees</h3><p>Isolation for parallel or risky changes.</p></div>
+          <div class="card"><h3>Skills</h3><p>Project knowledge the agent should not guess.</p></div>
+          <div class="card"><h3>Connectors</h3><p>Real tools: GitHub, Linear, Slack, CI, databases.</p></div>
+          <div class="card"><h3>Sub-agents</h3><p>Maker, checker, explorer, reviewer.</p></div>
+          <div class="card"><h3>Memory</h3><p>The agent forgets. The repo doesn't.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Maker vs checker</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Maker</h3>
+            <p>Proposes the smallest change that could satisfy the goal.</p>
+          </div>
+          <div class="card">
+            <h3>Checker</h3>
+            <p>Defaults to reject, verifies with evidence, and decides if done is real.</p>
+          </div>
+        </div>
+        <p class="subtitle">The worker does not grade its own homework.</p>
+      </section>
+
+      <section>
+        <h2>/loop vs /goal</h2>
+        <table>
+          <thead><tr><th>Primitive</th><th>What it does</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td>/loop</td><td>Repeats on cadence</td><td>Can repeat without proving success</td></tr>
+            <tr><td>/goal</td><td>Runs until a condition is verified</td><td>Only as good as the done-condition</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Hard part 1: stopping</h2>
+        <p class="quote">An agent ending its turn is <strong>not</strong> the same as completing the task.</p>
+        <p class="subtitle">"Done" should mean tests pass, not the agent feels good.</p>
+      </section>
+
+      <section>
+        <h2>Honest stop conditions</h2>
+        <div class="grid">
+          <div class="card"><h3>Goal met</h3><p>The verifier confirms the done-condition.</p></div>
+          <div class="card"><h3>Budget spent</h3><p>Iterations, time, tokens, or dollars hit the cap.</p></div>
+          <div class="card"><h3>Stalled</h3><p>Same failure repeats with no new evidence.</p></div>
+          <div class="card"><h3>Needs human</h3><p>Risky, ambiguous, taste-driven, or regulated.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Hard part 2: context rot</h2>
+        <p>Long loops accumulate stale tool output, dead ends, and obsolete reasoning.</p>
+        <p class="subtitle">A rotted context makes worse decisions, which add more noise, which rots the context further.</p>
+      </section>
+
+      <section>
+        <h2>Context hygiene</h2>
         <ul>
-          <li class="fragment">Hoisting &amp; strength reduction</li>
-          <li class="fragment">Batching &amp; chunking</li>
-          <li class="fragment">Early exit &amp; short-circuiting</li>
-          <li class="fragment">Vectorization mindset</li>
+          <li>Compact long runs into a clean handoff.</li>
+          <li>Offload huge outputs to files; feed back only relevant slices.</li>
+          <li>Use sub-agents for messy subtasks; return distilled results.</li>
+          <li>Govern durable memory like code.</li>
+        </ul>
+        <p class="subtitle">Context is a budget, not a bucket.</p>
+      </section>
+
+      <section>
+        <h2>Hard part 3: tool design</h2>
+        <div class="grid">
+          <div class="card"><h3>Few, focused tools</h3><p>If a human cannot tell which tool to use, the agent has no chance.</p></div>
+          <div class="card"><h3>Idempotent writes</h3><p>Retries must not create duplicate customers, tickets, commits, or charges.</p></div>
+          <div class="card"><h3>Agent-readable errors</h3><p>An error should tell the next move.</p></div>
+          <div class="card"><h3>Least privilege</h3><p>Scope by what the loop can break, not what you hope it does.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Good error messages become prompts</h2>
+        <pre><code class="language-text" data-trim>
+Bad:
+Migration failed.
+
+Good:
+Migration failed because column user_id is nullable in 3 rows.
+Next step: backfill those rows or add a nullable migration first.
+        </code></pre>
+      </section>
+
+      <section>
+        <h2>Hard part 4: something says no</h2>
+        <p class="quote">A loop with no critic is just an agent nodding along to its own work.</p>
+        <p class="subtitle">Use tests, typechecks, linters, rubrics, reviewers, and human gates.</p>
+      </section>
+
+      <section>
+        <h2>LangChain's stacked loops</h2>
+        <table>
+          <thead><tr><th>Level</th><th>Loop</th><th>Impact</th></tr></thead>
+          <tbody>
+            <tr><td>L1</td><td>Agent loop</td><td>Automate one task</td></tr>
+            <tr><td>L2</td><td>Verification loop</td><td>Improve correctness</td></tr>
+            <tr><td>L3</td><td>Event-driven loop</td><td>Run in the real ecosystem</td></tr>
+            <tr><td>L4</td><td>Hill-climbing loop</td><td>Improve the harness from traces</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>What loops are good for</h2>
+        <div class="grid">
+          <ul>
+            <li>CI failure repair</li>
+            <li>Dependency upgrades</li>
+            <li>Flaky-test hunts</li>
+            <li>Doc drift repair</li>
+          </ul>
+          <ul>
+            <li>Issue triage</li>
+            <li>PR babysitting</li>
+            <li>Benchmark tuning</li>
+            <li>Alert triage</li>
+          </ul>
+        </div>
+        <p class="subtitle">Recurring + bounded + machine-checkable.</p>
+      </section>
+
+      <section>
+        <h2>When not to loop</h2>
+        <ul>
+          <li>No machine-checkable done-condition.</li>
+          <li>One-off task that will not amortize loop design.</li>
+          <li>Taste, strategy, architecture, or product judgment.</li>
+          <li>High-intent-debt legacy work.</li>
+          <li>Safety-critical or regulated output with no human gate.</li>
         </ul>
       </section>
 
       <section>
-        <h2>Let's go fast</h2>
-        <p class="subtitle">Press <kbd>S</kbd> for speaker notes &middot; <kbd>ESC</kbd> for overview</p>
+        <h2>Security: the lethal trifecta</h2>
+        <div class="grid three">
+          <div class="card"><h3>Private data</h3><p>Repos, secrets, tickets, customer records.</p></div>
+          <div class="card"><h3>Untrusted input</h3><p>Issues, PRs, web pages, logs, dependency text.</p></div>
+          <div class="card"><h3>Outbound channel</h3><p>PRs, Slack, email, web requests, artifacts.</p></div>
+        </div>
+        <p class="subtitle">Break one leg before running unattended.</p>
+      </section>
+
+      <section>
+        <h2>Failure modes</h2>
+        <div class="grid">
+          <div class="card"><h3>Doom loop</h3><p>Repeats forever.</p></div>
+          <div class="card"><h3>Silent death</h3><p>Looks alive; no real progress.</p></div>
+          <div class="card"><h3>Reward hacking</h3><p>Passes the checker without solving the problem.</p></div>
+          <div class="card"><h3>Handoff gap</h3><p>Undefined outputs become downstream assumptions.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>The two ceilings</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Money</h3>
+            <p>Multi-turn loops re-bill history. Bound tokens, time, turns, and dollars.</p>
+          </div>
+          <div class="card">
+            <h3>You</h3>
+            <p>You can only merge as many diffs as you can genuinely understand.</p>
+          </div>
+        </div>
+        <p class="subtitle">Scale the fleet to your review rate.</p>
+      </section>
+
+      <section>
+        <h2>The debt trilogy</h2>
+        <table>
+          <thead><tr><th>Debt</th><th>Lives in</th><th>Can agents pay it down?</th></tr></thead>
+          <tbody>
+            <tr><td>Technical</td><td>The code</td><td>Often yes</td></tr>
+            <tr><td>Comprehension</td><td>People</td><td>Recoverable with active review</td></tr>
+            <tr><td>Intent</td><td>The why</td><td>No. Humans must write it down.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>The loop contract</h2>
+        <p class="subtitle">Before the first unattended run, write down:</p>
+        <div class="grid">
+          <ul>
+            <li>Objective</li><li>Trigger</li><li>Intake</li><li>Workspace</li><li>Context</li><li>Maker</li>
+          </ul>
+          <ul>
+            <li>Checker</li><li>Done-condition</li><li>Budget</li><li>State</li><li>Escalation</li><li>Exit</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>The workshop</h2>
+        <p>We will fork a repo, use Copilot CLI as the maker, use a separate checker prompt, then design the loop contract.</p>
+        <a class="button-link" href="workshop.html">Open the workshop deck &rarr;</a>
+        <p class="subtitle">Fork-first. Work in your own account. Upstream stays clean.</p>
+      </section>
+
+      <section>
+        <h2>References</h2>
+        <ul class="tiny">
+          <li><a href="https://x.com/akshay_pachaar/article/2069118430582866051">Akshay Pachaar, "Loop Engineering Clearly Explained"</a></li>
+          <li><a href="https://addyosmani.com/blog/loop-engineering/">Addy Osmani, "Loop Engineering"</a></li>
+          <li><a href="https://langchain.com/blog/the-art-of-loop-engineering">LangChain, "The Art of Loop Engineering"</a></li>
+          <li><a href="https://github.com/invincible04/awesome-loop-engineering">invincible04/awesome-loop-engineering field guide</a></li>
+          <li><a href="https://ghuntley.com/ralph/">Geoffrey Huntley, "Ralph Wiggum as a software engineer"</a></li>
+          <li><a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/">Simon Willison, "The lethal trifecta for AI agents"</a></li>
+          <li><a href="https://genai.owasp.org/llm-top-10/">OWASP Top 10 for LLM Applications</a> and <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/">Agentic Applications</a></li>
+        </ul>
+        <a class="button-link" href="workshop.html">Open the workshop deck &rarr;</a>
+        <p class="subtitle">Press <kbd>S</kbd> for notes &middot; <kbd>ESC</kbd> for overview</p>
       </section>
 
     </div>

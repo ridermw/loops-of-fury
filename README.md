@@ -1,10 +1,12 @@
 # Loops of Fury: Loop Engineering with Copilot CLI
 
-**Live presentation:** https://ridermw.github.io/loops-of-fury/
+**Live research deck:** https://ridermw.github.io/loops-of-fury/
+
+**Live workshop deck:** https://ridermw.github.io/loops-of-fury/workshop.html
 
 A hands-on workshop for practicing loop engineering with GitHub Copilot CLI.
 
-Participants clone this repo, run a small failing test suite, use Copilot CLI to fix the app, then design a bounded maker/checker loop around the same workflow.
+Participants fork this repo, clone their own fork, run a small failing test suite, use Copilot CLI to fix the app, then design a bounded maker/checker loop around the same workflow.
 
 ## Who this is for
 
