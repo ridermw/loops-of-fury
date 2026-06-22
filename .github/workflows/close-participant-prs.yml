@@ -23,7 +23,7 @@ jobs:
 
           body="Thanks for joining the workshop. This upstream repo is instructor-controlled and does not accept workshop PRs. Please continue the lab in your own fork instead:
 
-\`\`\`bash
+\`\`\`powershell
 gh repo fork ridermw/loops-of-fury --clone=true
 cd loops-of-fury
 \`\`\`

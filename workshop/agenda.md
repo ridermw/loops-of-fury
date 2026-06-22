@@ -19,7 +19,7 @@ Interactive, terminal-first, clone-and-follow workshop.
 
 ## Participant commands
 
-```bash
+```powershell
 gh repo fork ridermw/loops-of-fury --clone=true
 cd loops-of-fury
 npm test

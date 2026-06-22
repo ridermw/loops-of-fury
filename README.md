@@ -28,13 +28,13 @@ By the end, participants can:
 - GitHub CLI authenticated with `gh auth login`
 - Node.js 20+
 - GitHub Copilot CLI access
-- A terminal where `npm test` can run
+- Windows PowerShell 5.1+ or PowerShell 7+ on Windows. Terminal, iTerm, or bash are fine on macOS/Linux.
 
 ## Quick start
 
 Participants should fork the workshop into their own GitHub account, then clone their fork:
 
-```bash
+```powershell
 gh repo fork ridermw/loops-of-fury --clone=true
 cd loops-of-fury
 npm test
@@ -81,9 +81,23 @@ The initial implementation has realistic bugs that are small enough for a worksh
 
 ## Core commands
 
-```bash
+These commands work on Windows, macOS, and Linux:
+
+```powershell
 npm test
 npm run check
+```
+
+Optional OS-specific wrappers:
+
+```powershell
+# Windows PowerShell
+.\scripts\run-checks.ps1
+
+# Windows Command Prompt
+.\scripts\run-checks.cmd
+
+# macOS/Linux
 ./scripts/run-checks.sh
 ```
 
@@ -109,6 +123,13 @@ Do not let participants start by saying "fix everything." The point is to practi
 ## Reset
 
 If a participant wants to start over:
+
+```powershell
+git restore src test
+Remove-Item LOOP_PROGRESS.md -ErrorAction SilentlyContinue
+```
+
+macOS/Linux equivalent:
 
 ```bash
 git restore src test

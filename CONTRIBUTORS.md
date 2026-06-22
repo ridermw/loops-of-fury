@@ -10,7 +10,7 @@
 
 Workshop participants should fork this repository and do all lab work in their own fork:
 
-```bash
+```powershell
 gh repo fork ridermw/loops-of-fury --clone=true
 cd loops-of-fury
 ```
@@ -20,4 +20,3 @@ Participants are not expected to open pull requests back to the upstream repo. U
 ## Contribution policy
 
 This repository is primarily a workshop artifact, not an open contribution project. If contribution rules change later, this file should be updated first.
-
