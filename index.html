@@ -9,26 +9,41 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" id="theme" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css" />
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" />
+
   <style>
     :root {
       --bg-top: #0a1b4d;
       --bg-bottom: #04102e;
-      --ink: #f5f7ff;
+      --ink: #eef3ff;
       --accent: #4d8cff;
-      --fury: #ff5a3c;
+      --heading: #9cc2ff;
+      --fury: #ff6a4d;
+      --font-display: 'Space Grotesk', system-ui, sans-serif;
+      --font-body: 'Inter', system-ui, sans-serif;
     }
-    .reveal { color: var(--ink); }
+    .reveal { color: var(--ink); font-family: var(--font-body); font-weight: 400;
+      text-shadow: 0 1px 10px rgba(2,8,28,0.65); }
     .reveal-viewport { background: linear-gradient(to bottom, #0a1b4d, #04102e); }
-    .reveal h1, .reveal h2, .reveal h3 { color: var(--accent); letter-spacing: -0.02em; text-shadow: 0 2px 18px rgba(77,140,255,0.35); }
+    .reveal h1, .reveal h2, .reveal h3 { font-family: var(--font-display); font-weight: 700;
+      color: var(--heading); letter-spacing: -0.01em; line-height: 1.1;
+      text-transform: none;
+      text-shadow: 0 2px 4px rgba(2,8,28,0.8), 0 4px 24px rgba(77,140,255,0.4); }
+    .reveal h1 { font-weight: 700; }
+    .reveal p, .reveal li { line-height: 1.5; }
     .reveal a { color: var(--accent); }
     .reveal section img { border: none; box-shadow: none; }
-    .reveal .subtitle { color: #aab8e6; font-size: 0.6em; }
+    .reveal .subtitle { color: #c3d2ff; font-size: 0.6em; font-weight: 500; }
     .reveal .slide-number { background: rgba(77,140,255,0.25); color: var(--ink); }
     .reveal kbd { background: rgba(255,255,255,0.12); border-radius: 4px; padding: 0.05em 0.4em; }
     .reveal pre { width: 100%; box-shadow: 0 8px 30px rgba(0,0,0,0.55); border: 1px solid rgba(77,140,255,0.25); border-radius: 6px; }
     .reveal pre code { background: #0b1736; border-radius: 6px; }
     .reveal .tag { display: inline-block; background: var(--fury); color: #1a0a06;
+      font-family: var(--font-display); font-weight: 600;
       padding: 0.1em 0.5em; border-radius: 4px; font-size: 0.5em; vertical-align: middle;
+      text-shadow: none;
       box-shadow: 0 2px 14px rgba(255,90,60,0.5); }
     .reveal ul li::marker { color: var(--fury); }
 
