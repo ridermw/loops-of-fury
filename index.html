@@ -72,6 +72,20 @@
     .reveal .button-link { display: inline-block; margin-top: 0.8em; padding: 0.42em 0.8em;
       border-radius: 8px; background: var(--fury); color: #1a0a06; font-family: var(--font-display);
       font-weight: 700; text-decoration: none; text-shadow: none; box-shadow: 0 3px 18px rgba(255,90,60,0.45); }
+    .reveal .agent-loop { width: 100%; max-width: 1050px; margin: 0 auto; display: block; }
+    .reveal .agent-loop text { font-family: var(--font-display); text-shadow: none; }
+    .reveal .agent-loop .node-label { fill: var(--ink); font-size: 24px; font-weight: 700; }
+    .reveal .agent-loop .node-caption { fill: #c3d2ff; font-size: 13px; font-weight: 600; }
+    .reveal .agent-loop .microcopy { fill: var(--fury); font-size: 14px; font-weight: 700; }
+    .reveal .agent-loop .loop-copy { fill: #c3d2ff; font-size: 16px; font-weight: 700; letter-spacing: 0.04em; }
+    .reveal .agent-loop .context-node { fill: rgba(77,140,255,0.16); stroke: var(--heading); stroke-width: 3; }
+    .reveal .agent-loop .model-node { fill: rgba(156,194,255,0.12); stroke: var(--accent); stroke-width: 3; }
+    .reveal .agent-loop .decision-node { fill: rgba(255,106,77,0.12); stroke: var(--fury); stroke-width: 3; }
+    .reveal .agent-loop .tools-node { fill: rgba(77,140,255,0.38); stroke: var(--heading); stroke-width: 3; }
+    .reveal .agent-loop .end-node { fill: rgba(255,106,77,0.16); stroke: var(--fury); stroke-width: 3; }
+    .reveal .agent-loop .blue-line { fill: none; stroke: var(--heading); stroke-width: 4; }
+    .reveal .agent-loop .green-line { fill: none; stroke: #66e0bd; stroke-width: 4; }
+    .reveal .agent-loop .red-line { fill: none; stroke: #ff8b8b; stroke-width: 4; }
 
     html, body { background: linear-gradient(to bottom, #0a1b4d, #04102e); }
     .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content { background: transparent !important; }
@@ -130,6 +144,57 @@ while True:
         break
         </code></pre>
         <p class="subtitle">Model &rarr; tools &rarr; context &rarr; repeat. Nobody is competing on the while statement.</p>
+      </section>
+
+      <section>
+        <h2>The loop inside the agent</h2>
+        <svg class="agent-loop" viewBox="0 0 1100 500" role="img" aria-label="Agent loop diagram showing context, model, tool call decision, tools, and end turn">
+          <defs>
+            <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+              <path d="M2,2 L10,6 L2,10 Z" fill="#9cc2ff"></path>
+            </marker>
+            <marker id="arrow-green" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+              <path d="M2,2 L10,6 L2,10 Z" fill="#66e0bd"></path>
+            </marker>
+            <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+              <path d="M2,2 L10,6 L2,10 Z" fill="#ff8b8b"></path>
+            </marker>
+          </defs>
+
+          <text x="550" y="44" text-anchor="middle" class="loop-copy">MODEL &rarr; TOOLS &rarr; CONTEXT &rarr; REPEAT</text>
+
+          <ellipse cx="150" cy="225" rx="112" ry="58" class="context-node"></ellipse>
+          <text x="150" y="220" text-anchor="middle" class="node-label">Context</text>
+          <text x="150" y="252" text-anchor="middle" class="node-caption">everything it sees</text>
+
+          <rect x="365" y="167" width="180" height="116" rx="22" class="model-node"></rect>
+          <text x="455" y="220" text-anchor="middle" class="node-label">Model</text>
+          <text x="455" y="252" text-anchor="middle" class="node-caption">the commodity</text>
+
+          <path d="M690 160 L780 225 L690 290 L600 225 Z" class="decision-node"></path>
+          <text x="690" y="216" text-anchor="middle" class="node-label">Tool</text>
+          <text x="690" y="246" text-anchor="middle" class="node-label">call?</text>
+
+          <rect x="875" y="168" width="170" height="114" rx="20" class="tools-node"></rect>
+          <text x="960" y="220" text-anchor="middle" class="node-label">Tools</text>
+          <text x="960" y="252" text-anchor="middle" class="node-caption">real-world action</text>
+
+          <ellipse cx="690" cy="390" rx="86" ry="48" class="end-node"></ellipse>
+          <text x="690" y="384" text-anchor="middle" class="node-label">End</text>
+          <text x="690" y="414" text-anchor="middle" class="node-label">turn</text>
+
+          <path d="M262 225 H356" class="blue-line" marker-end="url(#arrow-blue)"></path>
+          <path d="M545 225 H590" class="blue-line" marker-end="url(#arrow-blue)"></path>
+          <path d="M782 225 H864" class="green-line" marker-end="url(#arrow-green)"></path>
+          <path d="M690 292 V338" class="red-line" marker-end="url(#arrow-red)"></path>
+          <path d="M960 168 V88 H150 V158" class="blue-line" marker-end="url(#arrow-blue)"></path>
+
+          <text x="818" y="201" text-anchor="middle" class="node-caption" fill="#66e0bd">yes</text>
+          <text x="726" y="324" text-anchor="start" class="microcopy">no</text>
+          <text x="555" y="82" text-anchor="middle" class="loop-copy">context += tool results</text>
+          <text x="690" y="470" text-anchor="middle" class="microcopy">ending a turn != finishing the task</text>
+        </svg>
+        <p class="subtitle">Our job is not the while loop. Our job is the harness, the verifier, the memory, and the brakes.</p>
       </section>
 
       <section>
