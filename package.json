@@ -1,5 +1,5 @@
 {
-  "name": "loop-engineering-copilot-cli-workshop",
+  "name": "loops-of-fury",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,4 +11,3 @@
     "node": ">=20"
   }
 }
-

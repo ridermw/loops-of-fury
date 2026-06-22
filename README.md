@@ -1,4 +1,4 @@
-# Loop Engineering with Copilot CLI
+# Loops of Fury: Loop Engineering with Copilot CLI
 
 A hands-on workshop for practicing loop engineering with GitHub Copilot CLI.
 
@@ -23,17 +23,35 @@ By the end, participants can:
 ## Prerequisites
 
 - Git
+- GitHub CLI authenticated with `gh auth login`
 - Node.js 20+
 - GitHub Copilot CLI access
 - A terminal where `npm test` can run
 
 ## Quick start
 
+Participants should fork the workshop into their own GitHub account, then clone their fork:
+
 ```bash
-git clone <your-workshop-repo-url>
-cd loop-engineering-copilot-cli-workshop
+gh repo fork ridermw/loops-of-fury --clone=true
+cd loops-of-fury
 npm test
 ```
+
+Do not clone and push directly to `ridermw/loops-of-fury`. Treat that repo as the instructor-owned upstream.
+
+## Workshop participation model
+
+`ridermw/loops-of-fury` is the source workshop repo. Participants work in their own forks:
+
+```text
+ridermw/loops-of-fury        instructor upstream
+your-user/loops-of-fury      your fork for workshop work
+```
+
+Please do not open pull requests back to the upstream repo during the workshop. The point is to practice loops safely in your own fork, not to contribute fixes upstream. Upstream PRs are automatically closed with a reminder to continue in your fork.
+
+See `CONTRIBUTORS.md` for the upstream maintainer and contribution policy.
 
 The starter app is intentionally broken. The first lab is to use Copilot CLI to make the tests pass without weakening or deleting tests.
 
@@ -96,4 +114,3 @@ rm -f LOOP_PROGRESS.md
 ```
 
 If you have not initialized git after downloading this folder, re-clone the repo or copy `solutions/inventory.solution.js` as a reference.
-

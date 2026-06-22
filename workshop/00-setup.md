@@ -6,9 +6,11 @@ Make sure everyone can run the starter repo and see the same failing tests.
 
 ## Steps
 
+Fork the instructor repo into your own GitHub account, then clone your fork:
+
 ```bash
-git clone <your-workshop-repo-url>
-cd loop-engineering-copilot-cli-workshop
+gh repo fork ridermw/loops-of-fury --clone=true
+cd loops-of-fury
 npm test
 ```
 
@@ -24,4 +26,3 @@ Expected result: the test suite fails. That is intentional.
 ## Done-condition for setup
 
 You can run `npm test` and see failures related to inventory behavior.
-

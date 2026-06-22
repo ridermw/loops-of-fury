@@ -20,10 +20,12 @@ Interactive, terminal-first, clone-and-follow workshop.
 ## Participant commands
 
 ```bash
-git clone <your-workshop-repo-url>
-cd loop-engineering-copilot-cli-workshop
+gh repo fork ridermw/loops-of-fury --clone=true
+cd loops-of-fury
 npm test
 ```
+
+Participants work in their own forks. The upstream repo is instructor-controlled.
 
 ## Key concept map
 
@@ -37,4 +39,3 @@ Loop       recurring system that triggers, verifies, remembers, decides, stops
 ## Closing takeaway
 
 The goal is not to trust the agent more. The goal is to make the agent's output cheaper to trust.
-
