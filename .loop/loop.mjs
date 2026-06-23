@@ -18,7 +18,6 @@
 //   LOOP_MAX_ITERS=N     hard local cap on iterations (default: unlimited).
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import {
   LOOP, LOOP_DIR, LOOP_STATUS_FILE, RUN_FILE, SCOREBOARD_FILE,
@@ -37,6 +36,11 @@ import {
   newRun, newUuid, beat, classifyExistingRun, finalizeStale, endRun,
   loadRun, saveRun,
 } from './crash-safety.mjs';
+import * as G from './lib/git.mjs';
+import {
+  ensureRunIssue, commentIssue, closeRunIssueClean, escalateRunIssue,
+} from './issue.mjs';
+import { liveCheckAfterPush } from './pages.mjs';
 
 const FAILURES_LOG = path.join(LOOP_DIR, 'failures.jsonl');
 const LOOP_LOG = path.join(LOOP_DIR, 'loop.log');
@@ -79,18 +83,6 @@ export async function preflight({ render = withBrowser } = {}) {
   return { ok: true, brokenFailures: brokenFail };
 }
 
-// Best-effort run-issue comment (D4 observability). Never gates, never throws.
-function bestEffortIssueComment(body) {
-  let issue = null;
-  try { issue = JSON.parse(fs.readFileSync(RUN_FILE, 'utf8')).issue || null; } catch { /* none */ }
-  if (!issue) return;
-  try {
-    spawnSync('gh', ['issue', 'comment', String(issue), '--body', body], {
-      stdio: 'ignore', timeout: 15000,
-    });
-  } catch { /* observability is fire-and-forget */ }
-}
-
 // Core orchestration. Fully injectable so it is unit-testable with a scripted
 // iteration() and a fake clock — no browser, no git, no credits.
 export async function runLoop({
@@ -104,6 +96,7 @@ export async function runLoop({
   persist = () => {},
   onIteration = () => {},
   onEscalate = () => {},
+  haltOn = () => false,
   maxIterations = Infinity,
 } = {}) {
   const start = typeof startMs === 'number' ? startMs : now();
@@ -154,6 +147,15 @@ export async function runLoop({
     };
     history.push(record);
     onIteration(record, outcome, state);
+
+    // D29: the live-Pages wrapper can demand an immediate halt (e.g. a pushed SHA
+    // never became observable on the deployed site) independent of the brain's own
+    // stop logic. Treat it as an escalation — leave the run-issue open for triage.
+    if (haltOn(outcome)) {
+      history.push({ event: 'halt', reason: outcome.reason ?? null });
+      onEscalate(record, outcome, state);
+      break;
+    }
 
     if (decision.action === 'escalate-stop') { onEscalate(record, outcome, state); break; }
     if (decision.action === 'stop') break;
@@ -224,18 +226,81 @@ async function mainRun() {
     ? () => copilotMaker({ axis, deck: 'index.html' })
     : noopMaker);
 
+  // D4/D34: open (or adopt) the run-tracking issue BEFORE the first commit so every
+  // commit can carry a non-closing `Refs: #N` trailer and the driver's
+  // readIssueNumber() can see it. ONLY when actually committing — dry/noop
+  // validation runs must create no issue. Best-effort: a GitHub outage downgrades
+  // to "no Refs target", never blocks the loop.
+  if (commitAndPush) {
+    try {
+      run.snapshotSha = G.headSha();
+      ensureRunIssue(run);
+      saveRun(RUN_FILE, run);
+      if (run.issue) log('run issue:', `#${run.issue}`);
+      else log('run issue: unavailable — continuing without a Refs target');
+    } catch (e) {
+      err('issue setup failed (continuing) —', e && e.message ? e.message : e);
+    }
+  }
+
   log(`starting loop — maker=${useCopilot ? 'copilot' : 'noop'} commit=${commitAndPush} maxIters=${maxIterations}`);
   writeStatus({ phase: 'running', uuid: run.uuid, ts: iso(nowMs()) });
 
   const board = loadBoard(SCOREBOARD_FILE, LOOP.axes);
 
-  const { state, history } = await runLoop({
-    iteration: realIteration,
+  // D29 bounded pipeline: wrap the real driver iteration so a GREEN-and-pushed
+  // commit is re-verified on the LIVE Pages site before the loop trusts it.
+  //   - live OK            → pass the green outcome through unchanged;
+  //   - live broken        → forward-revert the commit on main (never reset), keep
+  //                          looping (the brain retries / switches axis);
+  //   - SHA not observable → forward-revert AND halt (deploy pipeline is unhealthy).
+  const verifiedIteration = async (args) => {
+    const outcome = await realIteration(args);
+    if (!commitAndPush) return outcome;
+    if (!(outcome && outcome.status === 'green' && outcome.committed && outcome.sha)) {
+      return outcome;
+    }
+    let live;
+    try {
+      live = await liveCheckAfterPush(outcome.sha);
+    } catch (e) {
+      live = { ok: false, action: 'pause', reason: 'live-check-error',
+        failures: [String(e && e.message ? e.message : e)] };
+    }
+    if (live.ok) return outcome;
+
+    const short = String(outcome.sha).slice(0, 9);
+    const reason = live.reason || (live.action === 'pause' ? 'sha-not-observable' : 'live-broken');
+    try {
+      G.revertNoCommit(outcome.sha);
+      const trailer = [
+        run.issue ? `Refs: #${run.issue}` : null,
+        'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>',
+      ].filter(Boolean).join('\n');
+      G.commit(`loop: revert ${short} — live verify ${reason}\n\n${trailer}`);
+      G.push();
+    } catch (e) {
+      err('live forward-revert failed —', e && e.message ? e.message : e);
+    }
+    if (run.issue) {
+      commentIssue(run.issue,
+        `Live verify failed for \`${short}\` (${reason}); deck forward-reverted on \`main\`.`);
+    }
+    return {
+      ...outcome, status: 'red', committed: false, reason,
+      liveReverted: true, halt: live.action === 'pause',
+    };
+  };
+
+  let escalated = false;
+  const { state } = await runLoop({
+    iteration: verifiedIteration,
     makerFor,
     commitAndPush,
     maxIterations,
     scoreboard: board,
     persist: (b) => saveBoard(SCOREBOARD_FILE, b),
+    haltOn: (o) => Boolean(o && o.halt),
     onIteration: (rec) => {
       beat(run, nowMs(), { iter: true });
       saveRun(RUN_FILE, run);
@@ -244,21 +309,42 @@ async function mainRun() {
       writeStatus({ phase: 'running', uuid: run.uuid, last: rec, ts: iso(nowMs()) });
     },
     onEscalate: (rec, outcome) => {
+      escalated = true;
       appendJsonl(FAILURES_LOG, { ...rec, outcome });
       writeStatus({ phase: 'escalated', uuid: run.uuid, reason: rec.reason, last: rec, ts: iso(nowMs()) });
-      bestEffortIssueComment(`loop escalated: ${rec.reason} at iter ${rec.iter}`);
     },
   });
 
   const reason = state.stop ? state.stop.reason : 'ended';
-  endRun(run, nowMs(), { status: state.escalated ? 'escalated' : 'ended' });
+  const didEscalate = Boolean(state.escalated) || escalated;
+  endRun(run, nowMs(), { status: didEscalate ? 'escalated' : 'ended' });
   saveRun(RUN_FILE, run);
+
+  // D4: close the run-issue as completed on a clean end; otherwise add the
+  // escalation label + diagnosis and LEAVE IT OPEN. Only when we actually opened one.
+  if (commitAndPush && run.issue) {
+    if (!didEscalate) {
+      const summary = [
+        `Run \`${run.uuid}\` ended cleanly: ${reason}.`,
+        `- iterations: ${state.iter}`,
+        `- pre-run snapshot: \`${run.snapshotSha || 'unknown'}\``,
+        `- final HEAD: \`${G.headSha()}\``,
+      ].join('\n');
+      closeRunIssueClean(run.issue, summary);
+      log('run issue closed as completed:', `#${run.issue}`);
+    } else {
+      escalateRunIssue(run.issue,
+        `Run \`${run.uuid}\` halted/escalated: ${reason}. Left OPEN for triage.`);
+      log('run issue escalated, left open:', `#${run.issue}`);
+    }
+  }
+
   writeStatus({
-    phase: state.escalated ? 'escalated' : 'done',
+    phase: didEscalate ? 'escalated' : 'done',
     reason, uuid: run.uuid, iters: state.iter, ts: iso(nowMs()),
   });
-  log('loop end:', reason, 'iters=', state.iter, 'escalated=', Boolean(state.escalated));
-  return state.escalated ? 1 : 0;
+  log('loop end:', reason, 'iters=', state.iter, 'escalated=', didEscalate);
+  return didEscalate ? 1 : 0;
 }
 
 async function main(argv) {

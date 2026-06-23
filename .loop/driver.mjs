@@ -104,13 +104,18 @@ export async function iteration({ commitAndPush, maker }) {
 
   if (commitAndPush) {
     const issue = readIssueNumber();
-    const trailer = issue ? `\n\nRefs: #${issue}` : '';
+    const trailer = [
+      issue ? `Refs: #${issue}` : null,
+      'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>',
+    ].filter(Boolean).join('\n');
     G.add(files);
-    const c = G.commit(`loop: improve decks${trailer}`);
+    const c = G.commit(`loop: improve decks\n\n${trailer}`);
     if (!c.ok) return { status: 'commit-failed', stderr: c.stderr };
     const p = G.push();
     if (!p.ok) return { status: 'push-failed', stderr: p.stderr };
-    return { status: 'green', committed: true, files };
+    // Expose the exact pushed SHA so the orchestrator's live-Pages check (D29) can
+    // poll the build API for THIS commit and re-verify it on the deployed site.
+    return { status: 'green', committed: true, files, sha: G.headSha() };
   }
 
   G.revertPaths(files);

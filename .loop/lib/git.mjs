@@ -60,6 +60,14 @@ export function commit(message) {
   return git(['commit', '-m', message]);
 }
 
+// Forward-revert (D6): stage the inverse of a commit WITHOUT committing, so the
+// driver can commit it with the run's `Refs: #N` trailer and push. Used by the
+// live-Pages check (D29) when a pushed-green commit renders broken on the live site
+// or never deploys — main is only ever rolled forward, never force-reset.
+export function revertNoCommit(sha) {
+  return git(['revert', '--no-commit', sha]);
+}
+
 export function push(remote = 'origin', branch = currentBranch()) {
   // Signal the pre-push hook (D30) that this push originates from the loop, so the
   // barrier engages. Operator/human pushes (without this flag) are not constrained.

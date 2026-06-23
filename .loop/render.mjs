@@ -33,6 +33,14 @@ export async function gotoReady(page, url) {
 
 export async function renderDeck(browser, deckFile) {
   const url = pathToFileURL(path.join(REPO_ROOT, deckFile)).href;
+  return renderDeckAt(browser, url, deckFile);
+}
+
+// Render a deck from an EXPLICIT url (file:// for the local gate, http(s):// for the
+// live-Pages check, D29) and report the same objective signals. Extracting the url
+// lets the post-push live check reuse the byte-identical in-page evaluate so the
+// gate and the live verification agree exactly on slide count / overflow / anchors.
+export async function renderDeckAt(browser, url, deckFile) {
   const ctx = await browser.newContext({ viewport: VIEWPORT });
   const page = await ctx.newPage();
 

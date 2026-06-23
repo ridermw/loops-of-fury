@@ -184,3 +184,36 @@ export const JUDGE = {
 // the scoreboard + run-issue observability. Transient — losing it just means the next
 // iteration re-scores; it never affects the objective gate.
 export const JUDGE_STATE_FILE = path.join(JUDGE_DIR, 'delight-state.json');
+
+// GitHub repository coordinates for the live run (issue tracking + live-Pages check).
+export const REPO_SLUG = 'ridermw/loops-of-fury';
+
+// Run-tracking issue (D4 / D34). ONE open `loop-run` issue per run: created on
+// iteration 1 (before commit #1), referenced by every commit via a NON-closing
+// `Refs: #N` trailer, and closed-as-completed only on a clean end. A failed/halted
+// run leaves it OPEN with the escalation label + a diagnostic comment. Pure
+// observability — no loop step ever waits on it.
+export const ISSUE = {
+  label: 'loop-run',
+  escalationLabel: 'loop-escalation',
+  titlePrefix: 'Loop run: autonomous deck self-improvement',
+  labelColor: '5319e7',
+  escalationColor: 'b60205',
+};
+
+// Live GitHub Pages verification (D29 critical section; Eng-Q3 ≤3 min budget).
+// After a GREEN push, poll the Pages build API until the deployed commit == the
+// pushed SHA AND status === 'built', then re-render the LIVE deck URLs through the
+// SAME objective gate (assertDeck). A live failure → forward-revert + escalate; the
+// SHA not becoming observable within maxWaitMs → forward-revert + pause + escalate.
+export const PAGES = {
+  baseUrl: 'https://ridermw.github.io/loops-of-fury/',
+  maxWaitMs: 3 * 60 * 1000,   // Eng-Q3: ≤3 min poll budget, then pause+escalate
+  pollIntervalMs: 10 * 1000,  // build API poll cadence
+};
+
+// Resolve a deck's live URL on GitHub Pages. index.html is served at the site root;
+// every other deck lives at <baseUrl>/<deckFile>.
+export function pagesDeckUrl(deckFile, baseUrl = PAGES.baseUrl) {
+  return deckFile === 'index.html' ? baseUrl : baseUrl + deckFile;
+}
