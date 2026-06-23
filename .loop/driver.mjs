@@ -57,7 +57,7 @@ function readIssueNumber() {
 // Attributes only the delta the maker introduces (snapshot before / diff after),
 // so a not-yet-committed control plane or gitignored runtime files are never
 // mis-attributed to the maker.
-async function iteration({ commitAndPush, maker }) {
+export async function iteration({ commitAndPush, maker }) {
   const drift = verifyManifest();
   if (!drift.ok) return { status: 'control-drift', drift: drift.drift, reason: drift.reason };
 

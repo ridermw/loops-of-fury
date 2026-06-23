@@ -18,6 +18,35 @@ function loadBaseline() {
   }
 }
 
+// Pure gate logic (D2): given one rendered deck + its baseline slide count,
+// return the list of objective failures. No I/O — unit-testable in isolation
+// and reusable to prove red-on-broken against fixtures (D14).
+export function assertDeck(d, baselineCount) {
+  const failures = [];
+  if (d.loadError) failures.push(`${d.deckFile}: load error — ${d.loadError}`);
+  if (!d.revealReady) failures.push(`${d.deckFile}: Reveal did not become ready`);
+  for (const e of d.consoleErrors) failures.push(`${d.deckFile}: console error — ${e}`);
+  for (const e of d.pageErrors) failures.push(`${d.deckFile}: page error — ${e}`);
+  if (d.overflowX) failures.push(`${d.deckFile}: horizontal overflow at 1280x720`);
+  if (d.totalSlides < 1) failures.push(`${d.deckFile}: no slides found`);
+  if (typeof baselineCount === 'number' && d.totalSlides < baselineCount) {
+    failures.push(`${d.deckFile}: slide count regressed ${baselineCount} -> ${d.totalSlides}`);
+  }
+  return failures;
+}
+
+export function summarizeDeck(d) {
+  return {
+    deck: d.deckFile,
+    revealReady: d.revealReady,
+    totalSlides: d.totalSlides,
+    horizontalSlides: d.horizontalSlides,
+    overflowX: d.overflowX,
+    consoleErrors: d.consoleErrors.length,
+    pageErrors: d.pageErrors.length,
+  };
+}
+
 export async function runCheck() {
   const baseline = loadBaseline();
   const decks = await withBrowser(async (browser) => {
@@ -30,30 +59,17 @@ export async function runCheck() {
 
   const failures = [];
   for (const d of decks) {
-    if (d.loadError) failures.push(`${d.deckFile}: load error — ${d.loadError}`);
-    if (!d.revealReady) failures.push(`${d.deckFile}: Reveal did not become ready`);
-    for (const e of d.consoleErrors) failures.push(`${d.deckFile}: console error — ${e}`);
-    for (const e of d.pageErrors) failures.push(`${d.deckFile}: page error — ${e}`);
-    if (d.overflowX) failures.push(`${d.deckFile}: horizontal overflow at ${'1280x720'}`);
-    if (d.totalSlides < 1) failures.push(`${d.deckFile}: no slides found`);
-    if (baseline && typeof baseline[d.deckFile] === 'number' && d.totalSlides < baseline[d.deckFile]) {
-      failures.push(`${d.deckFile}: slide count regressed ${baseline[d.deckFile]} -> ${d.totalSlides}`);
-    }
+    const baselineCount = baseline && typeof baseline[d.deckFile] === 'number'
+      ? baseline[d.deckFile]
+      : undefined;
+    failures.push(...assertDeck(d, baselineCount));
   }
 
   const result = {
     ok: failures.length === 0,
     timestamp: new Date().toISOString(),
     baseline,
-    decks: decks.map((d) => ({
-      deck: d.deckFile,
-      revealReady: d.revealReady,
-      totalSlides: d.totalSlides,
-      horizontalSlides: d.horizontalSlides,
-      overflowX: d.overflowX,
-      consoleErrors: d.consoleErrors.length,
-      pageErrors: d.pageErrors.length,
-    })),
+    decks: decks.map(summarizeDeck),
     failures,
   };
 

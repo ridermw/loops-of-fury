@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>broken fixture</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" />
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section><h1>Broken Fixture</h1><p>Structurally fine, but throws at runtime.</p></section>
+      <section><h2>Second</h2><p>The gate must catch the uncaught error.</p></section>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script>
+    // Initialize so Reveal becomes ready quickly (no render timeout),
+    // then raise an uncaught error — the kind of regression the gate must catch.
+    Reveal.initialize({ hash: false, slideNumber: true, transition: 'none' });
+    setTimeout(function () {
+      throw new Error('loops-of-fury: intentional broken-fixture runtime error');
+    }, 0);
+  </script>
+</body>
+</html>

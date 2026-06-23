@@ -13,7 +13,10 @@
     "loop:selftest": "node .loop/driver.mjs --selftest",
     "loop:selftest-gate": "node .loop/driver.mjs --selftest-gate",
     "loop:dry": "node .loop/driver.mjs --dry",
-    "loop:once": "node .loop/driver.mjs --once"
+    "loop:once": "node .loop/driver.mjs --once",
+    "loop:test": "node --test .loop/tests/brain.test.mjs .loop/tests/loop.test.mjs .loop/tests/checker.test.mjs",
+    "loop:preflight": "node .loop/loop.mjs --preflight",
+    "loop:run": "node .loop/loop.mjs --run"
   },
   "engines": {
     "node": ">=20"

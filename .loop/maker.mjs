@@ -34,6 +34,7 @@ export function copilotMaker({ axis, deck }) {
     '-C', REPO_ROOT,
     '--add-dir', REPO_ROOT,
     `--allow-tool=${MAKER.allowTools.join(',')}`,
+    ...(MAKER.extraArgs ?? []),
   ];
   const res = run(MAKER.bin, args, { timeout: MAKER.timeoutMs });
   return { kind: 'copilot', ok: res.ok, stdout: res.stdout, stderr: res.stderr, code: res.code };
