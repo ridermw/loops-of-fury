@@ -143,3 +143,44 @@ export const MAKER = {
   timeoutMs: 240000,
   approxCreditsPerCall: 35,
 };
+
+// Delight LLM-judge (D19, Eng-Q2). The ONLY subjective axis — and per Premise 3 it is
+// strictly NON-GATING: a delight score never reverts `main`. Its sole job is to score
+// each deck's *taste* and feed the scoreboard (D10) so the loop spends attention where
+// the writing is weakest. The objective floor (anchors D32 + visual D23 + hygiene D33)
+// is what actually protects `main`; delight only nudges priority.
+//
+// DRIFT-FREEZE (D19): everything that shapes the verdict is PINNED here — the model,
+// `temperature: 0` (deterministic), and the exact rubric criteria + weights. The prompt
+// is built deterministically and anchored to THIS deck's tokens/voice via
+// design-tokens.md (D20) — not a generic notion of delight. Because delight.mjs and
+// this config are control-plane (committed, manifest-tracked, maker-forbidden, D28),
+// the maker can never loosen its own taste bar. Changing the rubric is a deliberate
+// human control-plane edit, never loop drift.
+//
+// COST/SAFETY: a real judge call spends credits, so the module takes the model call as
+// an INJECTED seam (callModel). The default seam THROWS — the live binding is wired only
+// at owner-gated run time. Tests and smokes pass a deterministic mock and never spend.
+export const JUDGE_DIR = path.join(LOOP_DIR, 'judge'); // gitignored runtime scores (D5)
+export const JUDGE = {
+  model: 'copilot-judge-v1', // pinned logical judge id (drift-freeze; owner-confirmed at live wiring)
+  temperature: 0,            // deterministic scoring
+  maxOutputTokens: 700,
+  scaleMax: 5,               // each criterion scored 0..scaleMax (integers)
+  approxCreditsPerCall: 35,
+  designTokensFile: path.join(LOOP_DIR, 'design-tokens.md'), // D20 rubric anchor
+  // Rubric criteria PINNED (drift-freeze). Anchored to design-tokens.md — palette,
+  // type/voice, restraint vs the D18 anti-slop list, concreteness, and thesis payoff.
+  // Equal weights: taste is multi-dimensional and we don't pretend one axis dominates.
+  criteria: [
+    { id: 'palette-fidelity', label: 'On-system palette (navy + cool blues + one --fury accent)', weight: 1 },
+    { id: 'type-voice',       label: 'Display/body hierarchy + terse, confident, technical voice', weight: 1 },
+    { id: 'restraint',        label: 'No AI/marketing slop — no hype, intensifiers, emoji, shouting', weight: 1 },
+    { id: 'concreteness',     label: 'Specifics (tools, numbers, sourced claims) over abstraction', weight: 1 },
+    { id: 'thesis-payoff',    label: 'Advances the loop-engineering thesis with a real idea', weight: 1 },
+  ],
+};
+// Gitignored runtime state (D5): the latest per-deck delight verdict, kept only for
+// the scoreboard + run-issue observability. Transient — losing it just means the next
+// iteration re-scores; it never affects the objective gate.
+export const JUDGE_STATE_FILE = path.join(JUDGE_DIR, 'delight-state.json');
