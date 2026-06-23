@@ -4,15 +4,17 @@
   "config.mjs": "37b42de81053c98b617db8696250409208d55c4630bdb763a7ccf4824e1b21e7",
   "control-manifest.mjs": "116aee9cfec59a18c4f885693a85596f941daff8aef8ca401199425373a3fd62",
   "diff-gate.mjs": "7083d609868d4b029b9d84be8a503659f7ada938a43847ea31767a8a8e5c689f",
-  "driver.mjs": "1f8383dafaf4c79f72a3c6c9a7cd76c23cfe92b4a9180b5d1a98b8b0a6cfbb09",
+  "driver.mjs": "e3f889bb4dfe2ad85e96045e53fb3e5e04d263caa21107e4e74b928411e3d409",
   "lib/git.mjs": "f699c4d0bb9393d5a1d16980cfcd307975d9bed6ab27c90e55177fb5afd2656f",
   "lib/proc.mjs": "18e385a10935ac1087029ac15527da71d5dd6451fc37996544c551b976bd8b13",
   "loop.mjs": "8f3ea1dd48aaa91a18c6d04b3f7448ebeb713e3761b846867efd291ff3f3b075",
   "maker.mjs": "2d828a8be7caef187bd2fad0957b5e9e3c7ad2df3bd399eb95744e0c7e04fb13",
   "render.mjs": "d87c31a394a013ff4bb1cd28d73948dacac9f75329f120291f0a8ebaff9e1abf",
+  "secret-scan.mjs": "a47bca2b75f8cb353c8c2234de0d1b1c7a371a661d3462ceb2f2ef3b29be42e2",
   "tests/brain.test.mjs": "32f6b213587d7c5b4dd03166095094209974bcd9c125ebb8b564c406440c4804",
   "tests/checker.test.mjs": "628b8bec89ea4e50c0ca74c1544a8f5e54313f9e533fa105ae5314c65d732f1d",
   "tests/fixtures/broken.html": "14375eb2fadf99e7b7cfee3fc161488f02fb7f6f6884072d7cbd3a73320d4f19",
   "tests/fixtures/good.html": "460f7f65d5955716f9201224427f5cce601bf051c21017ff1c6b6d617e10ff8c",
-  "tests/loop.test.mjs": "89bde8357c1ac0f841d830fe9c62412a1918558ae2265589a9f37dd660c749ee"
+  "tests/loop.test.mjs": "89bde8357c1ac0f841d830fe9c62412a1918558ae2265589a9f37dd660c749ee",
+  "tests/secret-scan.test.mjs": "7c9263b056bbe86a1832086c456c57393498fe2b8c2a17fcec87606a2028fdb8"
 }

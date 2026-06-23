@@ -14,7 +14,8 @@
     "loop:selftest-gate": "node .loop/driver.mjs --selftest-gate",
     "loop:dry": "node .loop/driver.mjs --dry",
     "loop:once": "node .loop/driver.mjs --once",
-    "loop:test": "node --test .loop/tests/brain.test.mjs .loop/tests/loop.test.mjs .loop/tests/checker.test.mjs",
+    "loop:test": "node --test .loop/tests/brain.test.mjs .loop/tests/loop.test.mjs .loop/tests/checker.test.mjs .loop/tests/secret-scan.test.mjs",
+    "loop:scan": "node .loop/secret-scan.mjs",
     "loop:preflight": "node .loop/loop.mjs --preflight",
     "loop:run": "node .loop/loop.mjs --run"
   },

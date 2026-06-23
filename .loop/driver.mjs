@@ -18,6 +18,7 @@ import {
 import { withBrowser, renderDeck } from './render.mjs';
 import { runCheck } from './check.mjs';
 import { evaluate as gateEvaluate } from './diff-gate.mjs';
+import { scanWorktree as scanSecrets } from './secret-scan.mjs';
 import { writeBaseline as writeManifest, verify as verifyManifest } from './control-manifest.mjs';
 import * as G from './lib/git.mjs';
 import { noopMaker, copilotMaker } from './maker.mjs';
@@ -71,6 +72,12 @@ export async function iteration({ commitAndPush, maker }) {
   if (!gate.ok) {
     G.revertPaths(files);
     return { status: 'gate-blocked', violations: gate.violations };
+  }
+
+  const secrets = scanSecrets(files);
+  if (secrets.length) {
+    G.revertPaths(files);
+    return { status: 'gate-blocked', reason: 'secret', violations: secrets };
   }
 
   const postMaker = verifyManifest();
