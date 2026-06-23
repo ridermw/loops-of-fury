@@ -2,7 +2,7 @@
   "anchors.mjs": "05d29761874bb7a83cc8774a2250ba844868ea52a973c5826fa676bfca90c794",
   "brain.mjs": "265497264ec30e6c2e5c59cebe5faf41dba1b15975b10af03e76866d407b3ac3",
   "check.mjs": "903ae74b67f0738dd410e389fabcc3ba85b97e81e2d2c6b1c77054862ea92d2b",
-  "config.mjs": "8b6db67121571a15b2acee9b94a3db47587d064d9b08b79360c7fdd824b878df",
+  "config.mjs": "59ec3a3fc68b67b56d28a42f2101a97073339d3797aa5a642df120cf332684f1",
   "control-manifest.mjs": "eb50f4f565b9427b048aa278dc8647e4f4125dacdc275a8ee16a8c3e7343597f",
   "crash-safety.mjs": "364d21789c9c055b420ef7f10124f85aedb542c20331aa4077203d533c3ffbfd",
   "diff-gate.mjs": "7083d609868d4b029b9d84be8a503659f7ada938a43847ea31767a8a8e5c689f",
@@ -13,7 +13,7 @@
   "loop.mjs": "9207660e0543f3f28f0bc06c8fd6d8991b0ad6e58ee6746017d8d8083e93a721",
   "maker.mjs": "2d828a8be7caef187bd2fad0957b5e9e3c7ad2df3bd399eb95744e0c7e04fb13",
   "push-gate.mjs": "726f5a953865debc200a806ee96670107bb64f6ca2d6e9490054e7e7e0ebd3bc",
-  "render.mjs": "41d40649c9baf47868f3f40ad8f139d6f64364a883b046bcd587910b8ce124dd",
+  "render.mjs": "0b25d4b2571d33577bc0402b850a8de6853ff74a0dbccea33a0bf8f534e664f2",
   "scoreboard.mjs": "cfa8eb56ebb6e71b970de97417c6d814a165e4d6c4d3b1076eb33a87f650b679",
   "secret-scan.mjs": "a47bca2b75f8cb353c8c2234de0d1b1c7a371a661d3462ceb2f2ef3b29be42e2",
   "tests/anchors.test.mjs": "d6a7216057d5b47e5a4610df915ff1eba924c1a5bbe5397180966c48f5ca3796",
@@ -28,5 +28,7 @@
   "tests/loop.test.mjs": "89bde8357c1ac0f841d830fe9c62412a1918558ae2265589a9f37dd660c749ee",
   "tests/push-gate.test.mjs": "780a174d126415eb4f18b48dac0adc98bb5d730672edee4c7a2cc90180c40517",
   "tests/scoreboard.test.mjs": "d27daf7be5036f0d785c9629049e40f69101239ccab30d11bdeabfb84090088f",
-  "tests/secret-scan.test.mjs": "7c9263b056bbe86a1832086c456c57393498fe2b8c2a17fcec87606a2028fdb8"
+  "tests/secret-scan.test.mjs": "7c9263b056bbe86a1832086c456c57393498fe2b8c2a17fcec87606a2028fdb8",
+  "tests/visual.test.mjs": "3f01c91751ade80c89079a0fb1b02dd0d148c83cc520800b2dd2ec5536c6b6d2",
+  "visual.mjs": "a52445e2b5221297bee5b844ceaddb17d0cf8f89474272229ac2888e8e3b85e4"
 }

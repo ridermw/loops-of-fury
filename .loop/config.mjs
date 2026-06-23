@@ -82,6 +82,20 @@ export const SLIDES_BASELINE = path.join(BASELINE_DIR, 'slides.json');
 // at run start and NEVER refreshed during the run — that immutability is the floor.
 export const ANCHORS_BASELINE = path.join(BASELINE_DIR, 'anchors.json');
 
+// Visual-regression (D8/D23): per-slide screenshots at the canonical VIEWPORT,
+// pixel-diffed against a baseline that REFRESHES on accept (D8 — legit visual
+// edits must not self-poison later iterations). Baselines are gitignored runtime
+// artifacts (D5): the module CODE is control-plane (committed/manifest-tracked),
+// the PNGs are not. Gating policy: a slide-count DROP and any NEW horizontal
+// overflow are HARD objective invariants (D23); pixel drift above driftRatio is a
+// SOFT flag only (Premise 3 — visual change is non-gating beyond the floor).
+export const VISUAL = {
+  dir: path.join(BASELINE_DIR, 'visual'), // .loop/baseline/visual/<deck>/NN.png
+  pixelThreshold: 0.1,                    // pixelmatch per-pixel color sensitivity (0..1)
+  driftRatio: 0.02,                       // > 2% mismatched pixels on a slide → SOFT drift flag
+  settleMs: 150,                          // pause after a slide nav before the shot (transition settle)
+};
+
 // Maker (copilot CLI) wiring.
 // EMPIRICALLY VERIFIED (dry-run de-risk):
 //   - `copilot -p "<prompt>" ...` DOES return non-interactively (exits after

@@ -15,6 +15,22 @@ export async function withBrowser(fn) {
   }
 }
 
+// Shared load+ready wait used by the gate's renderDeck AND visual.captureSlides
+// (DRY — one definition of "the deck is ready"). Throws on timeout; callers that
+// want a soft signal (renderDeck) wrap it in try/catch.
+export async function gotoReady(page, url) {
+  await page.goto(url, { waitUntil: 'load', timeout: RENDER_TIMEOUT_MS });
+  await page.waitForFunction(
+    () => {
+      const el = document.querySelector('.reveal');
+      const ready = el && el.classList.contains('ready');
+      const apiReady = window.Reveal && typeof window.Reveal.isReady === 'function' && window.Reveal.isReady();
+      return Boolean(ready || apiReady);
+    },
+    { timeout: RENDER_TIMEOUT_MS },
+  );
+}
+
 export async function renderDeck(browser, deckFile) {
   const url = pathToFileURL(path.join(REPO_ROOT, deckFile)).href;
   const ctx = await browser.newContext({ viewport: VIEWPORT });
@@ -31,16 +47,7 @@ export async function renderDeck(browser, deckFile) {
 
   let loadError = null;
   try {
-    await page.goto(url, { waitUntil: 'load', timeout: RENDER_TIMEOUT_MS });
-    await page.waitForFunction(
-      () => {
-        const el = document.querySelector('.reveal');
-        const ready = el && el.classList.contains('ready');
-        const apiReady = window.Reveal && typeof window.Reveal.isReady === 'function' && window.Reveal.isReady();
-        return Boolean(ready || apiReady);
-      },
-      { timeout: RENDER_TIMEOUT_MS },
-    );
+    await gotoReady(page, url);
   } catch (e) {
     loadError = String(e && e.message ? e.message : e);
   }
