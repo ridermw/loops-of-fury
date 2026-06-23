@@ -1,0 +1,12 @@
+{
+  "status": null,
+  "startedMs": null,
+  "endedMs": null,
+  "axes": {
+    "render": 0,
+    "hygiene": 0,
+    "freshness": 0,
+    "delight": 0
+  },
+  "entries": []
+}
