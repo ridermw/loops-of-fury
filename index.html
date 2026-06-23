@@ -89,6 +89,11 @@
 
     html, body { background: linear-gradient(to bottom, #0a1b4d, #04102e); }
     body { min-height: 100vh; overflow: hidden; isolation: isolate; }
+    body::after { content: ""; position: fixed; inset: 0; z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 50% 44%, rgba(4,16,46,0.08) 0%, rgba(4,16,46,0.3) 54%, rgba(4,16,46,0.62) 100%),
+        linear-gradient(90deg, rgba(4,16,46,0.58), rgba(4,16,46,0) 22%, rgba(4,16,46,0) 78%, rgba(4,16,46,0.58)); }
     .reveal { position: relative; z-index: 1; }
     .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content { background: transparent !important; }
     .bg-skier { position: fixed; left: 50%; top: 1vh; transform: translateX(-50%);
