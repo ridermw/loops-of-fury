@@ -21,10 +21,22 @@ export const ALLOWED_WRITE = [
 export const FORBIDDEN_WRITE = [
   /^\.loop\//,
   /^\.github\//,
+  /^\.githooks\//,
   /^package(-lock)?\.json$/,
   /^\.git\//,
   /^\.gitignore$/,
   /^\.gitattributes$/,
+];
+
+// Driver-owned data files that ARE committed (D5) and therefore legitimately ride
+// along in a loop push, even though they live under the maker-forbidden .loop/.
+// The pre-push barrier (push-gate, D30) allows exactly these in addition to the
+// maker allowlist — and nothing else under .loop/ (no control-plane CODE).
+export const PUSH_ALLOWED_DATA = [
+  /^\.loop\/control-manifest\.json$/,
+  /^\.loop\/ledger\.json$/,
+  /^\.loop\/run\.json$/,
+  /^\.loop\/LOOP_STATUS$/,
 ];
 
 // Canonical presentation viewport (D23) — matches 16:9 deck aspect.

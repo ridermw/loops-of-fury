@@ -61,5 +61,7 @@ export function commit(message) {
 }
 
 export function push(remote = 'origin', branch = currentBranch()) {
-  return git(['push', remote, branch]);
+  // Signal the pre-push hook (D30) that this push originates from the loop, so the
+  // barrier engages. Operator/human pushes (without this flag) are not constrained.
+  return git(['push', remote, branch], { env: { ...process.env, LOOP_PUSH: '1' } });
 }

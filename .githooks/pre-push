@@ -1,0 +1,44 @@
+#!/bin/sh
+# .githooks/pre-push — loop pre-push barrier (D30). Control plane (D28).
+#
+# A SECOND, independent code path on the loop's path to `main`. It engages ONLY for
+# pushes initiated by the driver (which exports LOOP_PUSH=1); ordinary operator
+# pushes are not constrained. For each ref being pushed it computes the set of
+# changed paths and the committed diff, and hands both to .loop/push-gate.mjs, which
+# enforces the push allowlist (decks/assets + driver data files only) and rejects
+# any secret-like token. A non-zero exit aborts the push before any network I/O.
+#
+# Install with:  git config core.hooksPath .githooks   (or: npm run loop:install-hooks)
+
+# Only constrain loop-originated pushes.
+[ "${LOOP_PUSH:-}" = "1" ] || exit 0
+
+ROOT=$(git rev-parse --show-toplevel)
+EMPTY_TREE=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+status=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Skip branch deletions (all-zero local sha).
+  case "$local_sha" in *[!0]*) : ;; *) continue ;; esac
+
+  # New remote branch (all-zero remote sha) → diff against the empty tree.
+  case "$remote_sha" in
+    *[!0]*) base="$remote_sha" ;;
+    *)      base="$EMPTY_TREE" ;;
+  esac
+
+  files=$(git diff --name-only "$base" "$local_sha")
+  [ -z "$files" ] && continue
+
+  # One push-gate invocation per ref: path policy from argv, secret scan from stdin.
+  # shellcheck disable=SC2086
+  if ! git diff "$base" "$local_sha" | node "$ROOT/.loop/push-gate.mjs" --stdin $files; then
+    status=1
+  fi
+done
+
+if [ "$status" -ne 0 ]; then
+  echo "pre-push: BLOCKED by .loop barrier (push-gate). Push aborted." >&2
+  exit 1
+fi
+exit 0
