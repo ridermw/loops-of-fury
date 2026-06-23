@@ -89,23 +89,6 @@
 
     html, body { background: linear-gradient(to bottom, #0a1b4d, #04102e); }
     body { min-height: 100vh; overflow: hidden; isolation: isolate; }
-    body::before { content: ""; position: fixed; inset: -18vmax; z-index: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 18% 32%, rgba(77,140,255,0.2), transparent 30%),
-        radial-gradient(circle at 82% 18%, rgba(255,106,77,0.16), transparent 28%),
-        conic-gradient(from 220deg at 50% 50%,
-          transparent 0deg 32deg,
-          rgba(156,194,255,0.12) 48deg,
-          transparent 74deg 126deg,
-          rgba(255,106,77,0.11) 146deg,
-          transparent 174deg 226deg,
-          rgba(77,140,255,0.13) 246deg,
-          transparent 278deg 360deg);
-      opacity: 0.78;
-      filter: blur(28px) saturate(135%);
-      transform-origin: 52% 48%;
-      animation: loop-current 34s linear infinite; }
     body::after { content: ""; position: fixed; inset: 0; z-index: 0;
       pointer-events: none;
       background:
@@ -126,13 +109,8 @@
       from { transform: translateX(-51.5%) translateY(-0.8vh) scale(0.985); }
       to { transform: translateX(-48.5%) translateY(1.2vh) scale(1.015); }
     }
-    @keyframes loop-current {
-      from { transform: rotate(0deg) scale(1); }
-      50% { transform: rotate(180deg) scale(1.04); }
-      to { transform: rotate(360deg) scale(1); }
-    }
     @media (prefers-reduced-motion: reduce) {
-      body::before, .bg-skier { animation: none; }
+      .bg-skier { animation: none; }
     }
   </style>
 
