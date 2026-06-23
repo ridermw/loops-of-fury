@@ -61,6 +61,7 @@ export const LOOP = {
   retryK: 3,                         // K consecutive reverts on one axis → switch axis
   churnWindowMs: 30 * 60 * 1000,     // sliding window for revert-churn (D38)
   churnMax: 6,                       // > churnMax reverts within window → escalate (D38)
+  heartbeatTtlMs: 15 * 60 * 1000,    // run heartbeat stale after 15min → prior run crashed (D34)
   axes: ['render', 'hygiene', 'freshness', 'delight'],
 };
 

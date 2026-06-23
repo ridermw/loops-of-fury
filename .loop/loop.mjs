@@ -33,6 +33,10 @@ import {
   defaultBoard, ensureAxes, pickAxis, recordPick, applyOutcome,
   loadBoard, saveBoard,
 } from './scoreboard.mjs';
+import {
+  newRun, newUuid, beat, classifyExistingRun, finalizeStale, endRun,
+  loadRun, saveRun,
+} from './crash-safety.mjs';
 
 const FAILURES_LOG = path.join(LOOP_DIR, 'failures.jsonl');
 const LOOP_LOG = path.join(LOOP_DIR, 'loop.log');
@@ -158,6 +162,40 @@ export async function runLoop({
   return { state, history, board };
 }
 
+// Crash-safe run acquisition (D34). Reads the on-disk run record, classifies it,
+// and either refuses to start (another live run) or claims a fresh identity —
+// finalizing a crashed prior run so its issue is never silently inherited. Pure
+// of side effects beyond the injected load/save; the GitHub issue close/open that
+// 'finalize-stale' implies is performed by the (separate) issue-tracking step.
+export function acquireRun({
+  ttlMs = LOOP.heartbeatTtlMs,
+  now = nowMs,
+  uuid = newUuid(),
+  load = () => loadRun(RUN_FILE),
+  save = (r) => saveRun(RUN_FILE, r),
+} = {}) {
+  const at = now();
+  const existing = load();
+  const decision = classifyExistingRun(existing, { now: at, ttlMs, myUuid: uuid });
+
+  if (decision.action === 'conflict') {
+    return { ok: false, reason: 'run-conflict', decision, existing };
+  }
+  if (decision.action === 'resume') {
+    beat(existing, at);
+    save(existing);
+    return { ok: true, run: existing, decision, resumed: true };
+  }
+  if (decision.action === 'finalize-stale') {
+    // Stamp the dead run terminal so it is never re-adopted, then start fresh.
+    finalizeStale(existing, at);
+    save(existing);
+  }
+  const run = newRun({ uuid, now: at });
+  save(run);
+  return { ok: true, run, decision, finalizedStale: decision.action === 'finalize-stale' };
+}
+
 async function mainRun() {
   const pf = await preflight();
   if (!pf.ok) {
@@ -167,6 +205,18 @@ async function mainRun() {
   }
   log('preflight OK — gate fails broken.html');
 
+  // D34: claim a crash-safe run identity. Refuse to start if another run is
+  // still heartbeating; finalize a crashed prior run before taking over.
+  const acq = acquireRun();
+  if (!acq.ok) {
+    err('RUN CONFLICT: another run is still alive —', JSON.stringify(acq.decision));
+    writeStatus({ phase: 'run-conflict', decision: acq.decision, ts: iso(nowMs()) });
+    return 1;
+  }
+  const run = acq.run;
+  if (acq.finalizedStale) log('finalized crashed prior run:', acq.decision.staleUuid);
+  log('run uuid:', run.uuid);
+
   const useCopilot = process.env.LOOP_MAKER === 'copilot';
   const commitAndPush = process.env.LOOP_COMMIT === '1';
   const maxIterations = Number(process.env.LOOP_MAX_ITERS) || Infinity;
@@ -175,7 +225,7 @@ async function mainRun() {
     : noopMaker);
 
   log(`starting loop — maker=${useCopilot ? 'copilot' : 'noop'} commit=${commitAndPush} maxIters=${maxIterations}`);
-  writeStatus({ phase: 'running', ts: iso(nowMs()) });
+  writeStatus({ phase: 'running', uuid: run.uuid, ts: iso(nowMs()) });
 
   const board = loadBoard(SCOREBOARD_FILE, LOOP.axes);
 
@@ -187,21 +237,25 @@ async function mainRun() {
     scoreboard: board,
     persist: (b) => saveBoard(SCOREBOARD_FILE, b),
     onIteration: (rec) => {
+      beat(run, nowMs(), { iter: true });
+      saveRun(RUN_FILE, run);
       log('iter', JSON.stringify(rec));
       appendJsonl(LOOP_LOG, rec);
-      writeStatus({ phase: 'running', last: rec, ts: iso(nowMs()) });
+      writeStatus({ phase: 'running', uuid: run.uuid, last: rec, ts: iso(nowMs()) });
     },
     onEscalate: (rec, outcome) => {
       appendJsonl(FAILURES_LOG, { ...rec, outcome });
-      writeStatus({ phase: 'escalated', reason: rec.reason, last: rec, ts: iso(nowMs()) });
+      writeStatus({ phase: 'escalated', uuid: run.uuid, reason: rec.reason, last: rec, ts: iso(nowMs()) });
       bestEffortIssueComment(`loop escalated: ${rec.reason} at iter ${rec.iter}`);
     },
   });
 
   const reason = state.stop ? state.stop.reason : 'ended';
+  endRun(run, nowMs(), { status: state.escalated ? 'escalated' : 'ended' });
+  saveRun(RUN_FILE, run);
   writeStatus({
     phase: state.escalated ? 'escalated' : 'done',
-    reason, iters: state.iter, ts: iso(nowMs()),
+    reason, uuid: run.uuid, iters: state.iter, ts: iso(nowMs()),
   });
   log('loop end:', reason, 'iters=', state.iter, 'escalated=', Boolean(state.escalated));
   return state.escalated ? 1 : 0;
