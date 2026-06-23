@@ -138,10 +138,14 @@ export const LINK_STATE_FILE = path.join(BASELINE_DIR, 'link-state.json');
 // in this CLI build; if not, fall back to `--allow-all-tools --deny-tool=powershell`.
 export const MAKER = {
   bin: 'copilot',
-  allowTools: ['view', 'apply_patch'],
+  // Copilot CLI tool names: 'write' is the file-editing umbrella, 'view' is read.
+  // NOT 'apply_patch' (not a tool in this CLI). Shell is deliberately excluded so
+  // the maker can only edit files — the diff-gate + manifest are the real boundary
+  // (D25/D28). Unallowed tools degrade gracefully under -p (no interactive prompt).
+  allowTools: ['view', 'write'],
   extraArgs: ['--no-color', '--log-level', 'error'],
   timeoutMs: 240000,
-  approxCreditsPerCall: 35,
+  approxCreditsPerCall: 80,
 };
 
 // Delight LLM-judge (D19, Eng-Q2). The ONLY subjective axis — and per Premise 3 it is
