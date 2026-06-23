@@ -88,12 +88,25 @@
     .reveal .agent-loop .red-line { fill: none; stroke: #ff8b8b; stroke-width: 4; }
 
     html, body { background: linear-gradient(to bottom, #0a1b4d, #04102e); }
+    body { min-height: 100vh; overflow: hidden; isolation: isolate; }
+    .reveal { position: relative; z-index: 1; }
     .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content { background: transparent !important; }
     .bg-skier { position: fixed; left: 50%; top: 1vh; transform: translateX(-50%);
       width: 46vw; height: auto;
-      opacity: 0.35; z-index: -1; pointer-events: none; user-select: none; }
+      opacity: 0.32; z-index: 0; pointer-events: none; user-select: none;
+      mix-blend-mode: screen;
+      -webkit-mask-image: radial-gradient(ellipse at 50% 42%, #000 0 56%, rgba(0,0,0,0.42) 72%, transparent 92%);
+      mask-image: radial-gradient(ellipse at 50% 42%, #000 0 56%, rgba(0,0,0,0.42) 72%, transparent 92%);
+      animation: skier-drift 18s ease-in-out infinite alternate; }
     .bg-skier svg { width: 100%; height: auto; display: block;
       filter: drop-shadow(0 0 30px rgba(77,140,255,0.25)); }
+    @keyframes skier-drift {
+      from { transform: translateX(-51.5%) translateY(-0.8vh) scale(0.985); }
+      to { transform: translateX(-48.5%) translateY(1.2vh) scale(1.015); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bg-skier { animation: none; }
+    }
   </style>
 
 </head>
