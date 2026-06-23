@@ -14,7 +14,7 @@
     "loop:selftest-gate": "node .loop/driver.mjs --selftest-gate",
     "loop:dry": "node .loop/driver.mjs --dry",
     "loop:once": "node .loop/driver.mjs --once",
-    "loop:test": "node --test .loop/tests/brain.test.mjs .loop/tests/loop.test.mjs .loop/tests/checker.test.mjs .loop/tests/secret-scan.test.mjs .loop/tests/diff-gate.test.mjs .loop/tests/push-gate.test.mjs .loop/tests/control-manifest.test.mjs .loop/tests/anchors.test.mjs",
+    "loop:test": "node --test .loop/tests/brain.test.mjs .loop/tests/loop.test.mjs .loop/tests/checker.test.mjs .loop/tests/secret-scan.test.mjs .loop/tests/diff-gate.test.mjs .loop/tests/push-gate.test.mjs .loop/tests/control-manifest.test.mjs .loop/tests/anchors.test.mjs .loop/tests/scoreboard.test.mjs",
     "loop:scan": "node .loop/secret-scan.mjs",
     "loop:pushgate": "node .loop/push-gate.mjs",
     "loop:install-hooks": "git config core.hooksPath .githooks",

@@ -1,0 +1,9 @@
+{
+  "seq": 0,
+  "axes": {
+    "render": { "score": 0, "lastPicked": 0, "samples": 0 },
+    "hygiene": { "score": 0, "lastPicked": 0, "samples": 0 },
+    "freshness": { "score": 0, "lastPicked": 0, "samples": 0 },
+    "delight": { "score": 0, "lastPicked": 0, "samples": 0 }
+  }
+}

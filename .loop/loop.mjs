@@ -21,14 +21,18 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import {
-  LOOP, LOOP_DIR, LOOP_STATUS_FILE, RUN_FILE,
+  LOOP, LOOP_DIR, LOOP_STATUS_FILE, RUN_FILE, SCOREBOARD_FILE,
 } from './config.mjs';
 import { iteration as realIteration } from './driver.mjs';
 import { verify as verifyManifest } from './control-manifest.mjs';
 import { withBrowser, renderDeck } from './render.mjs';
 import { assertDeck } from './check.mjs';
 import { noopMaker, copilotMaker } from './maker.mjs';
-import { initState, shouldStartIteration, decide } from './brain.mjs';
+import { initState, shouldStartIteration, decide, categorize } from './brain.mjs';
+import {
+  defaultBoard, ensureAxes, pickAxis, recordPick, applyOutcome,
+  loadBoard, saveBoard,
+} from './scoreboard.mjs';
 
 const FAILURES_LOG = path.join(LOOP_DIR, 'failures.jsonl');
 const LOOP_LOG = path.join(LOOP_DIR, 'loop.log');
@@ -92,6 +96,8 @@ export async function runLoop({
   loopCfg = LOOP,
   now = nowMs,
   startMs,
+  scoreboard,
+  persist = () => {},
   onIteration = () => {},
   onEscalate = () => {},
   maxIterations = Infinity,
@@ -106,7 +112,12 @@ export async function runLoop({
     churnMax: loopCfg.churnMax,
   });
   const axes = (loopCfg.axes && loopCfg.axes.length) ? loopCfg.axes : ['render'];
-  let axisIdx = 0;
+  // D10: pick the weakest axis each iteration from the persistent scoreboard,
+  // instead of a blind round-robin. `forcedAxis` honors the brain's `retry`
+  // decision — a retry stays on the SAME axis rather than re-selecting.
+  const board = scoreboard || defaultBoard(axes);
+  ensureAxes(board, axes);
+  let forcedAxis = null;
   let ran = 0;
   const history = [];
 
@@ -115,7 +126,8 @@ export async function runLoop({
     if (!gate.start) { history.push({ event: 'stop-before', reason: gate.reason }); break; }
     if (ran >= maxIterations) { history.push({ event: 'max-iterations' }); break; }
 
-    const axis = axes[axisIdx % axes.length];
+    const axis = forcedAxis || pickAxis(board, axes) || axes[0];
+    if (!forcedAxis) recordPick(board, axis);
     let outcome;
     try {
       outcome = await iteration({ commitAndPush, maker: makerFor(axis) });
@@ -128,6 +140,10 @@ export async function runLoop({
     const { state: next, decision } = decide(state, outcome, stepNow);
     state = next;
 
+    applyOutcome(board, axis, categorize(outcome));
+    persist(board);
+    forcedAxis = decision.action === 'retry' ? axis : null;
+
     const record = {
       iter: state.iter, axis, status: outcome.status,
       action: decision.action, reason: decision.reason ?? null, ts: iso(stepNow),
@@ -137,10 +153,9 @@ export async function runLoop({
 
     if (decision.action === 'escalate-stop') { onEscalate(record, outcome, state); break; }
     if (decision.action === 'stop') break;
-    if (decision.switchAxis) axisIdx += 1;
   }
 
-  return { state, history };
+  return { state, history, board };
 }
 
 async function mainRun() {
@@ -162,11 +177,15 @@ async function mainRun() {
   log(`starting loop — maker=${useCopilot ? 'copilot' : 'noop'} commit=${commitAndPush} maxIters=${maxIterations}`);
   writeStatus({ phase: 'running', ts: iso(nowMs()) });
 
+  const board = loadBoard(SCOREBOARD_FILE, LOOP.axes);
+
   const { state, history } = await runLoop({
     iteration: realIteration,
     makerFor,
     commitAndPush,
     maxIterations,
+    scoreboard: board,
+    persist: (b) => saveBoard(SCOREBOARD_FILE, b),
     onIteration: (rec) => {
       log('iter', JSON.stringify(rec));
       appendJsonl(LOOP_LOG, rec);

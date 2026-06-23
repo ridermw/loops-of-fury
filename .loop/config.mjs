@@ -36,6 +36,7 @@ export const PUSH_ALLOWED_DATA = [
   /^\.loop\/control-manifest\.json$/,
   /^\.loop\/ledger\.json$/,
   /^\.loop\/run\.json$/,
+  /^\.loop\/scoreboard\.json$/,
   /^\.loop\/LOOP_STATUS$/,
 ];
 
@@ -68,6 +69,9 @@ export const MANIFEST_FILE = path.join(LOOP_DIR, 'control-manifest.json');
 export const LEDGER_FILE = path.join(LOOP_DIR, 'ledger.json');
 export const RUN_FILE = path.join(LOOP_DIR, 'run.json');
 export const LOOP_STATUS_FILE = path.join(LOOP_DIR, 'LOOP_STATUS');
+// Weakest-axis scoreboard (D10): committed loop data, mutated every iteration and
+// therefore EXCLUDED from the control manifest (see control-manifest.mjs).
+export const SCOREBOARD_FILE = path.join(LOOP_DIR, 'scoreboard.json');
 
 // Gitignored runtime/baseline files (D5).
 export const STATUS_FILE = path.join(LOOP_DIR, 'status.json');

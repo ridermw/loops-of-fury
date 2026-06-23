@@ -12,6 +12,7 @@ const EXCLUDE_FILES = new Set([
   'control-manifest.json',
   'ledger.json',
   'run.json',
+  'scoreboard.json',
   'LOOP_STATUS',
   'status.json',
   '.env',
