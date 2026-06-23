@@ -18,48 +18,50 @@ const EXCLUDE_FILES = new Set([
 ]);
 const EXCLUDE_DIRS = new Set(['baseline', 'judge', 'node_modules', '.cache']);
 
-function controlFiles() {
+function controlFiles(dir) {
   const out = [];
-  (function walk(dir, rel) {
-    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+  (function walk(d, rel) {
+    for (const ent of fs.readdirSync(d, { withFileTypes: true })) {
       const childRel = rel ? `${rel}/${ent.name}` : ent.name;
       if (ent.isDirectory()) {
         if (EXCLUDE_DIRS.has(ent.name)) continue;
-        walk(path.join(dir, ent.name), childRel);
+        walk(path.join(d, ent.name), childRel);
       } else {
         if (EXCLUDE_FILES.has(ent.name)) continue;
         if (ent.name.endsWith('.log')) continue;
         out.push(childRel);
       }
     }
-  })(LOOP_DIR, '');
+  })(dir, '');
   return out.sort();
 }
 
-function hashFile(rel) {
+function hashFile(rel, dir) {
   // Normalize CRLF -> LF so the manifest is line-ending-agnostic (D28): a
   // checkout that flips EOLs (core.autocrlf) must never be mistaken for
   // control-plane tampering. All control files are text (.mjs/.json).
-  const raw = fs.readFileSync(path.join(LOOP_DIR, rel), 'utf8');
+  const raw = fs.readFileSync(path.join(dir, rel), 'utf8');
   return crypto.createHash('sha256').update(raw.replace(/\r\n/g, '\n'), 'utf8').digest('hex');
 }
 
-export function compute() {
+// dir/manifestFile are injectable for isolated testing; the driver always uses the
+// real control plane via the defaults, so production behavior is unchanged (D28).
+export function compute(dir = LOOP_DIR) {
   const m = {};
-  for (const rel of controlFiles()) m[rel] = hashFile(rel);
+  for (const rel of controlFiles(dir)) m[rel] = hashFile(rel, dir);
   return m;
 }
 
-export function writeBaseline() {
-  const m = compute();
-  fs.writeFileSync(MANIFEST_FILE, JSON.stringify(m, null, 2) + '\n');
+export function writeBaseline(dir = LOOP_DIR, manifestFile = MANIFEST_FILE) {
+  const m = compute(dir);
+  fs.writeFileSync(manifestFile, JSON.stringify(m, null, 2) + '\n');
   return m;
 }
 
-export function verify() {
-  if (!fs.existsSync(MANIFEST_FILE)) return { ok: false, reason: 'no-manifest', drift: [] };
-  const base = JSON.parse(fs.readFileSync(MANIFEST_FILE, 'utf8'));
-  const now = compute();
+export function verify(dir = LOOP_DIR, manifestFile = MANIFEST_FILE) {
+  if (!fs.existsSync(manifestFile)) return { ok: false, reason: 'no-manifest', drift: [] };
+  const base = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+  const now = compute(dir);
   const drift = [];
   for (const f of new Set([...Object.keys(base), ...Object.keys(now)])) {
     if (base[f] !== now[f]) drift.push(f);
