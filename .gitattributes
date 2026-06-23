@@ -1,0 +1,4 @@
+# Pin the loop control plane to LF so the SHA-256 control manifest (D28) stays
+# stable across checkouts regardless of core.autocrlf. The manifest also
+# normalizes line endings before hashing as defense in depth.
+.loop/** text eol=lf

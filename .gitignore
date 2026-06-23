@@ -4,3 +4,12 @@ coverage/
 LOOP_PROGRESS.md
 *.log
 
+# Loop control plane — runtime/baseline artifacts (D5). Code + ledger.json +
+# run.json + LOOP_STATUS + control-manifest.json ARE committed.
+.loop/baseline/
+.loop/judge/
+.loop/failures.jsonl
+.loop/status.json
+.loop/.env
+.loop/*.log
+

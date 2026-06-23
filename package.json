@@ -5,9 +5,20 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --test"
+    "check": "node --test",
+    "loop:init": "node .loop/driver.mjs --init",
+    "loop:check": "node .loop/check.mjs",
+    "loop:verify": "node .loop/control-manifest.mjs",
+    "loop:gate": "node .loop/diff-gate.mjs",
+    "loop:selftest": "node .loop/driver.mjs --selftest",
+    "loop:selftest-gate": "node .loop/driver.mjs --selftest-gate",
+    "loop:dry": "node .loop/driver.mjs --dry",
+    "loop:once": "node .loop/driver.mjs --once"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "1.61.0"
   }
 }
