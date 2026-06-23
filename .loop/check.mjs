@@ -7,8 +7,9 @@
 // Exits 0 (green) / 1 (red). Also importable as runCheck() for in-process use.
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { DECKS, SLIDES_BASELINE, STATUS_FILE } from './config.mjs';
+import { DECKS, SLIDES_BASELINE, ANCHORS_BASELINE, STATUS_FILE } from './config.mjs';
 import { withBrowser, renderDeck } from './render.mjs';
+import { anchorFailures } from './anchors.mjs';
 
 function loadBaseline() {
   try {
@@ -18,10 +19,20 @@ function loadBaseline() {
   }
 }
 
+function loadAnchorsBaseline() {
+  try {
+    return JSON.parse(fs.readFileSync(ANCHORS_BASELINE, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
 // Pure gate logic (D2): given one rendered deck + its baseline slide count,
 // return the list of objective failures. No I/O — unit-testable in isolation
 // and reusable to prove red-on-broken against fixtures (D14).
-export function assertDeck(d, baselineCount) {
+// `baselineAnchors` (D32) is the deck's frozen { headings, citations } holdout;
+// when present, the objective content-anchor floor is enforced (gating).
+export function assertDeck(d, baselineCount, baselineAnchors) {
   const failures = [];
   if (d.loadError) failures.push(`${d.deckFile}: load error — ${d.loadError}`);
   if (!d.revealReady) failures.push(`${d.deckFile}: Reveal did not become ready`);
@@ -31,6 +42,9 @@ export function assertDeck(d, baselineCount) {
   if (d.totalSlides < 1) failures.push(`${d.deckFile}: no slides found`);
   if (typeof baselineCount === 'number' && d.totalSlides < baselineCount) {
     failures.push(`${d.deckFile}: slide count regressed ${baselineCount} -> ${d.totalSlides}`);
+  }
+  if (baselineAnchors && d.anchors) {
+    failures.push(...anchorFailures(d.deckFile, baselineAnchors, d.anchors));
   }
   return failures;
 }
@@ -44,11 +58,14 @@ export function summarizeDeck(d) {
     overflowX: d.overflowX,
     consoleErrors: d.consoleErrors.length,
     pageErrors: d.pageErrors.length,
+    headings: d.anchors ? d.anchors.headings.length : undefined,
+    citations: d.anchors ? d.anchors.citations.length : undefined,
   };
 }
 
 export async function runCheck() {
   const baseline = loadBaseline();
+  const anchorsBaseline = loadAnchorsBaseline();
   const decks = await withBrowser(async (browser) => {
     const results = [];
     for (const deck of DECKS) {
@@ -62,7 +79,8 @@ export async function runCheck() {
     const baselineCount = baseline && typeof baseline[d.deckFile] === 'number'
       ? baseline[d.deckFile]
       : undefined;
-    failures.push(...assertDeck(d, baselineCount));
+    const baselineAnchors = anchorsBaseline ? anchorsBaseline[d.deckFile] : undefined;
+    failures.push(...assertDeck(d, baselineCount, baselineAnchors));
   }
 
   const result = {

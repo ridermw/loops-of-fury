@@ -73,6 +73,9 @@ export const LOOP_STATUS_FILE = path.join(LOOP_DIR, 'LOOP_STATUS');
 export const STATUS_FILE = path.join(LOOP_DIR, 'status.json');
 export const BASELINE_DIR = path.join(LOOP_DIR, 'baseline');
 export const SLIDES_BASELINE = path.join(BASELINE_DIR, 'slides.json');
+// Frozen content-anchor holdout (D32): per-deck { headings, citations } captured
+// at run start and NEVER refreshed during the run — that immutability is the floor.
+export const ANCHORS_BASELINE = path.join(BASELINE_DIR, 'anchors.json');
 
 // Maker (copilot CLI) wiring.
 // EMPIRICALLY VERIFIED (dry-run de-risk):

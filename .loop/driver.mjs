@@ -13,7 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
-  REPO_ROOT, DECKS, SLIDES_BASELINE, BASELINE_DIR, RUN_FILE,
+  REPO_ROOT, DECKS, SLIDES_BASELINE, ANCHORS_BASELINE, BASELINE_DIR, RUN_FILE,
 } from './config.mjs';
 import { withBrowser, renderDeck } from './render.mjs';
 import { runCheck } from './check.mjs';
@@ -30,16 +30,26 @@ function err(...a) { console.error('[driver]', ...a); }
 
 async function initBaselines() {
   fs.mkdirSync(BASELINE_DIR, { recursive: true });
-  const counts = await withBrowser(async (browser) => {
-    const out = {};
+  const { counts, anchors } = await withBrowser(async (browser) => {
+    const c = {};
+    const a = {};
     for (const deck of DECKS) {
       const r = await renderDeck(browser, deck);
-      out[deck] = r.totalSlides;
+      c[deck] = r.totalSlides;
+      a[deck] = r.anchors;
     }
-    return out;
+    return { counts: c, anchors: a };
   });
   fs.writeFileSync(SLIDES_BASELINE, JSON.stringify(counts, null, 2) + '\n');
   log('slide baseline:', JSON.stringify(counts));
+  // Frozen content-anchor holdout (D32) — captured once, never refreshed mid-run.
+  fs.writeFileSync(ANCHORS_BASELINE, JSON.stringify(anchors, null, 2) + '\n');
+  log('anchor baseline:', JSON.stringify(
+    Object.fromEntries(DECKS.map((d) => [d, {
+      headings: anchors[d] ? anchors[d].headings.length : 0,
+      citations: anchors[d] ? anchors[d].citations.length : 0,
+    }])),
+  ));
   writeManifest();
   log('control manifest written');
   return counts;

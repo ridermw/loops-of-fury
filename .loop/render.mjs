@@ -58,7 +58,20 @@ export async function renderDeck(browser, deckFile) {
       const el = document.querySelector('.reveal');
       return Boolean(el && el.classList.contains('ready'));
     })();
-    return { revealReady: ready, horizontalSlides: tops.length, totalSlides: total, overflowX };
+    // Content anchors (D32): scoped to rendered slide content (DOM, not regex —
+    // D35), which naturally excludes <head> CDN/font <link> tags. Headings give
+    // a structural floor; in-slide external <a> give the attribution floor.
+    const root = document.querySelector('.reveal .slides') || document.body || document;
+    const headings = Array.from(root.querySelectorAll('h1,h2,h3'))
+      .map((h) => (h.textContent || '').replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    const citations = Array.from(root.querySelectorAll('a[href]'))
+      .map((a) => a.getAttribute('href') || '')
+      .filter((h) => /^https?:\/\//i.test(h));
+    return {
+      revealReady: ready, horizontalSlides: tops.length, totalSlides: total, overflowX,
+      anchors: { headings, citations },
+    };
   });
 
   await ctx.close();
