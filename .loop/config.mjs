@@ -96,6 +96,30 @@ export const VISUAL = {
   settleMs: 150,                          // pause after a slide nav before the shot (transition settle)
 };
 
+// Link hygiene / freshness (D33): resolves Open Question 1 (link policy).
+//   - INTERNAL anchors (`#id`) and local ASSETS (relative src/href) are HARD-gating:
+//     a broken intra-deck target or a missing on-disk asset is an objective defect
+//     that joins the red path immediately (no network, deterministic).
+//   - EXTERNAL citation links are SOFT: checked over the network via an injectable
+//     HEAD seam, NEVER gating a single iteration (a flaky remote host must not revert
+//     `main`). A url that fails for `externalEscalateK` CONSECUTIVE iterations is
+//     surfaced as an escalation (observability via the run-issue) — still not a hard
+//     gate. This ends gating oscillation on transiently-down external sites.
+// NOTE: external link inputs are the DOM-sourced in-slide citations (render.anchors
+// .citations, `.reveal .slides a[href^=http]`) — this is why D35 mandates DOM-not-
+// regex: a raw-HTML scan also captures xmlns namespace URIs (e.g. http://www.w3.org)
+// and CDN <head> links, which are NOT freshness targets. CDN availability is proven
+// implicitly: if the CDN is down the deck never initialises and the gate is already red.
+export const LINK = {
+  externalEscalateK: 3,   // consecutive failing iterations for one external url → escalate
+  timeoutMs: 8000,        // per-link HEAD/GET timeout (ms)
+  ignore: [],             // allowlist of regex source strings for known-flaky-but-fine hosts
+};
+// Gitignored runtime state (D5): per-external-url consecutive-miss counters across
+// iterations. Derived/transient — a reset (e.g. fresh process) only makes the soft
+// policy MORE lenient, so it is safe to keep out of version control.
+export const LINK_STATE_FILE = path.join(BASELINE_DIR, 'link-state.json');
+
 // Maker (copilot CLI) wiring.
 // EMPIRICALLY VERIFIED (dry-run de-risk):
 //   - `copilot -p "<prompt>" ...` DOES return non-interactively (exits after
