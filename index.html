@@ -96,9 +96,10 @@
         linear-gradient(90deg, rgba(4,16,46,0.58), rgba(4,16,46,0) 22%, rgba(4,16,46,0) 78%, rgba(4,16,46,0.58)); }
     .reveal { position: relative; z-index: 1; }
     .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content { background: transparent !important; }
-    .bg-skier { position: fixed; left: 50%; top: 1vh; transform: translateX(-50%);
+    .bg-skier { position: fixed; left: 50%; top: 1vh; transform: translate3d(-50%, 0, 0);
       width: 46vw; height: auto;
       opacity: 0.32; z-index: 0; pointer-events: none; user-select: none;
+      contain: paint; will-change: transform; backface-visibility: hidden;
       mix-blend-mode: screen;
       -webkit-mask-image: radial-gradient(ellipse at 50% 42%, #000 0 56%, rgba(0,0,0,0.42) 72%, transparent 92%);
       mask-image: radial-gradient(ellipse at 50% 42%, #000 0 56%, rgba(0,0,0,0.42) 72%, transparent 92%);
@@ -106,11 +107,11 @@
     .bg-skier svg { width: 100%; height: auto; display: block;
       filter: drop-shadow(0 0 30px rgba(77,140,255,0.25)); }
     @keyframes skier-drift {
-      from { transform: translateX(-51.5%) translateY(-0.8vh) scale(0.985); }
-      to { transform: translateX(-48.5%) translateY(1.2vh) scale(1.015); }
+      from { transform: translate3d(-51.5%, -0.8vh, 0) scale(0.985); }
+      to { transform: translate3d(-48.5%, 1.2vh, 0) scale(1.015); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier { animation: none; }
+      .bg-skier { animation: none; will-change: auto; }
     }
   </style>
 
