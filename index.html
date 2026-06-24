@@ -458,6 +458,14 @@
       from { transform: translate3d(-51.5%, -0.8vh, 0) scale(0.985); }
       to { transform: translate3d(-48.5%, 1.2vh, 0) scale(1.015); }
     }
+    @keyframes hero-loop-sweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes hero-label-arrive {
+      from { opacity: 0; translate: 0 0.42em; scale: 0.96; filter: blur(8px); }
+      to { opacity: 1; translate: 0 0; scale: 1; filter: blur(0); }
+    }
     @keyframes telemetry-field {
       from { transform: translate3d(-3%, 2%, 0) rotate(-4deg); }
       to { transform: translate3d(3%, -2%, 0) rotate(-4deg); }
@@ -553,6 +561,7 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
+      .reveal .hero-loop::after, .reveal .hero-loop__label,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
       .reveal section.present > h1, .reveal section.present > h2,
       .reveal section.present > h1::before, .reveal section.present > h1::after,
@@ -609,6 +618,14 @@
       <section>
         <p class="kicker">Research briefing</p>
         <h1>Loops of Fury <span class="tag">loop engineering</span></h1>
+        <div class="hero-loop" aria-hidden="true">
+          <span class="hero-loop__label">Discover</span>
+          <span class="hero-loop__label">Delegate</span>
+          <span class="hero-loop__label">Verify</span>
+          <span class="hero-loop__label">Persist</span>
+          <span class="hero-loop__label">Decide</span>
+          <span class="hero-loop__label">Stop</span>
+        </div>
         <p class="subtitle">Stop hand-cranking agents. Build the loop that prompts, verifies, remembers, and stops them.</p>
         <aside class="notes">Open with the idea that this is not another prompt-engineering talk. It is a shift in where engineering effort goes.</aside>
       </section>
