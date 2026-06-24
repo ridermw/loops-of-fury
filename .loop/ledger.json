@@ -1,12 +1,667 @@
 {
-  "status": null,
+  "status": "ended",
   "startedMs": null,
   "endedMs": null,
   "axes": {
-    "render": 0,
-    "hygiene": 0,
-    "freshness": 0,
-    "delight": 0
+    "render": 28,
+    "hygiene": 27,
+    "freshness": 27,
+    "delight": 27
   },
-  "entries": []
+  "entries": [
+    {
+      "iter": 1,
+      "axis": "render",
+      "sha": "40d3f4789824cdbfafacdd323da2a5a094acb611",
+      "ts": "2026-06-23T19:18:01-04:00"
+    },
+    {
+      "iter": 2,
+      "axis": "hygiene",
+      "sha": "c66c0650ffe3a6400ed03104211d2f1bcd2bc1d1",
+      "ts": "2026-06-23T19:27:40-04:00"
+    },
+    {
+      "iter": 3,
+      "axis": "freshness",
+      "sha": "4423d45381df84d4ae099c1775c0315c8a3f21dc",
+      "ts": "2026-06-23T19:30:44-04:00"
+    },
+    {
+      "iter": 4,
+      "axis": "delight",
+      "sha": "c919b8467eb5b4b20510de2841a5656139c2dd8e",
+      "ts": "2026-06-23T19:34:19-04:00"
+    },
+    {
+      "iter": 5,
+      "axis": "render",
+      "sha": "7c3947eea7c1cd254e8ff582e7602904eb5bdd4a",
+      "ts": "2026-06-23T23:10:21-04:00"
+    },
+    {
+      "iter": 6,
+      "axis": "hygiene",
+      "sha": "648c299d4495ad74b13b763d2d1d0aabb0ce1818",
+      "ts": "2026-06-23T23:13:40-04:00"
+    },
+    {
+      "iter": 7,
+      "axis": "freshness",
+      "sha": "f255bddbf4c35a71eff209fdaad93307399ae6ff",
+      "ts": "2026-06-23T23:18:31-04:00"
+    },
+    {
+      "iter": 8,
+      "axis": "delight",
+      "sha": "6be11ab42709ac3004b07ad39fe46e9651053d99",
+      "ts": "2026-06-23T23:22:34-04:00"
+    },
+    {
+      "iter": 9,
+      "axis": "render",
+      "sha": "a77a0e4a9ee2bf24248f04b4880b98e918efe6de",
+      "ts": "2026-06-23T23:26:23-04:00"
+    },
+    {
+      "iter": 10,
+      "axis": "hygiene",
+      "sha": "2b4582d461492144de8b205d7bf61cb4a5dfa660",
+      "ts": "2026-06-23T23:29:42-04:00"
+    },
+    {
+      "iter": 11,
+      "axis": "freshness",
+      "sha": "582170c5a17f63a621e57f48bd6584baf59c034e",
+      "ts": "2026-06-23T23:33:39-04:00"
+    },
+    {
+      "iter": 12,
+      "axis": "delight",
+      "sha": "d1c660f62872bb8cf49a7760adeb5d3ef29a16a6",
+      "ts": "2026-06-23T23:37:23-04:00"
+    },
+    {
+      "iter": 13,
+      "axis": "render",
+      "sha": "3544f9dbc2c886b5d52f3fa5def7e6a088492f2e",
+      "ts": "2026-06-23T23:42:13-04:00"
+    },
+    {
+      "iter": 14,
+      "axis": "hygiene",
+      "sha": "6fff9c56e541f4ccc778ba7932adf4ee29cd74af",
+      "ts": "2026-06-23T23:49:13-04:00"
+    },
+    {
+      "iter": 15,
+      "axis": "freshness",
+      "sha": "a40ccc3f76dd283a343ba709cf17e8bfcb136413",
+      "ts": "2026-06-23T23:53:13-04:00"
+    },
+    {
+      "iter": 16,
+      "axis": "delight",
+      "sha": "04633aeb2fed58822d2097abdd00bd76cd6a689f",
+      "ts": "2026-06-23T23:56:49-04:00"
+    },
+    {
+      "iter": 17,
+      "axis": "render",
+      "sha": "ce8b0976c6a9b07f9b2dff6d723611f0e4aeabcc",
+      "ts": "2026-06-24T00:00:31-04:00"
+    },
+    {
+      "iter": 18,
+      "axis": "hygiene",
+      "sha": "ed731c2dbe17ba13bdd46aa283be11bcb054f826",
+      "ts": "2026-06-24T00:04:39-04:00"
+    },
+    {
+      "iter": 19,
+      "axis": "freshness",
+      "sha": "64886d4b728960f26db250e7a1f96d25e45301be",
+      "ts": "2026-06-24T00:08:47-04:00"
+    },
+    {
+      "iter": 20,
+      "axis": "delight",
+      "sha": "c3ab60a00482e73b494ba7f8a3a76404ca8807af",
+      "ts": "2026-06-24T00:13:36-04:00"
+    },
+    {
+      "iter": 21,
+      "axis": "render",
+      "sha": "5674f60c0a89d125d8b69a8b5f17be2a68c12f1b",
+      "ts": "2026-06-24T00:18:21-04:00"
+    },
+    {
+      "iter": 22,
+      "axis": "hygiene",
+      "sha": "5b2f6a4d865ff559148234f356459581dc88233f",
+      "ts": "2026-06-24T00:22:03-04:00"
+    },
+    {
+      "iter": 23,
+      "axis": "freshness",
+      "sha": "0289cdfced9e99777864808156916f484b65e0ca",
+      "ts": "2026-06-24T00:26:46-04:00"
+    },
+    {
+      "iter": 24,
+      "axis": "delight",
+      "sha": "2718251540dc83f931f602b75a815aabdb13b6c1",
+      "ts": "2026-06-24T00:31:13-04:00"
+    },
+    {
+      "iter": 25,
+      "axis": "render",
+      "sha": "0ee296ae647009d103b1df28000f00ee6e3184ad",
+      "ts": "2026-06-24T00:34:32-04:00"
+    },
+    {
+      "iter": 26,
+      "axis": "hygiene",
+      "sha": "b527f11a3050c15ac6a4cca9d379c9e220453ab6",
+      "ts": "2026-06-24T00:38:03-04:00"
+    },
+    {
+      "iter": 27,
+      "axis": "freshness",
+      "sha": "b84e4ae4beb2e44fc31c024ecd24960ce65d6877",
+      "ts": "2026-06-24T00:42:52-04:00"
+    },
+    {
+      "iter": 28,
+      "axis": "delight",
+      "sha": "6f6735da89caadd4fbee7860bc78ffd24184b8be",
+      "ts": "2026-06-24T00:46:53-04:00"
+    },
+    {
+      "iter": 29,
+      "axis": "render",
+      "sha": "fdf6bd2a0d807003d78941c2f82173e4231a13f5",
+      "ts": "2026-06-24T00:50:22-04:00"
+    },
+    {
+      "iter": 30,
+      "axis": "hygiene",
+      "sha": "dc3871ad34a80127fb41fb0e2f11c929edb26b87",
+      "ts": "2026-06-24T00:54:24-04:00"
+    },
+    {
+      "iter": 31,
+      "axis": "freshness",
+      "sha": "42074133a58df192cfdc777612885e91988f26ea",
+      "ts": "2026-06-24T00:58:35-04:00"
+    },
+    {
+      "iter": 32,
+      "axis": "delight",
+      "sha": "6272af6ecfa3285ca1f6ab0c7e3d2fd9014008f6",
+      "ts": "2026-06-24T01:03:20-04:00"
+    },
+    {
+      "iter": 33,
+      "axis": "render",
+      "sha": "4f0f8119bf714edc5b02f970017469fe15c68b52",
+      "ts": "2026-06-24T01:07:54-04:00"
+    },
+    {
+      "iter": 34,
+      "axis": "hygiene",
+      "sha": "7287b7e70114e1a4ab0b9a8c79ecff845002a8dd",
+      "ts": "2026-06-24T01:11:32-04:00"
+    },
+    {
+      "iter": 35,
+      "axis": "freshness",
+      "sha": "d828d3dba5db5bb5a2567c06530c7f17a7d2f9a0",
+      "ts": "2026-06-24T01:15:53-04:00"
+    },
+    {
+      "iter": 36,
+      "axis": "delight",
+      "sha": "64e55f80ffefc5e4ceedf06e73ab114e815b66a0",
+      "ts": "2026-06-24T01:20:43-04:00"
+    },
+    {
+      "iter": 37,
+      "axis": "render",
+      "sha": "88041f9e46ed9311e5c4b5fc45eae08136dc24de",
+      "ts": "2026-06-24T01:24:38-04:00"
+    },
+    {
+      "iter": 38,
+      "axis": "hygiene",
+      "sha": "0d39e5a084648b8887042be108d03ceba9c0441d",
+      "ts": "2026-06-24T01:28:43-04:00"
+    },
+    {
+      "iter": 39,
+      "axis": "freshness",
+      "sha": "124c09e62751684550ae3601b45fadfacf24ac66",
+      "ts": "2026-06-24T01:33:32-04:00"
+    },
+    {
+      "iter": 40,
+      "axis": "delight",
+      "sha": "38fc65467f303fa207a263cb5a0304367aa959f3",
+      "ts": "2026-06-24T01:37:14-04:00"
+    },
+    {
+      "iter": 41,
+      "axis": "render",
+      "sha": "01176b1ee3fb45175bfaae7890fae4a3c37d44f2",
+      "ts": "2026-06-24T01:41:40-04:00"
+    },
+    {
+      "iter": 42,
+      "axis": "hygiene",
+      "sha": "412c00cd41b89ecb8d02925dadaf488f6b06d0ad",
+      "ts": "2026-06-24T01:46:02-04:00"
+    },
+    {
+      "iter": 43,
+      "axis": "freshness",
+      "sha": "4e58882339c22fe44aa8c30ddc9a06e1d15f6134",
+      "ts": "2026-06-24T01:50:07-04:00"
+    },
+    {
+      "iter": 44,
+      "axis": "delight",
+      "sha": "8c89ea93a5961b55fdab452d2ea274abda96328a",
+      "ts": "2026-06-24T01:54:38-04:00"
+    },
+    {
+      "iter": 45,
+      "axis": "render",
+      "sha": "2daac34e9f3f73fe932d756501cd204196c9f394",
+      "ts": "2026-06-24T01:59:28-04:00"
+    },
+    {
+      "iter": 46,
+      "axis": "hygiene",
+      "sha": "df76a547925d27ea3dbc4258cf771826ce93c165",
+      "ts": "2026-06-24T02:03:03-04:00"
+    },
+    {
+      "iter": 47,
+      "axis": "freshness",
+      "sha": "17683f33582aaf583d0aa3fb02102494c7a78c2a",
+      "ts": "2026-06-24T02:07:53-04:00"
+    },
+    {
+      "iter": 48,
+      "axis": "delight",
+      "sha": "6f9cfe6d29bf078046ccf6dadd46f8d12ef0b535",
+      "ts": "2026-06-24T02:12:43-04:00"
+    },
+    {
+      "iter": 49,
+      "axis": "render",
+      "sha": "31e8fecde1c3ad27b3d990e990e10f6efee36ed2",
+      "ts": "2026-06-24T02:17:32-04:00"
+    },
+    {
+      "iter": 50,
+      "axis": "hygiene",
+      "sha": "a8e85a3cf9f207239fcba6465e160ebfc2c4c1f3",
+      "ts": "2026-06-24T02:21:13-04:00"
+    },
+    {
+      "iter": 51,
+      "axis": "freshness",
+      "sha": "05b038252180c521658ba404a390a5cf84a3bde5",
+      "ts": "2026-06-24T02:25:41-04:00"
+    },
+    {
+      "iter": 52,
+      "axis": "delight",
+      "sha": "83354841e43d799686aef6b23894c3b97ac716d1",
+      "ts": "2026-06-24T02:30:11-04:00"
+    },
+    {
+      "iter": 53,
+      "axis": "render",
+      "sha": "072acadfb272f3d294d620ee97cf86b7d36d5275",
+      "ts": "2026-06-24T02:34:35-04:00"
+    },
+    {
+      "iter": 54,
+      "axis": "hygiene",
+      "sha": "761ff2bc232971b633b31096e6b6a64a5a37692b",
+      "ts": "2026-06-24T02:38:58-04:00"
+    },
+    {
+      "iter": 55,
+      "axis": "freshness",
+      "sha": "2a8052571b6ee226f48b65b7dc426a0acdd52245",
+      "ts": "2026-06-24T02:44:00-04:00"
+    },
+    {
+      "iter": 56,
+      "axis": "delight",
+      "sha": "7307dcc6f534f0d19a5c088d8fa4773c6ab96217",
+      "ts": "2026-06-24T02:48:58-04:00"
+    },
+    {
+      "iter": 57,
+      "axis": "render",
+      "sha": "49b9738a3f843dc58fb7a9711e764e680ea4cf4f",
+      "ts": "2026-06-24T02:53:02-04:00"
+    },
+    {
+      "iter": 58,
+      "axis": "hygiene",
+      "sha": "3ae3fb9cc2d78fa75734294fd5b83a4462e10a18",
+      "ts": "2026-06-24T03:01:08-04:00"
+    },
+    {
+      "iter": 59,
+      "axis": "freshness",
+      "sha": "7931f5f4aa8cc1ee05d76f8f4b9e1f49808e17e9",
+      "ts": "2026-06-24T03:05:42-04:00"
+    },
+    {
+      "iter": 60,
+      "axis": "delight",
+      "sha": "7b3a12e906847659ba9a95f06e69d877f7381a0c",
+      "ts": "2026-06-24T03:10:03-04:00"
+    },
+    {
+      "iter": 61,
+      "axis": "render",
+      "sha": "0209accb7834b330ab2f7ffb740be100536da386",
+      "ts": "2026-06-24T03:14:27-04:00"
+    },
+    {
+      "iter": 62,
+      "axis": "hygiene",
+      "sha": "137d39973ef68731c5c0e51570cf426cc3222fbe",
+      "ts": "2026-06-24T03:19:14-04:00"
+    },
+    {
+      "iter": 63,
+      "axis": "freshness",
+      "sha": "53794e0dfb38a204f716a5820a22bee8c7a72c62",
+      "ts": "2026-06-24T03:23:52-04:00"
+    },
+    {
+      "iter": 64,
+      "axis": "delight",
+      "sha": "13996f05510c8c05e56d1bcf1226d1001aa878af",
+      "ts": "2026-06-24T03:28:14-04:00"
+    },
+    {
+      "iter": 65,
+      "axis": "render",
+      "sha": "2fd777456ab7ccbb22c63ee7562aeccc6d01a39d",
+      "ts": "2026-06-24T03:31:58-04:00"
+    },
+    {
+      "iter": 66,
+      "axis": "hygiene",
+      "sha": "6317a813d9d8955f06abd4257b31f579e25fb34a",
+      "ts": "2026-06-24T03:41:09-04:00"
+    },
+    {
+      "iter": 67,
+      "axis": "freshness",
+      "sha": "7e484fcfb28d3d17f9d719c474048dc2ea223313",
+      "ts": "2026-06-24T03:45:06-04:00"
+    },
+    {
+      "iter": 68,
+      "axis": "delight",
+      "sha": "1081b0d4b1ab0cd952ccad6388ddab9b8b3a833c",
+      "ts": "2026-06-24T03:49:25-04:00"
+    },
+    {
+      "iter": 69,
+      "axis": "render",
+      "sha": "216e94254a095d4d7ed7fa015147ce46a15a5abd",
+      "ts": "2026-06-24T03:53:19-04:00"
+    },
+    {
+      "iter": 70,
+      "axis": "hygiene",
+      "sha": "5f803c8f85d9c93dd555693aa52374a86c8b1581",
+      "ts": "2026-06-24T03:57:49-04:00"
+    },
+    {
+      "iter": 71,
+      "axis": "freshness",
+      "sha": "abf8aa36b24218e0c13fd6e6348536df0da9ce01",
+      "ts": "2026-06-24T04:02:37-04:00"
+    },
+    {
+      "iter": 72,
+      "axis": "delight",
+      "sha": "d24b94533ce6b7491678c5588eba3c16fbc5615f",
+      "ts": "2026-06-24T04:19:49-04:00"
+    },
+    {
+      "iter": 73,
+      "axis": "render",
+      "sha": "a156d22fd8efec603a7068bd2c640a3e4ebb8786",
+      "ts": "2026-06-24T04:24:23-04:00"
+    },
+    {
+      "iter": 74,
+      "axis": "hygiene",
+      "sha": "8d1518475c44d0182fd0733d55872f9f9e4c4829",
+      "ts": "2026-06-24T04:29:31-04:00"
+    },
+    {
+      "iter": 75,
+      "axis": "freshness",
+      "sha": "4e996d86a276c678c7707594b7fe4a665ab63c78",
+      "ts": "2026-06-24T04:33:35-04:00"
+    },
+    {
+      "iter": 76,
+      "axis": "delight",
+      "sha": "9dc1c7600038ce13b3b2a601c884e05b3f4c384e",
+      "ts": "2026-06-24T04:38:43-04:00"
+    },
+    {
+      "iter": 77,
+      "axis": "render",
+      "sha": "1b8bfd4aa4d7ac4b4a1a75fa3ccf7c6b3592d8f1",
+      "ts": "2026-06-24T04:43:41-04:00"
+    },
+    {
+      "iter": 78,
+      "axis": "hygiene",
+      "sha": "9a5314d6212744799dd109ab10475a500ab8d7cc",
+      "ts": "2026-06-24T04:48:49-04:00"
+    },
+    {
+      "iter": 79,
+      "axis": "freshness",
+      "sha": "f048c46ea446884e07ffdb542c6ea0bf051946c3",
+      "ts": "2026-06-24T04:53:04-04:00"
+    },
+    {
+      "iter": 80,
+      "axis": "delight",
+      "sha": "a5733f36758d3468504642320d615c34ddd1fd09",
+      "ts": "2026-06-24T04:58:02-04:00"
+    },
+    {
+      "iter": 81,
+      "axis": "render",
+      "sha": "2e458e24dc0c374a3667b937a88c02004a309eeb",
+      "ts": "2026-06-24T05:02:53-04:00"
+    },
+    {
+      "iter": 82,
+      "axis": "hygiene",
+      "sha": "42d7ea1719f2555e5797bae2523aa0f6d5adfc2c",
+      "ts": "2026-06-24T05:07:41-04:00"
+    },
+    {
+      "iter": 83,
+      "axis": "freshness",
+      "sha": "a18e23faa3cd3c4ec4d888d99344b765b9ce0e36",
+      "ts": "2026-06-24T05:11:49-04:00"
+    },
+    {
+      "iter": 84,
+      "axis": "delight",
+      "sha": "68481c29ca127116e2815059deb2489b1c0524e3",
+      "ts": "2026-06-24T05:16:41-04:00"
+    },
+    {
+      "iter": 85,
+      "axis": "render",
+      "sha": "ed795199c0d85ef671a06a5828f2d691fdd3cf6c",
+      "ts": "2026-06-24T05:20:57-04:00"
+    },
+    {
+      "iter": 86,
+      "axis": "hygiene",
+      "sha": "618e7fe267f418109cf525f695bc3fc75ab6f659",
+      "ts": "2026-06-24T05:25:34-04:00"
+    },
+    {
+      "iter": 87,
+      "axis": "freshness",
+      "sha": "8863e649a53f6c3cd473936b831f50aa13b6f719",
+      "ts": "2026-06-24T05:29:22-04:00"
+    },
+    {
+      "iter": 88,
+      "axis": "delight",
+      "sha": "d806fc315a44b96e1cfce95e63bc5aa9388a2971",
+      "ts": "2026-06-24T05:33:03-04:00"
+    },
+    {
+      "iter": 89,
+      "axis": "render",
+      "sha": "e9a0d23e54807caa2876c73eb274ab36b8deb3ac",
+      "ts": "2026-06-24T05:36:51-04:00"
+    },
+    {
+      "iter": 90,
+      "axis": "hygiene",
+      "sha": "8c7c9c2226c19f267626de26372cc717eb6ab716",
+      "ts": "2026-06-24T05:41:39-04:00"
+    },
+    {
+      "iter": 91,
+      "axis": "freshness",
+      "sha": "58ec6be92e21b49ff8df4f91a58e4d6525df777f",
+      "ts": "2026-06-24T05:45:41-04:00"
+    },
+    {
+      "iter": 92,
+      "axis": "delight",
+      "sha": "805b6bc5c0fac6a93a189344b2465f7bf0252b7b",
+      "ts": "2026-06-24T05:49:47-04:00"
+    },
+    {
+      "iter": 93,
+      "axis": "render",
+      "sha": "e6370274c0f31c0e8c592855ccf97de221bf91ec",
+      "ts": "2026-06-24T05:54:20-04:00"
+    },
+    {
+      "iter": 94,
+      "axis": "hygiene",
+      "sha": "d47af83164f13e0faf7f15b88898c137d70d1b81",
+      "ts": "2026-06-24T05:59:07-04:00"
+    },
+    {
+      "iter": 95,
+      "axis": "freshness",
+      "sha": "33ebb1aa582c181f3e4880d7538f23b26dcad704",
+      "ts": "2026-06-24T06:03:08-04:00"
+    },
+    {
+      "iter": 96,
+      "axis": "delight",
+      "sha": "76bbe1fed479e9b2d80bb960b2f9ce274b2a6974",
+      "ts": "2026-06-24T06:08:00-04:00"
+    },
+    {
+      "iter": 97,
+      "axis": "render",
+      "sha": "31e5f5428e2bfb9f5c056a2712a46fe24538cc4d",
+      "ts": "2026-06-24T06:12:11-04:00"
+    },
+    {
+      "iter": 98,
+      "axis": "hygiene",
+      "sha": "79d8e22585e393956e9e4b92aacbb88b5314703f",
+      "ts": "2026-06-24T06:16:59-04:00"
+    },
+    {
+      "iter": 99,
+      "axis": "freshness",
+      "sha": "14c14ef6ea003f1b12865a1ec817c62438510921",
+      "ts": "2026-06-24T06:21:46-04:00"
+    },
+    {
+      "iter": 100,
+      "axis": "delight",
+      "sha": "ceb29bdf5d966dc7025046539dd0bb8086abc66f",
+      "ts": "2026-06-24T06:26:38-04:00"
+    },
+    {
+      "iter": 101,
+      "axis": "render",
+      "sha": "0c7ab1f803308c49414538ca4778728785db8afd",
+      "ts": "2026-06-24T06:31:06-04:00"
+    },
+    {
+      "iter": 102,
+      "axis": "hygiene",
+      "sha": "4a9438a7b5cf9ea1b2d70736786bd77803359992",
+      "ts": "2026-06-24T06:36:13-04:00"
+    },
+    {
+      "iter": 103,
+      "axis": "freshness",
+      "sha": "55929699e3bd6d696e01bc39248d4a7276c32599",
+      "ts": "2026-06-24T06:40:37-04:00"
+    },
+    {
+      "iter": 104,
+      "axis": "delight",
+      "sha": "50c1236778b9d6b2b72f207e6411c465c55dddec",
+      "ts": "2026-06-24T06:45:24-04:00"
+    },
+    {
+      "iter": 105,
+      "axis": "render",
+      "sha": "93b9b224a21d8526659e93fc5ad4a751fb3daad5",
+      "ts": "2026-06-24T06:49:52-04:00"
+    },
+    {
+      "iter": 106,
+      "axis": "hygiene",
+      "sha": "b6689f3593461228c085a2b0b9b1cba92950b778",
+      "ts": "2026-06-24T06:54:39-04:00"
+    },
+    {
+      "iter": 107,
+      "axis": "freshness",
+      "sha": "8ebf27c8c1f80f6c0cb94d3d6896952de9028e7c",
+      "ts": "2026-06-24T06:59:47-04:00"
+    },
+    {
+      "iter": 108,
+      "axis": "delight",
+      "sha": "fbe2775725ef0e1f1ad697db0e7feb7cab8ed8e3",
+      "ts": "2026-06-24T07:03:58-04:00"
+    },
+    {
+      "iter": 109,
+      "axis": "render",
+      "sha": "66b64c009a4b5f0583b05818b872a425d8b4feb7",
+      "ts": "2026-06-24T07:09:06-04:00"
+    }
+  ]
 }
