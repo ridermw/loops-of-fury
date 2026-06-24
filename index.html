@@ -585,7 +585,13 @@ Next step: backfill those rows or add a nullable migration first.
     const telemetry = document.createElement('div');
     telemetry.className = 'loop-telemetry';
     telemetry.setAttribute('aria-hidden', 'true');
-    telemetry.innerHTML = '<span class="loop-telemetry__phase"></span><span class="loop-telemetry__title"></span><span class="loop-telemetry__count"></span>';
+    const phaseEl = document.createElement('span');
+    phaseEl.className = 'loop-telemetry__phase';
+    const titleEl = document.createElement('span');
+    titleEl.className = 'loop-telemetry__title';
+    const countEl = document.createElement('span');
+    countEl.className = 'loop-telemetry__count';
+    telemetry.append(phaseEl, titleEl, countEl);
     document.body.appendChild(telemetry);
 
     const beacon = document.createElement('div');
@@ -593,9 +599,6 @@ Next step: backfill those rows or add a nullable migration first.
     beacon.setAttribute('aria-hidden', 'true');
     document.body.appendChild(beacon);
 
-    const phaseEl = telemetry.querySelector('.loop-telemetry__phase');
-    const titleEl = telemetry.querySelector('.loop-telemetry__title');
-    const countEl = telemetry.querySelector('.loop-telemetry__count');
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let beaconTimer;
