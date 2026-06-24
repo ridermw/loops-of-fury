@@ -981,7 +981,7 @@ Next step: backfill those rows or add a nullable migration first.
   <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
   <script>
-    Reveal.initialize({
+    const deckReady = Reveal.initialize({
       hash: true,
       margin: 0.1,
       slideNumber: true,
@@ -1275,15 +1275,14 @@ Next step: backfill those rows or add a nullable migration first.
       countEl.textContent = `${String(current).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
     };
 
-    Reveal.on('ready', () => {
-      updateTelemetry();
-      pulseBeacon();
-    });
     Reveal.on('slidechanged', () => {
       updateTelemetry();
       pulseBeacon();
     });
-    requestAnimationFrame(updateTelemetry);
+    deckReady.then(() => {
+      updateTelemetry();
+      pulseBeacon();
+    });
   </script>
 </body>
 </html>
