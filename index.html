@@ -2507,6 +2507,7 @@ Next step: backfill those rows or add a nullable migration first.
     let spotlightTargetY = spotlightY;
     let latestPointer;
     const slidesRoot = document.querySelector('.reveal .slides');
+    const spotlightEl = document.querySelector('.loop-spotlight');
 
     const clearLoopEffects = () => {
       [beaconTimer, burstTimer, cometTimer, skierTimer, echoTimer].forEach(clearTimeout);
@@ -2547,8 +2548,8 @@ Next step: backfill those rows or add a nullable migration first.
     };
 
     const setSpotlight = (x, y) => {
-      document.body.style.setProperty('--delight-x', `${x}px`);
-      document.body.style.setProperty('--delight-y', `${y}px`);
+      spotlightEl.style.setProperty('--delight-x', `${x}px`);
+      spotlightEl.style.setProperty('--delight-y', `${y}px`);
     };
 
     const renderSpotlight = () => {
