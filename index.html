@@ -97,6 +97,45 @@
     .reveal .agent-loop .green-line { fill: none; stroke: #66e0bd; stroke-width: 4; }
     .reveal .agent-loop .red-line { fill: none; stroke: #ff8b8b; stroke-width: 4; }
 
+    .reveal section.present > h1,
+    .reveal section.present > h2 {
+      position: relative;
+      display: inline-block;
+      animation: heading-lock 720ms cubic-bezier(.17,.84,.44,1) both;
+    }
+    .reveal section.present > h1::after,
+    .reveal section.present > h2::after {
+      content: "";
+      position: absolute;
+      left: 0.02em;
+      right: 0.02em;
+      bottom: -0.16em;
+      height: 0.08em;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, var(--fury) 14%, var(--heading) 62%, transparent);
+      box-shadow: 0 0 24px rgba(255,106,77,0.54);
+      transform: scaleX(0);
+      transform-origin: left center;
+      animation: sparkline-strike 760ms 120ms cubic-bezier(.17,.84,.44,1) both;
+    }
+    .reveal section.present > h1::before,
+    .reveal section.present > h2::before {
+      content: "";
+      position: absolute;
+      left: -0.2em;
+      bottom: -0.23em;
+      width: 0.22em;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--fury);
+      box-shadow: 0 0 18px rgba(255,106,77,0.78), 0 0 0 0 rgba(255,106,77,0.36);
+      opacity: 0;
+      animation: sparkline-comet 760ms 120ms cubic-bezier(.17,.84,.44,1) both;
+    }
+    .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop) {
+      animation: content-drift 620ms 160ms cubic-bezier(.17,.84,.44,1) both;
+    }
+
     html, body { background: linear-gradient(to bottom, #0a1b4d, #04102e); }
     body { min-height: 100vh; overflow: hidden; isolation: isolate; }
     body::after { content: ""; position: fixed; inset: 0; z-index: 0;
@@ -248,8 +287,32 @@
       0%, 100% { transform: translateY(-50%) scale(0.82); opacity: 0.7; }
       50% { transform: translateY(-50%) scale(1.18); opacity: 1; }
     }
+    @keyframes heading-lock {
+      from { opacity: 0.86; transform: translate3d(0, 0.18em, 0) scale(0.985); filter: saturate(0.8); }
+      to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: saturate(1); }
+    }
+    @keyframes sparkline-strike {
+      0% { opacity: 0; transform: scaleX(0); }
+      18% { opacity: 1; }
+      78% { opacity: 1; transform: scaleX(1); }
+      100% { opacity: 0.72; transform: scaleX(1); }
+    }
+    @keyframes sparkline-comet {
+      0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.58); box-shadow: 0 0 0 rgba(255,106,77,0); }
+      18% { opacity: 1; }
+      78% { opacity: 1; transform: translate3d(calc(100vw - 2.4em), 0, 0) scale(1); box-shadow: 0 0 22px rgba(255,106,77,0.8), 0 0 0 8px rgba(255,106,77,0.06); }
+      100% { opacity: 0; transform: translate3d(calc(100vw - 2.4em), 0, 0) scale(0.32); }
+    }
+    @keyframes content-drift {
+      from { opacity: 0; transform: translate3d(0, 0.42em, 0); filter: blur(3px); }
+      to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
+    }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .freshness-signal::before, .loop-telemetry__pip.is-current::after { animation: none; will-change: auto; }
+      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .freshness-signal::before, .loop-telemetry__pip.is-current::after,
+      .reveal section.present > h1, .reveal section.present > h2,
+      .reveal section.present > h1::before, .reveal section.present > h1::after,
+      .reveal section.present > h2::before, .reveal section.present > h2::after,
+      .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop) { animation: none; will-change: auto; }
     }
   </style>
 
