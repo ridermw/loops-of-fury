@@ -371,6 +371,11 @@
     .reveal section.present .agent-loop .tools-node { animation-delay: 360ms; }
     .reveal section.present .agent-loop .end-node { animation-delay: 480ms; }
 
+    .reveal .slides section:not(.present) {
+      content-visibility: auto;
+      contain-intrinsic-size: 720px 960px;
+    }
+
     .reveal .slides section.present {
       isolation: isolate;
     }
