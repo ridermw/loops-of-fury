@@ -657,12 +657,22 @@
       stroke-dasharray: 24 42; opacity: 0; filter: blur(5px); }
     .loop-echo__trail { stroke: url(#loop-echo-gradient); stroke-width: 2.8;
       stroke-dasharray: 720; stroke-dashoffset: 720; opacity: 0; }
+    .loop-echo__ghost-path { fill: none; stroke: rgba(var(--phase-accent-rgb),0.42);
+      stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 6 20; stroke-dashoffset: 96; opacity: 0;
+      transform-box: fill-box; transform-origin: center;
+      filter: drop-shadow(0 0 10px rgba(var(--phase-accent-rgb),0.38)); }
+    .loop-echo__ghost-path:nth-child(2) { --ghost-delay: 70ms; stroke: rgba(156,194,255,0.34);
+      stroke-width: 1.1; stroke-dasharray: 2 18; }
+    .loop-echo__ghost-path:nth-child(3) { --ghost-delay: 140ms; stroke: rgba(238,243,255,0.28);
+      stroke-width: 0.9; stroke-dasharray: 1 24; }
     .loop-echo__node { fill: var(--phase-accent); opacity: 0; transform-box: fill-box;
       transform-origin: center; filter: drop-shadow(0 0 12px rgba(var(--phase-accent-rgb),0.72)); }
     .loop-echo__node:nth-child(2n) { fill: var(--heading); }
     .loop-echo__node:nth-child(3n) { fill: rgba(238,243,255,0.88); }
     .loop-echo.is-tracing .loop-echo__glow { animation: loop-echo-glow 1200ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__trail { animation: loop-echo-trace 1200ms 60ms cubic-bezier(.17,.84,.44,1) both; }
+    .loop-echo.is-tracing .loop-echo__ghost-path { animation: loop-echo-ghost 1400ms var(--ghost-delay, 0ms) cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__node { animation: loop-echo-node 760ms calc(160ms + var(--node-delay, 0ms)) cubic-bezier(.17,.84,.44,1) both; }
     .freshness-signal { --source-count: 1; --review-progress: 0%; position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
       z-index: 4; display: grid; grid-template-columns: repeat(10, auto); align-items: center; gap: 0.44rem;
@@ -964,6 +974,12 @@
       76% { opacity: 0.78; stroke-dashoffset: 0; }
       100% { opacity: 0; stroke-dashoffset: -120; transform: rotate(2deg) scale(1.03); }
     }
+    @keyframes loop-echo-ghost {
+      0% { opacity: 0; stroke-dashoffset: 96; transform: rotate(-5deg) scale(0.9); filter: blur(5px) drop-shadow(0 0 0 rgba(var(--phase-accent-rgb),0)); }
+      18% { opacity: 0.78; filter: blur(0) drop-shadow(0 0 12px rgba(var(--phase-accent-rgb),0.38)); }
+      70% { opacity: 0.42; stroke-dashoffset: 0; transform: rotate(1deg) scale(1.03); }
+      100% { opacity: 0; stroke-dashoffset: -70; transform: rotate(4deg) scale(1.08); filter: blur(4px) drop-shadow(0 0 16px rgba(var(--phase-accent-rgb),0.18)); }
+    }
     @keyframes loop-echo-node {
       0% { opacity: 0; transform: scale(0.22); }
       34% { opacity: 1; transform: scale(1.18); }
@@ -1074,7 +1090,7 @@
       100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .loop-echo__glow, .loop-echo__trail, .loop-echo__node, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
+      .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .loop-echo__glow, .loop-echo__trail, .loop-echo__ghost-path, .loop-echo__node, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .loop-telemetry__comet,
       .reveal .hero-loop::after, .reveal .hero-loop__label,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
@@ -1624,6 +1640,11 @@ Next step: backfill those rows or add a nullable migration first.
         </defs>
         <path class="loop-echo__glow" d="M86 192C94 82 224 42 318 112C424 192 520 166 546 72C584 218 456 318 328 258C198 196 120 258 86 192Z" />
         <path class="loop-echo__trail" d="M86 192C94 82 224 42 318 112C424 192 520 166 546 72C584 218 456 318 328 258C198 196 120 258 86 192Z" />
+        <g class="loop-echo__ghost" aria-hidden="true">
+          <path class="loop-echo__ghost-path" d="M110 184C144 104 246 78 326 128C420 186 492 162 522 96C546 210 448 284 332 238C230 198 152 238 110 184Z" />
+          <path class="loop-echo__ghost-path" d="M78 210C120 92 232 34 340 108C438 176 530 144 572 62C594 234 456 336 314 274C190 222 126 276 78 210Z" />
+          <path class="loop-echo__ghost-path" d="M132 170C162 112 246 96 314 138C398 190 472 178 498 118C512 204 430 260 336 226C246 194 178 218 132 170Z" />
+        </g>
         <g>
           <circle class="loop-echo__node" style="--node-delay: 0ms" cx="88" cy="192" r="5" />
           <circle class="loop-echo__node" style="--node-delay: 70ms" cx="204" cy="72" r="4" />
