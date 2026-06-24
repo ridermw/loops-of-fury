@@ -86,7 +86,29 @@
       color: var(--ink); max-width: 980px; margin: 0 auto; }
     .reveal .quote strong { color: var(--fury); }
     .reveal .source { color: #c3d2ff; font-size: 0.48em; margin-top: 1.2em; }
-    .reveal .references li { margin-bottom: 0.42em; }
+    .reveal .references { counter-reset: reference; display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.38em;
+      margin: 0.7em auto 0; padding: 0; list-style: none; text-align: left; }
+    .reveal .references li { counter-increment: reference; position: relative; overflow: hidden;
+      min-height: 3.1em; margin: 0; padding: 0.64em 0.72em 0.64em 3.2em;
+      border: 1px solid rgba(156,194,255,0.22); border-radius: 14px;
+      background:
+        radial-gradient(circle at 96% 12%, rgba(255,106,77,0.14), transparent 34%),
+        linear-gradient(135deg, rgba(8,22,62,0.78), rgba(77,140,255,0.1));
+      box-shadow: 0 14px 34px rgba(2,8,28,0.28), inset 0 1px 0 rgba(255,255,255,0.06); }
+    .reveal .references li::before { content: counter(reference, decimal-leading-zero); position: absolute;
+      left: 0.74em; top: 0.72em; color: rgba(238,243,255,0.52);
+      font-family: var(--font-display); font-size: 0.86em; font-weight: 700;
+      letter-spacing: 0.04em; text-shadow: none; }
+    .reveal .references li::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px;
+      background: linear-gradient(180deg, var(--fury), var(--heading));
+      box-shadow: 0 0 18px rgba(255,106,77,0.4); }
+    .reveal .references a { color: rgba(238,243,255,0.9); text-decoration: none;
+      background-image: linear-gradient(90deg, var(--fury), var(--heading));
+      background-position: 0 100%; background-repeat: no-repeat; background-size: 0 1px;
+      transition: color 180ms ease, background-size 220ms ease; }
+    .reveal .references a:hover,
+    .reveal .references a:focus-visible { color: var(--heading); background-size: 100% 1px; }
     .reveal .reference-freshness { display: inline-block; margin-left: 0.5em; padding: 0.08em 0.42em 0.1em;
       border: 1px solid rgba(156,194,255,0.24); border-radius: 999px; color: rgba(238,243,255,0.72);
       background: rgba(255,255,255,0.07); font-family: var(--font-display); font-size: 0.82em;
@@ -580,6 +602,7 @@
       .freshness-signal__latest, .freshness-signal__review, .freshness-signal__sources { display: none; }
       .freshness-signal__panel { left: 0; right: 0; width: auto; }
       .freshness-signal__stats { grid-template-columns: 1fr; }
+      .reveal .references { grid-template-columns: 1fr; }
     }
     @media print {
       html, body {
