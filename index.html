@@ -500,11 +500,10 @@
     body[data-loop-phase="verify"] { --phase-accent: #66e0bd; --phase-accent-rgb: 102,224,189; }
     body[data-loop-phase="decide"] { --phase-accent: var(--accent); --phase-accent-rgb: 77,140,255; }
     body[data-loop-phase="stop"] { --phase-accent: #ff8b8b; --phase-accent-rgb: 255,139,139; }
-    body { --delight-x: 50vw; --delight-y: 42vh; min-height: 100vh; overflow: hidden; isolation: isolate; }
+    body { min-height: 100vh; overflow: hidden; isolation: isolate; }
     body::after { content: ""; position: fixed; inset: 0; z-index: 0;
       pointer-events: none;
       background:
-        radial-gradient(circle at var(--delight-x) var(--delight-y), rgba(var(--phase-accent-rgb),0.26), rgba(var(--phase-accent-rgb),0.08) 12vmax, transparent 30vmax),
         radial-gradient(ellipse at 50% 44%, rgba(4,16,46,0.08) 0%, rgba(4,16,46,0.3) 54%, rgba(4,16,46,0.62) 100%),
         linear-gradient(90deg, rgba(4,16,46,0.58), rgba(4,16,46,0) 22%, rgba(4,16,46,0) 78%, rgba(4,16,46,0.58)); }
     body::before { content: ""; position: fixed; inset: -22vmax; z-index: 0;
@@ -519,6 +518,11 @@
       mask-image: radial-gradient(ellipse at 50% 45%, #000 0 34%, rgba(0,0,0,0.52) 58%, transparent 78%); }
     .reveal { position: relative; z-index: 1; }
     .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content { background: transparent !important; }
+    .loop-spotlight { position: fixed; left: 0; top: 0; width: clamp(360px, 60vmax, 960px);
+      aspect-ratio: 1; z-index: 0; pointer-events: none; border-radius: 50%; opacity: 0.76;
+      background: radial-gradient(circle, rgba(var(--phase-accent-rgb),0.26), rgba(var(--phase-accent-rgb),0.08) 42%, transparent 70%);
+      mix-blend-mode: screen; transform: translate3d(50vw, 42vh, 0) translate(-50%, -50%);
+      will-change: transform; contain: layout paint style; backface-visibility: hidden; }
     .loop-telemetry { --loop-progress: 0%; --preview-x: 50%; position: fixed; left: clamp(18px, 4vw, 58px);
       right: clamp(18px, 4vw, 58px); bottom: clamp(16px, 3vh, 34px); z-index: 4;
       display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem;
