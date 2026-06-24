@@ -209,7 +209,7 @@
     .loop-beacon.is-pulsing::before { animation: beacon-spin 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
     .freshness-signal { position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
-      z-index: 4; display: grid; grid-template-columns: auto auto auto auto; align-items: center; gap: 0.44rem;
+      z-index: 4; display: grid; grid-template-columns: auto auto auto auto auto; align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
       font-family: var(--font-display); font-size: clamp(9px, 0.86vw, 12px); font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase; text-shadow: none; pointer-events: none;
@@ -230,6 +230,8 @@
     .freshness-signal__age { margin-left: 0.12rem; padding: 0.18rem 0.42rem 0.2rem;
       border-radius: 999px; color: rgba(238,243,255,0.84); font-variant-numeric: tabular-nums;
       background: rgba(255,255,255,0.08); border: 1px solid rgba(238,243,255,0.12); }
+    .freshness-signal__sources { padding-left: 0.44rem; color: rgba(238,243,255,0.62);
+      border-left: 1px solid rgba(156,194,255,0.2); font-variant-numeric: tabular-nums; }
     .freshness-signal[data-state="fresh"]::before { background: #66e0bd;
       box-shadow: 0 0 0 0 rgba(102,224,189,0.5), 0 0 18px rgba(102,224,189,0.64); }
     .freshness-signal[data-state="fresh"] .freshness-signal__age { color: #66e0bd;
@@ -313,6 +315,12 @@
       .reveal section.present > h1::before, .reveal section.present > h1::after,
       .reveal section.present > h2::before, .reveal section.present > h2::after,
       .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop) { animation: none; will-change: auto; }
+    }
+    @media (max-width: 700px) {
+      .freshness-signal { left: clamp(14px, 4vw, 30px); right: clamp(14px, 4vw, 30px);
+        grid-template-columns: auto auto minmax(0, 1fr) auto; }
+      .freshness-signal__date { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .freshness-signal__sources { display: none; }
     }
     @media print {
       html, body {
@@ -754,8 +762,8 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessDivider.textContent = '/';
     const freshnessDate = document.createElement('time');
     freshnessDate.className = 'freshness-signal__date';
-    const modifiedAt = new Date(document.lastModified);
-    const refreshedAt = Number.isNaN(modifiedAt.getTime()) ? new Date() : modifiedAt;
+    const refreshedAt = new Date('2026-06-24T04:06:36.489Z');
+    const sourceCount = document.querySelectorAll('.slides section:last-of-type a[href^="http"]').length;
     const daysSinceRefresh = Math.max(0, Math.floor((Date.now() - refreshedAt.getTime()) / 86400000));
     const freshnessState = daysSinceRefresh <= 14 ? 'fresh' : daysSinceRefresh <= 45 ? 'aging' : 'stale';
     freshnessDate.dateTime = refreshedAt.toISOString();
@@ -763,9 +771,12 @@ Next step: backfill those rows or add a nullable migration first.
     const freshnessAge = document.createElement('span');
     freshnessAge.className = 'freshness-signal__age';
     freshnessAge.textContent = daysSinceRefresh === 0 ? 'today' : `${daysSinceRefresh}d`;
+    const freshnessSources = document.createElement('span');
+    freshnessSources.className = 'freshness-signal__sources';
+    freshnessSources.textContent = `${sourceCount} refs`;
     freshness.dataset.state = freshnessState;
-    freshness.title = `Freshness signal: ${freshnessState}, refreshed ${freshnessAge.textContent}`;
-    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge);
+    freshness.title = `Freshness signal: ${freshnessState}; source review refreshed ${freshnessAge.textContent}; ${sourceCount} external references tracked`;
+    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessSources);
     document.body.appendChild(freshness);
 
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
