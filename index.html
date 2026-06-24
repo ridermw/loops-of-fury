@@ -135,16 +135,22 @@
       transition: color 180ms ease, background-size 220ms ease; }
     .reveal .references a:hover,
     .reveal .references a:focus-visible { color: var(--heading); background-size: 100% 1px; }
-    .reveal .reference-freshness { display: inline-grid; gap: 0.04em; margin-left: 0.5em; padding: 0.16em 0.48em 0.18em;
+    .reveal .reference-freshness { display: inline-grid; gap: 0.05em; margin-left: 0.5em; padding: 0.16em 0.48em 0.18em;
       border: 1px solid rgba(156,194,255,0.24); border-radius: 999px; color: rgba(238,243,255,0.72);
       background: rgba(255,255,255,0.07); font-family: var(--font-display); font-size: 0.78em;
       font-weight: 700; letter-spacing: 0.04em; line-height: 0.98; text-transform: uppercase;
       vertical-align: middle; white-space: nowrap; }
     .reveal .reference-freshness__checked { color: rgba(238,243,255,0.56); font-family: var(--font-body);
       font-size: 0.74em; font-weight: 600; letter-spacing: 0.01em; text-transform: none; }
+    .reveal .reference-freshness__next { color: rgba(238,243,255,0.52); font-family: var(--font-body);
+      font-size: 0.7em; font-weight: 700; letter-spacing: 0.015em; text-transform: none; }
     .reveal .reference-freshness[data-state="current"] .reference-freshness__checked { color: rgba(102,224,189,0.78); }
     .reveal .reference-freshness[data-state="context"] .reference-freshness__checked { color: rgba(156,194,255,0.74); }
     .reveal .reference-freshness[data-state="archive"] .reference-freshness__checked { color: rgba(255,106,77,0.76); }
+    .reveal .reference-freshness[data-review-state="scheduled"] .reference-freshness__next { color: rgba(102,224,189,0.76); }
+    .reveal .reference-freshness[data-state][data-review-state="due"] { border-color: rgba(255,106,77,0.44);
+      box-shadow: 0 0 18px rgba(255,106,77,0.16); }
+    .reveal .reference-freshness[data-review-state="due"] .reference-freshness__next { color: var(--fury); }
     .reveal .reference-freshness[data-state="current"] { color: #66e0bd; background: rgba(102,224,189,0.1); border-color: rgba(102,224,189,0.28); }
     .reveal .reference-freshness[data-state="context"] { color: var(--heading); background: rgba(77,140,255,0.12); border-color: rgba(156,194,255,0.26); }
     .reveal .reference-freshness[data-state="archive"] { color: var(--fury); background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.3); }
@@ -1842,6 +1848,13 @@ Next step: backfill those rows or add a nullable migration first.
         && checkedAt.getUTCDate() === day;
       return isExactDate ? checkedAt : refreshedAt;
     };
+    const getSourceReviewLabel = (nextCheckAt) => {
+      const daysUntilReview = Math.ceil((nextCheckAt.getTime() - Date.now()) / DAY_MS);
+      if (daysUntilReview > 0) return `review in ${daysUntilReview}d`;
+      if (daysUntilReview === 0) return 'review today';
+      return `review ${Math.abs(daysUntilReview)}d late`;
+    };
+    const getSourceReviewState = (nextCheckAt) => nextCheckAt.getTime() <= Date.now() ? 'due' : 'scheduled';
     const extractReferenceYears = (item) => {
       const annotatedYear = Number(item.dataset.sourceYear);
       const linkedYears = `${item.textContent} ${[...item.querySelectorAll('a[href]')].map((link) => link.href).join(' ')}`.match(/\b20\d{2}\b/g) || [];
@@ -1861,19 +1874,24 @@ Next step: backfill those rows or add a nullable migration first.
       const nextCheckAt = new Date(checkedAt.getTime() + SOURCE_REVIEW_INTERVAL_DAYS * DAY_MS);
       const checkedLabel = formatShortDate(checkedAt);
       const checkedAgeLabel = getSourceAgeLabel(checkedAt);
+      const reviewLabel = getSourceReviewLabel(nextCheckAt);
       const badge = document.createElement('span');
       badge.className = 'reference-freshness';
       badge.dataset.state = state;
+      badge.dataset.reviewState = getSourceReviewState(nextCheckAt);
       const badgeLabel = document.createElement('span');
       badgeLabel.className = 'reference-freshness__label';
       badgeLabel.textContent = label;
       const badgeChecked = document.createElement('span');
       badgeChecked.className = 'reference-freshness__checked';
       badgeChecked.textContent = `checked ${checkedLabel} - ${checkedAgeLabel} ago`;
-      badge.append(badgeLabel, badgeChecked);
-      badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}; checked ${checkedLabel}, ${checkedAgeLabel} ago` : `Source year ${label}; checked ${checkedLabel}, ${checkedAgeLabel} ago`);
+      const badgeNext = document.createElement('span');
+      badgeNext.className = 'reference-freshness__next';
+      badgeNext.textContent = reviewLabel;
+      badge.append(badgeLabel, badgeChecked, badgeNext);
+      badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}; checked ${checkedLabel}, ${checkedAgeLabel} ago; ${reviewLabel}` : `Source year ${label}; checked ${checkedLabel}, ${checkedAgeLabel} ago; ${reviewLabel}`);
       item.appendChild(badge);
-      return { badge, badgeChecked, checkedAt, checkedLabel, label, nextCheckAt, sourceStatus: item.dataset.sourceStatus, state, title, year: year || 0 };
+      return { badge, badgeChecked, badgeNext, checkedAt, checkedLabel, label, nextCheckAt, sourceStatus: item.dataset.sourceStatus, state, title, year: year || 0 };
     });
     const referenceCounts = referenceAudit.reduce((counts, source) => {
       counts[source.state] = (counts[source.state] || 0) + 1;
@@ -1908,13 +1926,6 @@ Next step: backfill those rows or add a nullable migration first.
     const oldestCheckedAt = new Date(Math.min(...checkedTimes));
     const newestCheckedAt = new Date(Math.max(...checkedTimes));
     const nextReviewAt = new Date(oldestCheckedAt.getTime() + SOURCE_REVIEW_INTERVAL_DAYS * DAY_MS);
-    const getSourceReviewLabel = (nextCheckAt) => {
-      const daysUntilReview = Math.ceil((nextCheckAt.getTime() - Date.now()) / DAY_MS);
-      if (daysUntilReview > 0) return `in ${daysUntilReview}d`;
-      if (daysUntilReview === 0) return 'today';
-      return `${Math.abs(daysUntilReview)}d late`;
-    };
-    const getSourceReviewState = (nextCheckAt) => nextCheckAt.getTime() <= Date.now() ? 'due' : 'scheduled';
     const getFreshnessScore = (daysSinceRefresh) => {
       const recencyShare = 1 - Math.min(1, daysSinceRefresh / SOURCE_REVIEW_INTERVAL_DAYS);
       const currentSourceShare = sourceCount ? (referenceCounts.current || 0) / sourceCount : 0;
@@ -2106,7 +2117,7 @@ Next step: backfill those rows or add a nullable migration first.
         queueStack.append(queueName, queueMeta);
         const queueStatus = document.createElement('span');
         queueStatus.className = 'freshness-signal__queue-status';
-        queueStatus.textContent = getSourceReviewLabel(source.nextCheckAt);
+        queueStatus.textContent = getSourceReviewLabel(source.nextCheckAt).replace('review ', '');
         source.reviewQueueRow = row;
         source.reviewQueueStatus = queueStatus;
         row.append(queueStack, queueStatus);
@@ -2247,11 +2258,14 @@ Next step: backfill those rows or add a nullable migration first.
       freshness.setAttribute('aria-label', `${freshness.title}. Focus for source audit.`);
       referenceAudit.forEach((source) => {
         const checkedAgeLabel = getSourceAgeLabel(source.checkedAt);
+        const sourceReviewLabel = getSourceReviewLabel(source.nextCheckAt);
         source.badgeChecked.textContent = `checked ${source.checkedLabel} - ${checkedAgeLabel} ago`;
-        source.badge.setAttribute('aria-label', source.sourceStatus ? `Freshness marker: ${source.label}; checked ${source.checkedLabel}, ${checkedAgeLabel} ago` : `Source year ${source.label}; checked ${source.checkedLabel}, ${checkedAgeLabel} ago`);
+        source.badgeNext.textContent = sourceReviewLabel;
+        source.badge.dataset.reviewState = getSourceReviewState(source.nextCheckAt);
+        source.badge.setAttribute('aria-label', source.sourceStatus ? `Freshness marker: ${source.label}; checked ${source.checkedLabel}, ${checkedAgeLabel} ago; ${sourceReviewLabel}` : `Source year ${source.label}; checked ${source.checkedLabel}, ${checkedAgeLabel} ago; ${sourceReviewLabel}`);
         if (source.sourceChecked) source.sourceChecked.textContent = `checked ${source.checkedLabel} - ${checkedAgeLabel} ago`;
         if (source.reviewQueueRow) source.reviewQueueRow.dataset.reviewState = getSourceReviewState(source.nextCheckAt);
-        if (source.reviewQueueStatus) source.reviewQueueStatus.textContent = getSourceReviewLabel(source.nextCheckAt);
+        if (source.reviewQueueStatus) source.reviewQueueStatus.textContent = sourceReviewLabel.replace('review ', '');
       });
     };
     updateFreshnessSignal();
