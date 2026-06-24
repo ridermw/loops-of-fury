@@ -510,6 +510,19 @@
       transform: translate3d(-50%, 8px, 0) scale(0.96);
       transition: opacity 180ms ease, transform 220ms cubic-bezier(.17,.84,.44,1); }
     .loop-telemetry.is-previewing .loop-telemetry__preview { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1); }
+    .loop-telemetry__comet { --comet-from: 0%; --comet-to: 0%; --comet-scale: 1;
+      position: absolute; left: var(--comet-to); top: -10px; width: clamp(54px, 7.6vw, 118px); height: 12px;
+      pointer-events: none; opacity: 0; z-index: 1; transform: translateX(-50%) scaleX(var(--comet-scale));
+      transform-origin: center; will-change: left, opacity, filter; }
+    .loop-telemetry__comet::before { content: ""; position: absolute; inset: 4px 0 3px; border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(156,194,255,0.28) 24%, rgba(var(--phase-accent-rgb),0.88) 72%, var(--phase-accent));
+      box-shadow: 0 0 18px rgba(var(--phase-accent-rgb),0.52), 0 0 34px rgba(156,194,255,0.18); }
+    .loop-telemetry__comet::after { content: ""; position: absolute; right: -4px; top: 50%;
+      width: 10px; aspect-ratio: 1; border-radius: 50%; transform: translateY(-50%);
+      background: var(--phase-accent); box-shadow: 0 0 18px rgba(var(--phase-accent-rgb),0.92), 0 0 0 5px rgba(var(--phase-accent-rgb),0.13); }
+    .loop-telemetry.is-comet-flying .loop-telemetry__comet {
+      animation: loop-comet-flight 680ms cubic-bezier(.17,.84,.44,1) both;
+    }
     .loop-beacon { --beacon-x: 50vw; --beacon-y: 32vh; position: fixed; left: var(--beacon-x);
       top: var(--beacon-y); width: clamp(130px, 17vw, 240px); aspect-ratio: 1; z-index: 2;
       pointer-events: none; opacity: 0; transform: translate(-50%, -50%) scale(0.68);
@@ -722,6 +735,12 @@
       0%, 100% { transform: translateY(-50%) scale(0.82); opacity: 0.7; }
       50% { transform: translateY(-50%) scale(1.18); opacity: 1; }
     }
+    @keyframes loop-comet-flight {
+      0% { left: var(--comet-from); opacity: 0; filter: blur(5px) saturate(0.9); }
+      14% { opacity: 1; filter: blur(0) saturate(1.24); }
+      72% { opacity: 0.94; }
+      100% { left: var(--comet-to); opacity: 0; filter: blur(3px) saturate(1); }
+    }
     @keyframes slide-aperture {
       from { opacity: 0; transform: translate3d(0, 0.34em, 0) scale(0.982); }
       to { opacity: 0.92; transform: translate3d(0, 0, 0) scale(1); }
@@ -810,6 +829,7 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
+      .loop-telemetry__comet,
       .reveal .hero-loop::after, .reveal .hero-loop__label,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
       .reveal section.present > h1, .reveal section.present > h2,
@@ -1299,7 +1319,10 @@ Next step: backfill those rows or add a nullable migration first.
     railEl.setAttribute('aria-label', 'Slide shortcuts');
     const previewEl = document.createElement('div');
     previewEl.className = 'loop-telemetry__preview';
-    telemetry.append(phaseEl, titleEl, countEl, railEl, previewEl);
+    const cometEl = document.createElement('span');
+    cometEl.className = 'loop-telemetry__comet';
+    cometEl.setAttribute('aria-hidden', 'true');
+    telemetry.append(phaseEl, titleEl, countEl, railEl, previewEl, cometEl);
     document.body.appendChild(telemetry);
 
     const beacon = document.createElement('div');
@@ -1547,6 +1570,8 @@ Next step: backfill those rows or add a nullable migration first.
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let pipEls = [];
     let beaconTimer;
+    let cometTimer;
+    let lastProgress;
 
     const getSlideTitle = (slide, fallback = 'Loops of Fury') => {
       const heading = slide ? slide.querySelector('h1, h2') : null;
@@ -1644,6 +1669,27 @@ Next step: backfill those rows or add a nullable migration first.
       beaconTimer = setTimeout(() => beacon.classList.remove('is-pulsing'), 1000);
     };
 
+    const launchComet = (progress) => {
+      if (lastProgress === undefined) {
+        lastProgress = progress;
+        return;
+      }
+      if (reducedMotion.matches || Math.abs(progress - lastProgress) < 0.1) {
+        lastProgress = progress;
+        return;
+      }
+
+      telemetry.style.setProperty('--comet-from', `${lastProgress}%`);
+      telemetry.style.setProperty('--comet-to', `${progress}%`);
+      cometEl.style.setProperty('--comet-scale', progress >= lastProgress ? '1' : '-1');
+      telemetry.classList.remove('is-comet-flying');
+      void cometEl.offsetWidth;
+      telemetry.classList.add('is-comet-flying');
+      clearTimeout(cometTimer);
+      cometTimer = setTimeout(() => telemetry.classList.remove('is-comet-flying'), 720);
+      lastProgress = progress;
+    };
+
     const updateTelemetry = () => {
       const slides = Reveal.getSlides();
       const total = Math.max(1, slides.length || Reveal.getTotalSlides());
@@ -1672,6 +1718,7 @@ Next step: backfill those rows or add a nullable migration first.
       phaseEl.textContent = `loop / ${phase}`;
       titleEl.textContent = title;
       countEl.textContent = `${String(current).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
+      launchComet(progress);
     };
 
     Reveal.on('slidechanged', () => {
