@@ -109,10 +109,16 @@
       transition: color 180ms ease, background-size 220ms ease; }
     .reveal .references a:hover,
     .reveal .references a:focus-visible { color: var(--heading); background-size: 100% 1px; }
-    .reveal .reference-freshness { display: inline-block; margin-left: 0.5em; padding: 0.08em 0.42em 0.1em;
+    .reveal .reference-freshness { display: inline-grid; gap: 0.04em; margin-left: 0.5em; padding: 0.16em 0.48em 0.18em;
       border: 1px solid rgba(156,194,255,0.24); border-radius: 999px; color: rgba(238,243,255,0.72);
-      background: rgba(255,255,255,0.07); font-family: var(--font-display); font-size: 0.82em;
-      font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+      background: rgba(255,255,255,0.07); font-family: var(--font-display); font-size: 0.78em;
+      font-weight: 700; letter-spacing: 0.04em; line-height: 0.98; text-transform: uppercase;
+      vertical-align: middle; white-space: nowrap; }
+    .reveal .reference-freshness__checked { color: rgba(238,243,255,0.56); font-family: var(--font-body);
+      font-size: 0.74em; font-weight: 600; letter-spacing: 0.01em; text-transform: none; }
+    .reveal .reference-freshness[data-state="current"] .reference-freshness__checked { color: rgba(102,224,189,0.78); }
+    .reveal .reference-freshness[data-state="context"] .reference-freshness__checked { color: rgba(156,194,255,0.74); }
+    .reveal .reference-freshness[data-state="archive"] .reference-freshness__checked { color: rgba(255,106,77,0.76); }
     .reveal .reference-freshness[data-state="current"] { color: #66e0bd; background: rgba(102,224,189,0.1); border-color: rgba(102,224,189,0.28); }
     .reveal .reference-freshness[data-state="context"] { color: var(--heading); background: rgba(77,140,255,0.12); border-color: rgba(156,194,255,0.26); }
     .reveal .reference-freshness[data-state="archive"] { color: var(--fury); background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.3); }
@@ -1104,7 +1110,13 @@ Next step: backfill those rows or add a nullable migration first.
       const badge = document.createElement('span');
       badge.className = 'reference-freshness';
       badge.dataset.state = state;
-      badge.textContent = label;
+      const badgeLabel = document.createElement('span');
+      badgeLabel.className = 'reference-freshness__label';
+      badgeLabel.textContent = label;
+      const badgeChecked = document.createElement('span');
+      badgeChecked.className = 'reference-freshness__checked';
+      badgeChecked.textContent = `checked ${checkedLabel}`;
+      badge.append(badgeLabel, badgeChecked);
       badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}; checked ${checkedLabel}` : `Source year ${label}; checked ${checkedLabel}`);
       item.appendChild(badge);
       return { checkedAt, checkedLabel, label, state, title, year: year || 0 };
