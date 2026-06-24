@@ -585,6 +585,25 @@
     .loop-burst.is-firing .loop-burst__spark {
       animation: loop-burst-spark 880ms var(--burst-delay) cubic-bezier(.17,.84,.44,1) both;
     }
+    .loop-echo { --echo-x: 50vw; --echo-y: 34vh; position: fixed; left: var(--echo-x); top: var(--echo-y);
+      width: clamp(300px, 44vw, 620px); aspect-ratio: 1.7; z-index: 0; pointer-events: none;
+      opacity: 0.64; transform: translate(-50%, -50%); mix-blend-mode: screen;
+      filter: drop-shadow(0 0 28px rgba(var(--phase-accent-rgb),0.28)); }
+    .loop-echo svg { width: 100%; height: 100%; overflow: visible; display: block; }
+    .loop-echo__trail,
+    .loop-echo__glow { fill: none; stroke-linecap: round; stroke-linejoin: round;
+      transform-box: fill-box; transform-origin: center; }
+    .loop-echo__glow { stroke: rgba(var(--phase-accent-rgb),0.24); stroke-width: 18;
+      stroke-dasharray: 24 42; opacity: 0; filter: blur(5px); }
+    .loop-echo__trail { stroke: url(#loop-echo-gradient); stroke-width: 2.8;
+      stroke-dasharray: 720; stroke-dashoffset: 720; opacity: 0; }
+    .loop-echo__node { fill: var(--phase-accent); opacity: 0; transform-box: fill-box;
+      transform-origin: center; filter: drop-shadow(0 0 12px rgba(var(--phase-accent-rgb),0.72)); }
+    .loop-echo__node:nth-child(2n) { fill: var(--heading); }
+    .loop-echo__node:nth-child(3n) { fill: rgba(238,243,255,0.88); }
+    .loop-echo.is-tracing .loop-echo__glow { animation: loop-echo-glow 1200ms cubic-bezier(.17,.84,.44,1) both; }
+    .loop-echo.is-tracing .loop-echo__trail { animation: loop-echo-trace 1200ms 60ms cubic-bezier(.17,.84,.44,1) both; }
+    .loop-echo.is-tracing .loop-echo__node { animation: loop-echo-node 760ms calc(160ms + var(--node-delay, 0ms)) cubic-bezier(.17,.84,.44,1) both; }
     .freshness-signal { --source-count: 1; --review-progress: 0%; position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
       z-index: 4; display: grid; grid-template-columns: auto auto auto auto auto auto auto auto auto; align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
@@ -843,6 +862,22 @@
       68% { opacity: 0.82; }
       100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--burst-angle)) translateX(var(--burst-distance)) scale(1.04); filter: blur(2px) saturate(1); }
     }
+    @keyframes loop-echo-glow {
+      0% { opacity: 0; transform: rotate(-3deg) scale(0.92); }
+      24% { opacity: 0.8; }
+      100% { opacity: 0; transform: rotate(2deg) scale(1.06); }
+    }
+    @keyframes loop-echo-trace {
+      0% { opacity: 0; stroke-dashoffset: 720; transform: rotate(-4deg) scale(0.96); }
+      20% { opacity: 0.95; }
+      76% { opacity: 0.78; stroke-dashoffset: 0; }
+      100% { opacity: 0; stroke-dashoffset: -120; transform: rotate(2deg) scale(1.03); }
+    }
+    @keyframes loop-echo-node {
+      0% { opacity: 0; transform: scale(0.22); }
+      34% { opacity: 1; transform: scale(1.18); }
+      100% { opacity: 0; transform: scale(0.62); }
+    }
     @keyframes freshness-ping {
       0% { box-shadow: 0 0 0 0 rgba(255,106,77,0.5), 0 0 18px rgba(255,106,77,0.72); }
       72%, 100% { box-shadow: 0 0 0 9px rgba(255,106,77,0), 0 0 18px rgba(255,106,77,0.72); }
@@ -949,7 +984,7 @@
       100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
+      .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .loop-echo__glow, .loop-echo__trail, .loop-echo__node, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .loop-telemetry__comet,
       .reveal .hero-loop::after, .reveal .hero-loop__label,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
@@ -987,7 +1022,7 @@
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
-      body::before, body::after, .bg-skier, .loop-telemetry, .loop-beacon, .loop-burst, .freshness-signal {
+      body::before, body::after, .bg-skier, .loop-telemetry, .loop-beacon, .loop-burst, .loop-echo, .freshness-signal {
         display: none !important;
       }
       .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content {
@@ -1474,6 +1509,31 @@ Next step: backfill those rows or add a nullable migration first.
     });
     document.body.appendChild(burst);
 
+    const echo = document.createElement('div');
+    echo.className = 'loop-echo';
+    echo.setAttribute('aria-hidden', 'true');
+    echo.innerHTML = `
+      <svg viewBox="0 0 620 360" focusable="false">
+        <defs>
+          <linearGradient id="loop-echo-gradient" x1="70" y1="70" x2="550" y2="290" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="var(--fury)" />
+            <stop offset="0.48" stop-color="var(--heading)" />
+            <stop offset="1" stop-color="#66e0bd" />
+          </linearGradient>
+        </defs>
+        <path class="loop-echo__glow" d="M86 192C94 82 224 42 318 112C424 192 520 166 546 72C584 218 456 318 328 258C198 196 120 258 86 192Z" />
+        <path class="loop-echo__trail" d="M86 192C94 82 224 42 318 112C424 192 520 166 546 72C584 218 456 318 328 258C198 196 120 258 86 192Z" />
+        <g>
+          <circle class="loop-echo__node" style="--node-delay: 0ms" cx="88" cy="192" r="5" />
+          <circle class="loop-echo__node" style="--node-delay: 70ms" cx="204" cy="72" r="4" />
+          <circle class="loop-echo__node" style="--node-delay: 140ms" cx="338" cy="126" r="4.5" />
+          <circle class="loop-echo__node" style="--node-delay: 210ms" cx="546" cy="72" r="5" />
+          <circle class="loop-echo__node" style="--node-delay: 280ms" cx="474" cy="292" r="4" />
+          <circle class="loop-echo__node" style="--node-delay: 350ms" cx="222" cy="252" r="4.5" />
+        </g>
+      </svg>`;
+    document.body.appendChild(echo);
+
     const freshness = document.createElement('div');
     freshness.className = 'freshness-signal';
     freshness.setAttribute('role', 'note');
@@ -1786,6 +1846,7 @@ Next step: backfill those rows or add a nullable migration first.
     let burstTimer;
     let cometTimer;
     let skierTimer;
+    let echoTimer;
     let lastProgress;
     let spotlightFrame;
 
@@ -1824,6 +1885,27 @@ Next step: backfill those rows or add a nullable migration first.
       if (!heading) return;
       const bounds = heading.getBoundingClientRect();
       setSpotlight(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+    };
+
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+    const traceLoopEcho = () => {
+      const currentSlide = Reveal.getCurrentSlide();
+      const anchor = currentSlide ? currentSlide.querySelector('h1, h2, .quote, .grid') : null;
+      if (!anchor) return;
+
+      const bounds = anchor.getBoundingClientRect();
+      const x = clamp(bounds.left + bounds.width / 2, window.innerWidth * 0.22, window.innerWidth * 0.78);
+      const y = clamp(bounds.top + bounds.height / 2, window.innerHeight * 0.22, window.innerHeight * 0.58);
+      echo.style.setProperty('--echo-x', `${x}px`);
+      echo.style.setProperty('--echo-y', `${y}px`);
+
+      if (reducedMotion.matches) return;
+      echo.classList.remove('is-tracing');
+      void echo.offsetWidth;
+      echo.classList.add('is-tracing');
+      clearTimeout(echoTimer);
+      echoTimer = setTimeout(() => echo.classList.remove('is-tracing'), 1300);
     };
 
     window.addEventListener('pointermove', (event) => {
@@ -1991,6 +2073,7 @@ Next step: backfill those rows or add a nullable migration first.
     Reveal.on('slidechanged', () => {
       updateTelemetry();
       aimSpotlightAtHeading();
+      traceLoopEcho();
       pulseBeacon();
       fireLoopBurst();
       carveSkier();
@@ -1998,6 +2081,7 @@ Next step: backfill those rows or add a nullable migration first.
     deckReady.then(() => {
       updateTelemetry();
       aimSpotlightAtHeading();
+      traceLoopEcho();
       pulseBeacon();
       fireLoopBurst();
       carveSkier();
