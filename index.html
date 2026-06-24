@@ -1174,7 +1174,7 @@
     }
     @media (max-width: 700px) {
       .freshness-signal { left: clamp(14px, 4vw, 30px); right: clamp(14px, 4vw, 30px);
-        grid-template-columns: auto auto minmax(0, 1fr) auto auto; }
+        grid-template-columns: auto auto minmax(0, 1fr) auto auto auto; }
       .freshness-signal__date { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .freshness-signal__latest, .freshness-signal__review, .freshness-signal__pulse-train, .freshness-signal__sources { display: none; }
       .freshness-signal__panel { left: 0; right: 0; width: auto; }
@@ -1938,6 +1938,9 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessAge.className = 'freshness-signal__age';
     const getFreshnessAge = formatElapsedAge;
     freshnessAge.textContent = getFreshnessAge(elapsedSinceRefresh);
+    const freshnessVerdict = document.createElement('span');
+    freshnessVerdict.className = 'freshness-signal__verdict';
+    freshnessVerdict.textContent = freshnessState;
     const freshnessLatest = document.createElement('span');
     freshnessLatest.className = 'freshness-signal__latest';
     freshnessLatest.textContent = `latest ${Math.max(latestReferenceYear, latestLinkedReferenceYear)}`;
@@ -2144,13 +2147,14 @@ Next step: backfill those rows or add a nullable migration first.
       });
     freshnessPanel.append(freshnessPanelTitle, freshnessPanelMeta, freshnessTimeline, freshnessQueue, freshnessMix, freshnessVintage, freshnessStats, freshnessSourceList);
     freshness.setAttribute('aria-describedby', freshnessPanel.id);
-    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessScore, freshnessLatest, freshnessReview, freshnessPulseTrain, freshnessSources, freshnessPanel);
+    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessVerdict, freshnessScore, freshnessLatest, freshnessReview, freshnessPulseTrain, freshnessSources, freshnessPanel);
     document.body.appendChild(freshness);
     const updateFreshnessSignal = () => {
       const snapshot = getFreshnessSnapshot();
       const ageLabel = getFreshnessAge(snapshot.elapsedSinceRefresh);
       const sourceVintageLabel = `${oldestReferenceYear}-${newestReferenceYear}`;
       freshnessAge.textContent = ageLabel;
+      freshnessVerdict.textContent = snapshot.freshnessState;
       freshnessReview.textContent = snapshot.reviewLabel;
       freshnessScore.textContent = `${snapshot.sourceConfidenceScore}%`;
       freshnessTimelineNext.textContent = snapshot.reviewLabel;
