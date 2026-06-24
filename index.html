@@ -399,9 +399,21 @@
       mask-image: radial-gradient(circle, transparent 0 45%, #000 47% 59%, transparent 61% 100%); }
     .loop-beacon::after { inset: 36%; background: var(--phase-accent);
       box-shadow: 0 -68px 0 -5px rgba(156,194,255,0.9), 62px 30px 0 -7px rgba(var(--phase-accent-rgb),0.86), -58px 38px 0 -8px rgba(238,243,255,0.78); }
+    .loop-beacon__spark { --spark-angle: 0deg; position: absolute; left: 50%; top: 50%;
+      width: clamp(7px, 0.72vw, 11px); aspect-ratio: 1; border-radius: 50%;
+      background: var(--phase-accent);
+      box-shadow: 0 0 18px rgba(var(--phase-accent-rgb),0.9), 0 0 0 4px rgba(var(--phase-accent-rgb),0.12);
+      opacity: 0; transform: rotate(var(--spark-angle)) translateX(0) scale(0.4); transform-origin: 0 0; }
+    .loop-beacon__spark:nth-child(1) { --spark-angle: -116deg; background: var(--fury); box-shadow: 0 0 18px rgba(255,106,77,0.78), 0 0 0 4px rgba(255,106,77,0.1); }
+    .loop-beacon__spark:nth-child(2) { --spark-angle: -58deg; background: var(--heading); box-shadow: 0 0 18px rgba(156,194,255,0.78), 0 0 0 4px rgba(156,194,255,0.1); }
+    .loop-beacon__spark:nth-child(3) { --spark-angle: -6deg; background: #66e0bd; box-shadow: 0 0 18px rgba(102,224,189,0.78), 0 0 0 4px rgba(102,224,189,0.1); }
+    .loop-beacon__spark:nth-child(4) { --spark-angle: 48deg; }
+    .loop-beacon__spark:nth-child(5) { --spark-angle: 104deg; background: var(--heading); box-shadow: 0 0 18px rgba(156,194,255,0.78), 0 0 0 4px rgba(156,194,255,0.1); }
+    .loop-beacon__spark:nth-child(6) { --spark-angle: 164deg; background: rgba(238,243,255,0.92); box-shadow: 0 0 18px rgba(238,243,255,0.72), 0 0 0 4px rgba(238,243,255,0.08); }
     .loop-beacon.is-pulsing { animation: beacon-bloom 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::before { animation: beacon-spin 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
+    .loop-beacon.is-pulsing .loop-beacon__spark { animation: beacon-orbit-spark 980ms cubic-bezier(.17,.84,.44,1) both; }
     .freshness-signal { position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
       z-index: 4; display: grid; grid-template-columns: auto auto auto auto auto auto auto; align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
@@ -518,6 +530,11 @@
       24% { opacity: 1; }
       100% { opacity: 0; transform: scale(1.28) rotate(34deg); }
     }
+    @keyframes beacon-orbit-spark {
+      0% { opacity: 0; transform: rotate(var(--spark-angle)) translateX(0) scale(0.42); }
+      22% { opacity: 1; }
+      100% { opacity: 0; transform: rotate(var(--spark-angle)) translateX(clamp(58px, 8vw, 116px)) scale(1.05); }
+    }
     @keyframes freshness-ping {
       0% { box-shadow: 0 0 0 0 rgba(255,106,77,0.5), 0 0 18px rgba(255,106,77,0.72); }
       72%, 100% { box-shadow: 0 0 0 9px rgba(255,106,77,0), 0 0 18px rgba(255,106,77,0.72); }
@@ -590,7 +607,7 @@
       8% { opacity: 1; filter: drop-shadow(0 0 12px rgba(255,106,77,0.7)); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
+      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .reveal .hero-loop::after, .reveal .hero-loop__label,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
       .reveal section.present > h1, .reveal section.present > h2,
@@ -1061,6 +1078,11 @@ Next step: backfill those rows or add a nullable migration first.
     const beacon = document.createElement('div');
     beacon.className = 'loop-beacon';
     beacon.setAttribute('aria-hidden', 'true');
+    Array.from({ length: 6 }, () => {
+      const spark = document.createElement('span');
+      spark.className = 'loop-beacon__spark';
+      beacon.appendChild(spark);
+    });
     document.body.appendChild(beacon);
 
     const freshness = document.createElement('div');
