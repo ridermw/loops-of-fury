@@ -15,6 +15,7 @@ const EXCLUDE_FILES = new Set([
   'scoreboard.json',
   'LOOP_STATUS',
   'status.json',
+  'failures.jsonl',
   '.env',
 ]);
 const EXCLUDE_DIRS = new Set(['baseline', 'judge', 'node_modules', '.cache']);

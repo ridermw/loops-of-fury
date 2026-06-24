@@ -2,7 +2,7 @@
 // scripted iteration() and a fake clock. No browser, no git, no credits.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runLoop } from '../loop.mjs';
+import { runLoop, liveDecision } from '../loop.mjs';
 
 const cfg = (o = {}) => ({
   maxDurationMs: 1_000_000_000, maxNoops: 3, retryK: 3,
@@ -114,4 +114,43 @@ test('commitAndPush flag is threaded through to iteration()', async () => {
     now: () => 1,
   });
   assert.equal(seen, true);
+});
+
+// D29 (revised): live verify NEVER halts the run. These lock the pure decision so a
+// regression can't re-introduce the iter-3 self-halt where Pages deploy latency reverted
+// a good commit AND killed the run.
+const G = { status: 'green', committed: true, sha: 'deadbeefcafe' };
+
+test('liveDecision: live OK → pass (trust the green commit, no halt)', () => {
+  const d = liveDecision(G, { ok: true });
+  assert.equal(d.kind, 'pass');
+  assert.equal('halt' in d, false);
+});
+
+test('liveDecision: SHA not observable (pause) → soft-pass, never revert, never halt', () => {
+  const d = liveDecision(G, { ok: false, action: 'pause', reason: 'sha-not-observable' });
+  assert.equal(d.kind, 'soft-pass');
+  assert.equal(d.reason, 'sha-not-observable');
+  assert.equal('halt' in d, false);
+});
+
+test('liveDecision: live-check error (thrown poll) → soft-pass, never halt', () => {
+  const d = liveDecision(G, { ok: false, action: 'pause', reason: 'live-check-error' });
+  assert.equal(d.kind, 'soft-pass');
+  assert.equal(d.reason, 'live-check-error');
+  assert.equal('halt' in d, false);
+});
+
+test('liveDecision: missing/undefined live result → soft-pass (fail safe, keep looping)', () => {
+  const d = liveDecision(G, undefined);
+  assert.equal(d.kind, 'soft-pass');
+  assert.equal(d.reason, 'sha-not-observable');
+  assert.equal('halt' in d, false);
+});
+
+test('liveDecision: live deck genuinely broken (revert) → revert, still no halt', () => {
+  const d = liveDecision(G, { ok: false, action: 'revert', reason: 'live-broken' });
+  assert.equal(d.kind, 'revert');
+  assert.equal(d.reason, 'live-broken');
+  assert.equal('halt' in d, false);
 });

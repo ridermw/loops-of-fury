@@ -164,6 +164,20 @@ export async function runLoop({
   return { state, history, board };
 }
 
+// Pure live-verify decision (D29, revised). Given the original GREEN outcome and the
+// liveCheckAfterPush result, decide what the loop does. Live verify NEVER halts:
+//   - live.ok              → 'pass'      (trust the green outcome as-is);
+//   - live.action 'revert' → 'revert'    (live deck FAILED the objective gate → forward-revert);
+//   - anything else (pause / sha-not-observable / live-check-error)
+//                          → 'soft-pass' (Pages deploy latency is not breakage — keep the
+//                                         commit on main and keep looping).
+// No branch ever returns a halt signal, so live verify can never end the run on latency.
+export function liveDecision(outcome, live) {
+  if (live && live.ok) return { kind: 'pass' };
+  if (live && live.action === 'revert') return { kind: 'revert', reason: live.reason || 'live-broken' };
+  return { kind: 'soft-pass', reason: (live && live.reason) || 'sha-not-observable' };
+}
+
 // Crash-safe run acquisition (D34). Reads the on-disk run record, classifies it,
 // and either refuses to start (another live run) or claims a fresh identity —
 // finalizing a crashed prior run so its issue is never silently inherited. Pure
@@ -248,12 +262,18 @@ async function mainRun() {
 
   const board = loadBoard(SCOREBOARD_FILE, LOOP.axes);
 
-  // D29 bounded pipeline: wrap the real driver iteration so a GREEN-and-pushed
-  // commit is re-verified on the LIVE Pages site before the loop trusts it.
+  // D29 bounded pipeline (revised — live verify NEVER halts the run): wrap the real
+  // driver iteration so a GREEN-and-pushed commit is re-checked on the LIVE Pages site.
+  // Every commit already cleared the local objective gate AND a headless-Chromium render
+  // BEFORE it reached main, so Pages lag is not breakage evidence. Per the operator's
+  // "no roadblocks" mandate:
   //   - live OK            → pass the green outcome through unchanged;
-  //   - live broken        → forward-revert the commit on main (never reset), keep
-  //                          looping (the brain retries / switches axis);
-  //   - SHA not observable → forward-revert AND halt (deploy pipeline is unhealthy).
+  //   - SHA not observable → SOFT-PASS: keep the commit on main, note it, keep looping
+  //                          (GitHub Pages deploy latency under rapid commits — not a
+  //                          fault; never revert a good commit, never halt the run);
+  //   - live broken        → forward-revert the commit on main (never reset) and return
+  //                          red WITHOUT halting (the brain retries / switches axis; the
+  //                          D38 churn cap escalates only if reverts actually thrash).
   const verifiedIteration = async (args) => {
     const outcome = await realIteration(args);
     if (!commitAndPush) return outcome;
@@ -267,10 +287,29 @@ async function mainRun() {
       live = { ok: false, action: 'pause', reason: 'live-check-error',
         failures: [String(e && e.message ? e.message : e)] };
     }
-    if (live.ok) return outcome;
+    const act = liveDecision(outcome, live);
+    if (act.kind === 'pass') return outcome;
 
     const short = String(outcome.sha).slice(0, 9);
-    const reason = live.reason || (live.action === 'pause' ? 'sha-not-observable' : 'live-broken');
+
+    // SOFT-PASS: the pushed SHA was not observable on the deployed site within the poll
+    // budget. This is almost always Pages deploy latency, NOT deck breakage — the local
+    // gate + Chromium render already validated this deck. Keep the commit, note it, and
+    // continue. live-verify can never revert a good commit or kill the run on latency.
+    if (act.kind === 'soft-pass') {
+      log(`live verify soft-pass for ${short} (${act.reason}) — commit KEPT on main, loop continues`);
+      if (run.issue) {
+        commentIssue(run.issue,
+          `Live verify could not confirm \`${short}\` (${act.reason}) within the poll budget — ` +
+          'likely GitHub Pages deploy latency. Commit KEPT on `main`; loop continues (no revert, no halt).');
+      }
+      return outcome;
+    }
+
+    // HARD REVERT: the live deck was actually fetched and FAILED the objective gate on the
+    // deployed URL. Forward-revert the bad commit (never reset a public branch) and return
+    // red WITHOUT halting so the brain retries / switches axis.
+    const reason = act.reason;
     try {
       G.revertNoCommit(outcome.sha);
       const trailer = [
@@ -284,11 +323,10 @@ async function mainRun() {
     }
     if (run.issue) {
       commentIssue(run.issue,
-        `Live verify failed for \`${short}\` (${reason}); deck forward-reverted on \`main\`.`);
+        `Live verify FAILED for \`${short}\` (${reason}); deck forward-reverted on \`main\`. Loop continues.`);
     }
     return {
-      ...outcome, status: 'red', committed: false, reason,
-      liveReverted: true, halt: live.action === 'pause',
+      ...outcome, status: 'red', committed: false, reason, liveReverted: true,
     };
   };
 

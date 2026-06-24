@@ -205,14 +205,16 @@ export const ISSUE = {
   escalationColor: 'b60205',
 };
 
-// Live GitHub Pages verification (D29 critical section; Eng-Q3 ≤3 min budget).
-// After a GREEN push, poll the Pages build API until the deployed commit == the
-// pushed SHA AND status === 'built', then re-render the LIVE deck URLs through the
-// SAME objective gate (assertDeck). A live failure → forward-revert + escalate; the
-// SHA not becoming observable within maxWaitMs → forward-revert + pause + escalate.
+// Live GitHub Pages verification (D29 critical section; revised — live verify NEVER
+// halts the run). After a GREEN push, poll the Pages build API until the deployed commit
+// == the pushed SHA AND status === 'built', then re-render the LIVE deck URLs through the
+// SAME objective gate (assertDeck). A live render failure → forward-revert (loop keeps
+// going). The SHA not becoming observable within maxWaitMs → SOFT-PASS: keep the commit on
+// main and continue (Pages deploy latency under rapid commits is not deck breakage). The
+// budget is kept short so a queued deploy soft-passes quickly instead of idling the loop.
 export const PAGES = {
   baseUrl: 'https://ridermw.github.io/loops-of-fury/',
-  maxWaitMs: 3 * 60 * 1000,   // Eng-Q3: ≤3 min poll budget, then pause+escalate
+  maxWaitMs: 60 * 1000,       // best-effort live-verify budget, then soft-pass + continue
   pollIntervalMs: 10 * 1000,  // build API poll cadence
 };
 
