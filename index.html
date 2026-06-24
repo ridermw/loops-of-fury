@@ -165,7 +165,7 @@
     .reveal .source-audit-strip + .references { margin-top: 0.42em; }
     .reveal .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7em; align-items: stretch; }
     .reveal .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .reveal .card { position: relative; overflow: hidden;
+    .reveal .card { --card-glow-x: 92%; --card-glow-y: 14%; position: relative; overflow: hidden;
       background:
         radial-gradient(circle at 92% 14%, rgba(156,194,255,0.2), transparent 28%),
         linear-gradient(145deg, rgba(8,22,62,0.86), rgba(8,22,62,0.62) 52%, rgba(77,140,255,0.12));
@@ -176,14 +176,13 @@
       background: linear-gradient(180deg, var(--fury), var(--heading));
       box-shadow: 0 0 18px rgba(255,106,77,0.42);
       transition: width 240ms ease, box-shadow 260ms ease, opacity 220ms ease; }
-    .reveal .card::after { content: ""; position: absolute; right: -1.8em; top: -1.8em;
-      width: 5.4em; aspect-ratio: 1; border-radius: 50%;
+    .reveal .card::after { content: ""; position: absolute; inset: -1px; border-radius: inherit;
       background:
-        radial-gradient(circle, rgba(255,255,255,0.16), transparent 62%),
+        radial-gradient(circle at var(--card-glow-x) var(--card-glow-y), rgba(238,243,255,0.22), rgba(var(--phase-accent-rgb),0.16) 18%, transparent 40%),
         linear-gradient(115deg, transparent 0 36%, rgba(238,243,255,0.2) 45%, rgba(var(--phase-accent-rgb),0.24) 50%, transparent 62% 100%);
       background-size: 100% 100%, 220% 100%;
       background-position: center, 140% 0;
-      pointer-events: none; opacity: 0.72;
+      pointer-events: none; opacity: 0.58; mix-blend-mode: screen;
       transition: opacity 260ms ease, background-position 520ms cubic-bezier(.17,.84,.44,1), transform 320ms cubic-bezier(.17,.84,.44,1); }
     .reveal .card:hover, .reveal .card:focus-within { border-color: rgba(var(--phase-accent-rgb),0.54);
       box-shadow: 0 18px 44px rgba(2,8,28,0.42), 0 0 34px rgba(var(--phase-accent-rgb),0.18), inset 0 1px 0 rgba(255,255,255,0.11);
@@ -191,7 +190,7 @@
     .reveal .card:hover::before, .reveal .card:focus-within::before { width: 5px;
       box-shadow: 0 0 24px rgba(var(--phase-accent-rgb),0.54); }
     .reveal .card:hover::after, .reveal .card:focus-within::after { opacity: 1;
-      background-position: center, -55% 0; transform: scale(1.08) rotate(1deg); }
+      background-position: center, -55% 0; transform: scale(1.018); }
     .reveal .card > * { position: relative; z-index: 1; }
     .reveal .card h3 { margin-top: 0; font-size: 0.82em; color: var(--fury); }
     .reveal .card p, .reveal .card li { font-size: 0.55em; }
@@ -2193,6 +2192,7 @@ Next step: backfill those rows or add a nullable migration first.
     let echoTimer;
     let lastProgress;
     let spotlightFrame;
+    const slidesRoot = document.querySelector('.reveal .slides');
 
     const getSlideTitle = (slide, fallback = 'Loops of Fury') => {
       const heading = slide ? slide.querySelector('h1, h2') : null;
@@ -2233,6 +2233,28 @@ Next step: backfill those rows or add a nullable migration first.
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
+    const setCardSignalGlint = (event) => {
+      if (reducedMotion.matches || event.pointerType === 'touch') return;
+      const target = event.target instanceof Element ? event.target : null;
+      const card = target ? target.closest('.card') : null;
+      if (!card || !slidesRoot || !slidesRoot.contains(card)) return;
+
+      const bounds = card.getBoundingClientRect();
+      const glowX = clamp(((event.clientX - bounds.left) / bounds.width) * 100, 0, 100);
+      const glowY = clamp(((event.clientY - bounds.top) / bounds.height) * 100, 0, 100);
+      card.style.setProperty('--card-glow-x', `${glowX.toFixed(1)}%`);
+      card.style.setProperty('--card-glow-y', `${glowY.toFixed(1)}%`);
+    };
+
+    const clearCardSignalGlint = (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const card = target ? target.closest('.card') : null;
+      const nextTarget = event.relatedTarget instanceof Node ? event.relatedTarget : null;
+      if (!card || (nextTarget && card.contains(nextTarget))) return;
+      card.style.removeProperty('--card-glow-x');
+      card.style.removeProperty('--card-glow-y');
+    };
+
     const traceLoopEcho = () => {
       const currentSlide = Reveal.getCurrentSlide();
       const anchor = currentSlide ? currentSlide.querySelector('h1, h2, .quote, .grid') : null;
@@ -2257,6 +2279,10 @@ Next step: backfill those rows or add a nullable migration first.
       cancelAnimationFrame(spotlightFrame);
       spotlightFrame = requestAnimationFrame(() => setSpotlight(event.clientX, event.clientY));
     }, { passive: true });
+    if (slidesRoot) {
+      slidesRoot.addEventListener('pointermove', setCardSignalGlint, { passive: true });
+      slidesRoot.addEventListener('pointerout', clearCardSignalGlint);
+    }
 
     const getPipFromEvent = (event) => {
       const target = event.target instanceof Element ? event.target : null;
