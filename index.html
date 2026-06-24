@@ -550,6 +550,20 @@
     .loop-beacon.is-pulsing::before { animation: beacon-spin 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing .loop-beacon__spark { animation: beacon-orbit-spark 980ms cubic-bezier(.17,.84,.44,1) both; }
+    .loop-burst { --burst-x: 50vw; --burst-y: 50vh; position: fixed; inset: 0; z-index: 3;
+      overflow: hidden; pointer-events: none; mix-blend-mode: screen; }
+    .loop-burst__spark { --burst-angle: 0deg; --burst-distance: 92px; --burst-delay: 0ms; --spark-color: var(--phase-accent);
+      position: absolute; left: var(--burst-x); top: var(--burst-y); width: clamp(6px, 0.74vw, 11px); aspect-ratio: 1;
+      border-radius: 50%; color: var(--spark-color); background: currentColor; opacity: 0;
+      transform: translate(-50%, -50%) rotate(var(--burst-angle)) translateX(0) scale(0.4);
+      box-shadow: 0 0 18px currentColor, 0 0 0 5px color-mix(in srgb, currentColor 16%, transparent);
+      will-change: transform, opacity, filter; }
+    .loop-burst__spark::before { content: ""; position: absolute; right: 45%; top: 50%;
+      width: clamp(34px, 5.8vw, 82px); height: 2px; border-radius: 999px; transform: translateY(-50%);
+      background: linear-gradient(90deg, transparent, currentColor); opacity: 0.68; }
+    .loop-burst.is-firing .loop-burst__spark {
+      animation: loop-burst-spark 880ms var(--burst-delay) cubic-bezier(.17,.84,.44,1) both;
+    }
     .freshness-signal { --source-count: 1; --review-progress: 0%; position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
       z-index: 4; display: grid; grid-template-columns: auto auto auto auto auto auto auto auto; align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
@@ -752,6 +766,12 @@
       22% { opacity: 1; }
       100% { opacity: 0; transform: rotate(var(--spark-angle)) translateX(clamp(58px, 8vw, 116px)) scale(1.05); }
     }
+    @keyframes loop-burst-spark {
+      0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--burst-angle)) translateX(0) scale(0.38); filter: blur(7px) saturate(0.9); }
+      14% { opacity: 0.95; filter: blur(0) saturate(1.28); }
+      68% { opacity: 0.82; }
+      100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--burst-angle)) translateX(var(--burst-distance)) scale(1.04); filter: blur(2px) saturate(1); }
+    }
     @keyframes freshness-ping {
       0% { box-shadow: 0 0 0 0 rgba(255,106,77,0.5), 0 0 18px rgba(255,106,77,0.72); }
       72%, 100% { box-shadow: 0 0 0 9px rgba(255,106,77,0), 0 0 18px rgba(255,106,77,0.72); }
@@ -858,7 +878,7 @@
       100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
+      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .loop-telemetry__comet,
       .reveal .hero-loop::after, .reveal .hero-loop__label,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
@@ -894,7 +914,7 @@
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
-      body::before, body::after, .bg-skier, .loop-telemetry, .loop-beacon, .freshness-signal {
+      body::before, body::after, .bg-skier, .loop-telemetry, .loop-beacon, .loop-burst, .freshness-signal {
         display: none !important;
       }
       .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content {
@@ -1367,6 +1387,20 @@ Next step: backfill those rows or add a nullable migration first.
     });
     document.body.appendChild(beacon);
 
+    const burst = document.createElement('div');
+    burst.className = 'loop-burst';
+    burst.setAttribute('aria-hidden', 'true');
+    const burstPalette = ['var(--fury)', 'var(--heading)', '#66e0bd', 'var(--accent)', '#ff8b8b', 'rgba(238,243,255,0.92)'];
+    const burstSparks = Array.from({ length: 10 }, (_, index) => {
+      const spark = document.createElement('span');
+      spark.className = 'loop-burst__spark';
+      spark.style.setProperty('--spark-color', burstPalette[index % burstPalette.length]);
+      spark.style.setProperty('--burst-delay', `${index * 24}ms`);
+      burst.appendChild(spark);
+      return spark;
+    });
+    document.body.appendChild(burst);
+
     const freshness = document.createElement('div');
     freshness.className = 'freshness-signal';
     freshness.setAttribute('role', 'note');
@@ -1648,6 +1682,7 @@ Next step: backfill those rows or add a nullable migration first.
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let pipEls = [];
     let beaconTimer;
+    let burstTimer;
     let cometTimer;
     let lastProgress;
 
@@ -1747,6 +1782,29 @@ Next step: backfill those rows or add a nullable migration first.
       beaconTimer = setTimeout(() => beacon.classList.remove('is-pulsing'), 1000);
     };
 
+    const fireLoopBurst = () => {
+      if (reducedMotion.matches) return;
+      const currentSlide = Reveal.getCurrentSlide();
+      const heading = currentSlide ? currentSlide.querySelector('h1, h2') : null;
+      if (!heading) return;
+      const bounds = heading.getBoundingClientRect();
+      const slideIndex = Reveal.getSlidePastCount();
+
+      burst.style.setProperty('--burst-x', `${bounds.left + bounds.width / 2}px`);
+      burst.style.setProperty('--burst-y', `${bounds.top + bounds.height / 2}px`);
+      burstSparks.forEach((spark, index) => {
+        const angle = -154 + index * 34 + (slideIndex % 5) * 7;
+        const distance = 64 + ((index + slideIndex) % 4) * 18;
+        spark.style.setProperty('--burst-angle', `${angle}deg`);
+        spark.style.setProperty('--burst-distance', `clamp(${distance}px, ${7 + (index % 3)}vw, ${distance + 54}px)`);
+      });
+      burst.classList.remove('is-firing');
+      void burst.offsetWidth;
+      burst.classList.add('is-firing');
+      clearTimeout(burstTimer);
+      burstTimer = setTimeout(() => burst.classList.remove('is-firing'), 980);
+    };
+
     const launchComet = (progress) => {
       if (lastProgress === undefined) {
         lastProgress = progress;
@@ -1802,10 +1860,12 @@ Next step: backfill those rows or add a nullable migration first.
     Reveal.on('slidechanged', () => {
       updateTelemetry();
       pulseBeacon();
+      fireLoopBurst();
     });
     deckReady.then(() => {
       updateTelemetry();
       pulseBeacon();
+      fireLoopBurst();
     });
   </script>
 </body>
