@@ -64,7 +64,7 @@
       mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       -webkit-mask-composite: xor; mask-composite: exclude;
       filter: drop-shadow(0 0 16px rgba(255,106,77,0.44)); }
-    .reveal .hero-loop__label { --label-delay: 0ms; position: absolute; z-index: 1;
+    .reveal .hero-loop__label { --label-delay: 0ms; --phase-delay: 0ms; position: absolute; z-index: 1;
       display: inline-flex; align-items: center; gap: 0.36em; padding: 0.28em 0.62em 0.32em;
       border: 1px solid rgba(156,194,255,0.28); border-radius: 999px;
       color: rgba(238,243,255,0.82); background: linear-gradient(135deg, rgba(8,22,62,0.86), rgba(77,140,255,0.14));
@@ -73,12 +73,12 @@
       letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
     .reveal .hero-loop__label::before { content: ""; width: 0.54em; aspect-ratio: 1; border-radius: 50%;
       background: var(--fury); box-shadow: 0 0 14px rgba(255,106,77,0.76); }
-    .reveal .hero-loop__label:nth-child(1) { --label-delay: 0ms; left: 3%; top: 48%; }
-    .reveal .hero-loop__label:nth-child(2) { --label-delay: 70ms; left: 19%; top: 6%; }
-    .reveal .hero-loop__label:nth-child(3) { --label-delay: 140ms; left: 50%; top: 0; transform: translateX(-50%); }
-    .reveal .hero-loop__label:nth-child(4) { --label-delay: 210ms; right: 18%; top: 6%; }
-    .reveal .hero-loop__label:nth-child(5) { --label-delay: 280ms; right: 4%; top: 48%; }
-    .reveal .hero-loop__label:nth-child(6) { --label-delay: 350ms; left: 50%; bottom: 0; transform: translateX(-50%); }
+    .reveal .hero-loop__label:nth-child(1) { --label-delay: 0ms; --phase-delay: 0ms; left: 3%; top: 48%; }
+    .reveal .hero-loop__label:nth-child(2) { --label-delay: 70ms; --phase-delay: 930ms; left: 19%; top: 6%; }
+    .reveal .hero-loop__label:nth-child(3) { --label-delay: 140ms; --phase-delay: 1860ms; left: 50%; top: 0; transform: translateX(-50%); }
+    .reveal .hero-loop__label:nth-child(4) { --label-delay: 210ms; --phase-delay: 2790ms; right: 18%; top: 6%; }
+    .reveal .hero-loop__label:nth-child(5) { --label-delay: 280ms; --phase-delay: 3720ms; right: 4%; top: 48%; }
+    .reveal .hero-loop__label:nth-child(6) { --label-delay: 350ms; --phase-delay: 4650ms; left: 50%; bottom: 0; transform: translateX(-50%); }
     .reveal ul li::marker { color: var(--fury); }
     .reveal section > ul:not(.references),
     .reveal .grid > ul { display: grid; gap: 0.36em; margin: 0.68em auto 0; padding: 0;
@@ -243,7 +243,14 @@
     .reveal .ledger-receipt span:nth-child(2)::before { background: var(--heading); box-shadow: 0 0 12px rgba(156,194,255,0.68); }
     .reveal .ledger-receipt span:nth-child(3)::before { background: #66e0bd; box-shadow: 0 0 12px rgba(102,224,189,0.68); }
     .reveal section.present .hero-loop::after { animation: hero-loop-sweep 5.6s linear infinite; }
-    .reveal section.present .hero-loop__label { animation: hero-label-arrive 640ms calc(320ms + var(--label-delay)) cubic-bezier(.17,.84,.44,1) both; }
+    .reveal section.present .hero-loop__label {
+      animation:
+        hero-label-arrive 640ms calc(320ms + var(--label-delay)) cubic-bezier(.17,.84,.44,1) both,
+        hero-phase-heartbeat 5.6s calc(980ms + var(--phase-delay)) cubic-bezier(.17,.84,.44,1) infinite;
+    }
+    .reveal section.present .hero-loop__label::before {
+      animation: hero-phase-dot 5.6s calc(980ms + var(--phase-delay)) cubic-bezier(.17,.84,.44,1) infinite;
+    }
     .reveal section.present[data-ledger] .ledger-stage { animation: content-drift 620ms 100ms cubic-bezier(.17,.84,.44,1) both; }
     .reveal section.present[data-ledger] .ledger-stage::before { animation: ledger-halo 7.5s linear infinite; }
     .reveal section.present[data-ledger] .ledger-stage::after { animation: ledger-scan 4.2s ease-in-out infinite; }
@@ -936,6 +943,32 @@
       from { opacity: 0; translate: 0 0.42em; scale: 0.96; filter: blur(8px); }
       to { opacity: 1; translate: 0 0; scale: 1; filter: blur(0); }
     }
+    @keyframes hero-phase-heartbeat {
+      0%, 11%, 100% {
+        color: rgba(238,243,255,0.82);
+        border-color: rgba(156,194,255,0.28);
+        background: linear-gradient(135deg, rgba(8,22,62,0.86), rgba(77,140,255,0.14));
+        box-shadow: 0 12px 34px rgba(2,8,28,0.34), inset 0 1px 0 rgba(255,255,255,0.07);
+      }
+      4.8% {
+        color: var(--ink);
+        border-color: rgba(var(--phase-accent-rgb),0.62);
+        background: linear-gradient(135deg, rgba(8,22,62,0.92), rgba(var(--phase-accent-rgb),0.24));
+        box-shadow: 0 16px 44px rgba(2,8,28,0.42), 0 0 28px rgba(var(--phase-accent-rgb),0.34), inset 0 1px 0 rgba(255,255,255,0.13);
+      }
+    }
+    @keyframes hero-phase-dot {
+      0%, 11%, 100% {
+        background: var(--fury);
+        transform: scale(1);
+        box-shadow: 0 0 14px rgba(255,106,77,0.76);
+      }
+      4.8% {
+        background: var(--phase-accent);
+        transform: scale(1.55);
+        box-shadow: 0 0 20px rgba(var(--phase-accent-rgb),0.9), 0 0 0 6px rgba(var(--phase-accent-rgb),0.14);
+      }
+    }
     @keyframes telemetry-field {
       from { transform: translate3d(-3%, 2%, 0) rotate(-4deg); }
       to { transform: translate3d(3%, -2%, 0) rotate(-4deg); }
@@ -1098,7 +1131,7 @@
     @media (prefers-reduced-motion: reduce) {
       .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .loop-echo__glow, .loop-echo__trail, .loop-echo__ghost-path, .loop-echo__node, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .loop-telemetry__comet,
-      .reveal .hero-loop::after, .reveal .hero-loop__label,
+      .reveal .hero-loop::after, .reveal .hero-loop__label, .reveal .hero-loop__label::before,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
       .reveal section.present > h1, .reveal section.present > h2,
       .reveal section.present > h1::before, .reveal section.present > h1::after,
