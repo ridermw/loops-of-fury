@@ -468,9 +468,13 @@
     .reveal section.present .agent-loop .tools-node { animation-delay: 360ms; }
     .reveal section.present .agent-loop .end-node { animation-delay: 480ms; }
 
+    /* Keep inactive slides out of the render pipeline without breaking overview/print. */
     .reveal .slides section:not(.present) {
-      content-visibility: auto;
+      content-visibility: hidden;
       contain-intrinsic-size: 960px 700px;
+    }
+    .reveal.overview .slides section {
+      content-visibility: visible;
     }
 
     .reveal .slides section.present {
@@ -1276,6 +1280,9 @@
       }
       .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content {
         background: linear-gradient(to bottom, var(--bg-top), var(--bg-bottom)) !important;
+      }
+      .reveal .slides section {
+        content-visibility: visible !important;
       }
       .reveal .slides section.present::before, .reveal .slides section.present::after,
       .reveal section.present > h1, .reveal section.present > h2,
