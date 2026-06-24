@@ -137,6 +137,32 @@
     .reveal .reference-freshness[data-state="current"] { color: #66e0bd; background: rgba(102,224,189,0.1); border-color: rgba(102,224,189,0.28); }
     .reveal .reference-freshness[data-state="context"] { color: var(--heading); background: rgba(77,140,255,0.12); border-color: rgba(156,194,255,0.26); }
     .reveal .reference-freshness[data-state="archive"] { color: var(--fury); background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.3); }
+    .reveal .source-audit-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.38em;
+      width: min(920px, 94%); margin: 0.42em auto 0; text-align: left; }
+    .reveal .source-audit-strip:empty { display: none; }
+    .reveal .source-audit-card { position: relative; overflow: hidden; min-height: 3.05em;
+      padding: 0.48em 0.56em 0.5em; border: 1px solid rgba(156,194,255,0.2); border-radius: 14px;
+      background:
+        radial-gradient(circle at 92% 16%, rgba(102,224,189,0.12), transparent 34%),
+        linear-gradient(135deg, rgba(8,22,62,0.8), rgba(77,140,255,0.1));
+      box-shadow: 0 14px 32px rgba(2,8,28,0.24), inset 0 1px 0 rgba(255,255,255,0.055); }
+    .reveal .source-audit-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px;
+      background: linear-gradient(180deg, #66e0bd, var(--heading)); box-shadow: 0 0 18px rgba(102,224,189,0.3); }
+    .reveal .source-audit-card[data-state="aging"]::before,
+    .reveal .source-audit-card[data-state="watch"]::before { background: linear-gradient(180deg, var(--heading), var(--accent)); }
+    .reveal .source-audit-card[data-state="stale"]::before,
+    .reveal .source-audit-card[data-state="due"]::before,
+    .reveal .source-audit-card[data-state="weak"]::before { background: linear-gradient(180deg, var(--fury), #ff8b8b);
+      box-shadow: 0 0 18px rgba(255,106,77,0.34); }
+    .reveal .source-audit-card__label { display: block; color: rgba(238,243,255,0.54);
+      font-family: var(--font-display); font-size: 0.34em; font-weight: 700; letter-spacing: 0.09em;
+      line-height: 1.1; text-transform: uppercase; }
+    .reveal .source-audit-card__value { display: block; margin-top: 0.1em; color: var(--ink);
+      font-family: var(--font-display); font-size: 0.76em; font-weight: 700; line-height: 1;
+      font-variant-numeric: tabular-nums; }
+    .reveal .source-audit-card__meta { display: block; margin-top: 0.22em; color: rgba(238,243,255,0.55);
+      font-size: 0.34em; line-height: 1.24; }
+    .reveal .source-audit-strip + .references { margin-top: 0.42em; }
     .reveal .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7em; align-items: stretch; }
     .reveal .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .reveal .card { position: relative; overflow: hidden;
@@ -1156,6 +1182,7 @@
       .freshness-signal__mix-legend, .freshness-signal__stats { grid-template-columns: 1fr; }
       .reveal .grid, .reveal .grid.three { grid-template-columns: 1fr; gap: 0.48em; }
       .reveal .card { padding: 0.62em; }
+      .reveal .source-audit-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(520px, 94%); }
       .reveal .references { grid-template-columns: 1fr; }
       .reveal .ledger-stage { width: min(92vw, 460px); min-height: 310px; }
       .reveal .ledger-receipt { grid-template-columns: 1fr; bottom: -3%; }
@@ -1595,6 +1622,7 @@ Next step: backfill those rows or add a nullable migration first.
 
       <section>
         <h2>References</h2>
+        <div class="source-audit-strip" data-source-audit aria-label="Reference freshness audit"></div>
         <ul class="tiny references">
           <li data-source-year="2026" data-source-checked="2026-06-24"><a href="https://x.com/akshay_pachaar/article/2069118430582866051" target="_blank" rel="noopener noreferrer">Akshay Pachaar, "Loop Engineering Clearly Explained"</a></li>
           <li data-source-year="2026" data-source-checked="2026-06-24"><a href="https://addyosmani.com/blog/loop-engineering/" target="_blank" rel="noopener noreferrer">Addy Osmani, "Loop Engineering"</a></li>
@@ -1709,6 +1737,7 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessDivider.textContent = '/';
     const freshnessDate = document.createElement('time');
     freshnessDate.className = 'freshness-signal__date';
+    const sourceAuditStrip = document.querySelector('[data-source-audit]');
     const MINUTE_MS = 60 * 1000;
     const HOUR_MS = 60 * MINUTE_MS;
     const DAY_MS = 24 * HOUR_MS;
@@ -1840,6 +1869,68 @@ Next step: backfill those rows or add a nullable migration first.
     };
     const freshnessSnapshot = getFreshnessSnapshot();
     const { elapsedSinceRefresh, freshnessState, reviewLabel, reviewProgress, reviewState, scoreState, sourceConfidenceScore } = freshnessSnapshot;
+    let sourceAuditAgeValue;
+    let sourceAuditCheckedCard;
+    let sourceAuditReviewValue;
+    let sourceAuditReviewCard;
+    let sourceAuditScoreValue;
+    let sourceAuditScoreCard;
+    if (sourceAuditStrip) {
+      const auditMetrics = [
+        {
+          label: 'oldest check',
+          value: formatElapsedAge(elapsedSinceRefresh),
+          meta: `${formatShortDate(oldestCheckedAt)} oldest / ${formatShortDate(newestCheckedAt)} latest`,
+          state: freshnessState,
+        },
+        {
+          label: 'confidence',
+          value: `${sourceConfidenceScore}%`,
+          meta: `${referenceCounts.current || 0}/${sourceCount} current sources`,
+          state: scoreState,
+        },
+        {
+          label: 'review',
+          value: reviewLabel.replace('review ', ''),
+          meta: `${SOURCE_REVIEW_INTERVAL_DAYS}d audit cadence`,
+          state: reviewState,
+        },
+        {
+          label: 'source mix',
+          value: `${referenceCounts.current || 0}/${referenceCounts.context || 0}/${referenceCounts.archive || 0}`,
+          meta: 'current / context / archive',
+          state: 'mix',
+        },
+      ];
+      auditMetrics.forEach((metric) => {
+        const card = document.createElement('div');
+        card.className = 'source-audit-card';
+        card.dataset.state = metric.state;
+        const label = document.createElement('span');
+        label.className = 'source-audit-card__label';
+        label.textContent = metric.label;
+        const value = document.createElement('span');
+        value.className = 'source-audit-card__value';
+        value.textContent = metric.value;
+        const meta = document.createElement('span');
+        meta.className = 'source-audit-card__meta';
+        meta.textContent = metric.meta;
+        card.append(label, value, meta);
+        if (metric.label === 'oldest check') {
+          sourceAuditAgeValue = value;
+          sourceAuditCheckedCard = card;
+        }
+        if (metric.label === 'confidence') {
+          sourceAuditScoreValue = value;
+          sourceAuditScoreCard = card;
+        }
+        if (metric.label === 'review') {
+          sourceAuditReviewValue = value;
+          sourceAuditReviewCard = card;
+        }
+        sourceAuditStrip.appendChild(card);
+      });
+    }
     freshnessDate.dateTime = oldestCheckedAt.toISOString();
     freshnessDate.textContent = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(oldestCheckedAt);
     const freshnessAge = document.createElement('span');
@@ -2065,6 +2156,12 @@ Next step: backfill those rows or add a nullable migration first.
       freshnessPanelMeta.textContent = `Oldest source check ${ageLabel} ago (${formatShortDate(oldestCheckedAt)}); latest check ${formatShortDate(newestCheckedAt)}; source vintage spans ${sourceVintageLabel}.`;
       if (cadenceStatValue) cadenceStatValue.textContent = snapshot.reviewLabel.replace('review ', '');
       if (scoreStatValue) scoreStatValue.textContent = `${snapshot.sourceConfidenceScore}%`;
+      if (sourceAuditAgeValue) sourceAuditAgeValue.textContent = ageLabel;
+      if (sourceAuditScoreValue) sourceAuditScoreValue.textContent = `${snapshot.sourceConfidenceScore}%`;
+      if (sourceAuditReviewValue) sourceAuditReviewValue.textContent = snapshot.reviewLabel.replace('review ', '');
+      if (sourceAuditCheckedCard) sourceAuditCheckedCard.dataset.state = snapshot.freshnessState;
+      if (sourceAuditScoreCard) sourceAuditScoreCard.dataset.state = snapshot.scoreState;
+      if (sourceAuditReviewCard) sourceAuditReviewCard.dataset.state = snapshot.reviewState;
       freshness.dataset.state = snapshot.freshnessState;
       freshness.dataset.reviewState = snapshot.reviewState;
       freshness.dataset.scoreState = snapshot.scoreState;
