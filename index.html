@@ -1309,11 +1309,18 @@ Next step: backfill those rows or add a nullable migration first.
     const externalLinkCount = referenceLinks.length;
     const formatShortDate = (date) => new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
     const parseSourceCheckedAt = (item) => {
-      if (!item.dataset.sourceChecked) return refreshedAt;
-      const [year, month, day] = item.dataset.sourceChecked.split('-').map(Number);
-      if (![year, month, day].every(Number.isInteger)) return refreshedAt;
+      const sourceChecked = item.dataset.sourceChecked;
+      const match = sourceChecked && sourceChecked.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return refreshedAt;
+      const [, yearText, monthText, dayText] = match;
+      const year = Number(yearText);
+      const month = Number(monthText);
+      const day = Number(dayText);
       const checkedAt = new Date(year, month - 1, day);
-      return Number.isNaN(checkedAt.getTime()) ? refreshedAt : checkedAt;
+      const isExactDate = checkedAt.getFullYear() === year
+        && checkedAt.getMonth() === month - 1
+        && checkedAt.getDate() === day;
+      return isExactDate ? checkedAt : refreshedAt;
     };
     const extractReferenceYears = (item) => {
       const annotatedYear = Number(item.dataset.sourceYear);
