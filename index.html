@@ -336,8 +336,11 @@
     .reveal .hygiene-loop__handoff-label { color: #66e0bd; font-weight: 700; white-space: nowrap; }
     .reveal .hygiene-loop__handoff-items { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.34em; min-width: 0; margin: 0; padding: 0; list-style: none; }
-    .reveal .hygiene-loop__handoff-items li { min-width: 0; padding: 0.22em 0.5em; border-radius: 999px;
-      background: rgba(255,255,255,0.06); text-align: center; white-space: nowrap; }
+    .reveal .hygiene-loop__handoff-items li { min-width: 0; padding: 0.24em 0.5em 0.28em; border-radius: 999px;
+      background: rgba(255,255,255,0.06); line-height: 1.08; text-align: center; white-space: nowrap; }
+    .reveal .hygiene-loop__handoff-items li::after { content: attr(data-hint); display: block; margin-top: 0.12em;
+      color: rgba(238,243,255,0.52); font-family: var(--font-body); font-size: 0.74em; font-weight: 600;
+      letter-spacing: 0.01em; text-transform: none; }
     .reveal .loop-lifecycle { position: relative; isolation: isolate; gap: 0.42em; padding: 0.42em 0.3em; }
     .reveal .loop-lifecycle::before { content: ""; position: absolute; left: 4%; right: 4%; top: 50%;
       height: 2px; border-radius: 999px; z-index: -1;
@@ -1475,10 +1478,10 @@ while True:
         <div class="hygiene-loop__handoff" role="group" aria-labelledby="handoff-capsule-label">
           <strong id="handoff-capsule-label" class="hygiene-loop__handoff-label">Handoff capsule</strong>
           <ul class="hygiene-loop__handoff-items" aria-label="Clean handoff capsule ingredients">
-            <li>goal</li>
-            <li>state</li>
-            <li>evidence</li>
-            <li>next move</li>
+            <li data-hint="objective">goal</li>
+            <li data-hint="current">state</li>
+            <li data-hint="proof">evidence</li>
+            <li data-hint="single action">next move</li>
           </ul>
         </div>
         <p class="subtitle">Context is a budget, not a bucket.</p>
