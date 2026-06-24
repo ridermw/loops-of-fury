@@ -130,6 +130,70 @@
     .reveal .quote { font-family: var(--font-display); font-size: 1.3em; line-height: 1.18;
       color: var(--ink); max-width: 980px; margin: 0 auto; }
     .reveal .quote strong { color: var(--fury); }
+    .reveal .quote-transmission { isolation: isolate; }
+    .reveal .quote-transmission__halo,
+    .reveal .quote-transmission__ticks { position: absolute; pointer-events: none; z-index: -1; }
+    .reveal .quote-transmission__halo { left: 50%; top: 49%; width: min(82vw, 990px);
+      height: clamp(260px, 32vw, 410px); border: 1px solid rgba(156,194,255,0.2);
+      border-radius: 38px; transform: translate(-50%, -50%) rotate(-1.4deg);
+      background:
+        radial-gradient(ellipse at 22% 28%, rgba(255,106,77,0.2), transparent 34%),
+        radial-gradient(ellipse at 82% 72%, rgba(77,140,255,0.22), transparent 42%),
+        linear-gradient(135deg, rgba(8,22,62,0.36), rgba(4,16,46,0.08));
+      box-shadow: 0 26px 90px rgba(2,8,28,0.28), inset 0 0 48px rgba(156,194,255,0.06); }
+    .reveal .quote-transmission__halo::before { content: ""; position: absolute; inset: -9px;
+      border-radius: inherit; padding: 2px;
+      background: conic-gradient(from 225deg, transparent 0 34%, rgba(255,106,77,0.86) 40%, rgba(156,194,255,0.72) 46%, transparent 54% 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      filter: drop-shadow(0 0 18px rgba(255,106,77,0.4)); opacity: 0.78; }
+    .reveal .quote-transmission__ticks { left: 50%; top: 49%; width: min(86vw, 1040px);
+      height: clamp(300px, 38vw, 470px); transform: translate(-50%, -50%);
+      opacity: 0.64; mix-blend-mode: screen;
+      background:
+        radial-gradient(circle at 8% 18%, rgba(238,243,255,0.9) 0 1.5px, transparent 2.3px),
+        radial-gradient(circle at 91% 22%, rgba(255,106,77,0.84) 0 2px, transparent 3px),
+        radial-gradient(circle at 86% 82%, rgba(156,194,255,0.78) 0 1.7px, transparent 2.6px),
+        radial-gradient(circle at 13% 78%, rgba(102,224,189,0.72) 0 1.6px, transparent 2.5px),
+        repeating-linear-gradient(90deg, transparent 0 42px, rgba(156,194,255,0.1) 43px 44px, transparent 45px 92px);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, #000 0 46%, rgba(0,0,0,0.52) 65%, transparent 78%);
+      mask-image: radial-gradient(ellipse at 50% 50%, #000 0 46%, rgba(0,0,0,0.52) 65%, transparent 78%); }
+    .reveal .quote-transmission blockquote.quote { position: relative; overflow: hidden;
+      width: min(980px, 88vw); padding: 1.04em 1.18em 1.1em;
+      border: 1px solid rgba(156,194,255,0.3); border-radius: 28px;
+      background:
+        linear-gradient(105deg, transparent 0 38%, rgba(255,255,255,0.12) 44%, transparent 50% 100%),
+        radial-gradient(circle at 92% 18%, rgba(var(--phase-accent-rgb),0.18), transparent 34%),
+        linear-gradient(145deg, rgba(8,22,62,0.88), rgba(4,16,46,0.62));
+      background-size: 220% 100%, 100% 100%, 100% 100%;
+      background-position: 130% 0, center, center;
+      box-shadow: 0 24px 74px rgba(2,8,28,0.44), 0 0 46px rgba(var(--phase-accent-rgb),0.14), inset 0 1px 0 rgba(255,255,255,0.08); }
+    .reveal .quote-transmission blockquote.quote::before { content: "\201C"; position: absolute;
+      left: -0.03em; top: -0.24em; color: rgba(255,106,77,0.28);
+      font-family: var(--font-display); font-size: 5.2em; line-height: 1; text-shadow: 0 0 34px rgba(255,106,77,0.26); }
+    .reveal .quote-transmission blockquote.quote::after { content: ""; position: absolute;
+      left: 1.08em; right: 1.08em; bottom: 0.72em; height: 2px; border-radius: 999px;
+      background: linear-gradient(90deg, transparent, var(--fury), var(--heading), transparent);
+      box-shadow: 0 0 18px rgba(var(--phase-accent-rgb),0.42);
+      transform: scaleX(0); transform-origin: left center; }
+    .reveal .quote-transmission .source { display: inline-flex; align-items: center; gap: 0.44em;
+      padding: 0.28em 0.68em 0.32em; border: 1px solid rgba(156,194,255,0.22);
+      border-radius: 999px; background: rgba(8,22,62,0.44); backdrop-filter: blur(10px);
+      box-shadow: 0 12px 32px rgba(2,8,28,0.24); text-shadow: none; }
+    .reveal .quote-transmission .source::before { content: ""; width: 0.55em; aspect-ratio: 1;
+      border-radius: 50%; background: #66e0bd; box-shadow: 0 0 14px rgba(102,224,189,0.68); }
+    .reveal section.present.quote-transmission .quote-transmission__halo::before { animation: quote-signal-orbit 6.4s linear infinite; }
+    .reveal section.present.quote-transmission .quote-transmission__ticks { animation: quote-ticks-drift 7.2s ease-in-out infinite alternate; }
+    .reveal section.present.quote-transmission blockquote.quote {
+      animation:
+        quote-transmission-arrive 760ms cubic-bezier(.17,.84,.44,1) both,
+        quote-transmission-glint 5.4s 900ms ease-in-out infinite;
+    }
+    .reveal section.present.quote-transmission blockquote.quote::after {
+      animation: quote-signal-lock 760ms 180ms cubic-bezier(.17,.84,.44,1) both;
+    }
+    .reveal section.present.quote-transmission .source { animation: content-drift 620ms 220ms cubic-bezier(.17,.84,.44,1) both; }
     .reveal .source { color: #c3d2ff; font-size: 0.48em; margin-top: 1.2em; }
     .reveal .references { counter-reset: reference; display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.38em;
@@ -1219,6 +1283,27 @@
       from { opacity: 0; transform: translate3d(0, 0.42em, 0); }
       to { opacity: 1; transform: translate3d(0, 0, 0); }
     }
+    @keyframes quote-transmission-arrive {
+      from { opacity: 0; transform: translate3d(0, 0.42em, 0) rotateX(4deg) scale(0.982); filter: blur(9px) saturate(0.86); }
+      to { opacity: 1; transform: translate3d(0, 0, 0) rotateX(0) scale(1); filter: blur(0) saturate(1); }
+    }
+    @keyframes quote-transmission-glint {
+      0%, 62% { background-position: 130% 0, center, center; }
+      100% { background-position: -70% 0, center, center; }
+    }
+    @keyframes quote-signal-lock {
+      0% { opacity: 0; transform: scaleX(0); filter: blur(6px); }
+      72% { opacity: 1; transform: scaleX(1); filter: blur(0); }
+      100% { opacity: 0.72; transform: scaleX(1); filter: blur(0); }
+    }
+    @keyframes quote-signal-orbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes quote-ticks-drift {
+      from { transform: translate(-50%, -50%) rotate(-0.7deg) scale(0.99); opacity: 0.46; }
+      to { transform: translate(-50%, -50%) rotate(0.9deg) scale(1.015); opacity: 0.7; }
+    }
     @keyframes card-materialize {
       from { opacity: 0; transform: translate3d(0, 0.38em, 0) scale(0.982); }
       to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
@@ -1301,6 +1386,11 @@
       .reveal section.present > h1::before, .reveal section.present > h1::after,
       .reveal section.present > h2::before, .reveal section.present > h2::after,
       .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop),
+      .reveal section.present.quote-transmission .quote-transmission__halo::before,
+      .reveal section.present.quote-transmission .quote-transmission__ticks,
+      .reveal section.present.quote-transmission blockquote.quote,
+      .reveal section.present.quote-transmission blockquote.quote::after,
+      .reveal section.present.quote-transmission .source,
       .reveal section.present .card,
       .reveal .ledger-stage::before, .reveal .ledger-stage::after, .reveal .ledger-signal, .reveal .ledger-counter::after, .reveal .ledger-counter .big-number, .reveal section.present[data-ledger] .ledger-stage,
       .reveal section.present .loop-lifecycle::before, .reveal section.present .loop-lifecycle::after, .reveal section.present .loop-lifecycle .pill, .reveal section.present .loop-lifecycle .pill::after, .reveal section.present .loop-lifecycle .arrow,
@@ -1337,7 +1427,7 @@
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
-      body::before, body::after, .bg-skier, .loop-spotlight, .loop-telemetry, .loop-beacon, .loop-burst, .loop-echo, .freshness-signal {
+      body::before, body::after, .bg-skier, .loop-spotlight, .loop-telemetry, .loop-beacon, .loop-burst, .loop-echo, .freshness-signal, .quote-transmission__halo, .quote-transmission__ticks {
         display: none !important;
       }
       .reveal pre.loop-code::before, .reveal pre.loop-code::after {
@@ -1355,6 +1445,7 @@
       .reveal section.present > h2::before, .reveal section.present > h2::after,
       .reveal .ledger-stage::before, .reveal .ledger-stage::after, .reveal .ledger-signal, .reveal .ledger-counter::after, .reveal .ledger-counter .big-number, .reveal section.present[data-ledger] .ledger-stage,
       .reveal section.present .loop-lifecycle::before, .reveal section.present .loop-lifecycle::after, .reveal section.present .loop-lifecycle .pill, .reveal section.present .loop-lifecycle .pill::after, .reveal section.present .loop-lifecycle .arrow,
+      .reveal section.present.quote-transmission .quote-transmission__halo::before, .reveal section.present.quote-transmission .quote-transmission__ticks, .reveal section.present.quote-transmission blockquote.quote, .reveal section.present.quote-transmission blockquote.quote::after, .reveal section.present.quote-transmission .source,
       .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop) {
         animation: none !important;
       }
@@ -1390,7 +1481,9 @@
         <aside class="notes">Open with the idea that this is not another prompt-engineering talk. It is a shift in where engineering effort goes.</aside>
       </section>
 
-      <section>
+      <section class="quote-transmission">
+        <span class="quote-transmission__halo" aria-hidden="true"></span>
+        <span class="quote-transmission__ticks" aria-hidden="true"></span>
         <blockquote class="quote">
           "I don't prompt Claude anymore. I have <strong>loops that are running</strong>. My job is to <strong>write loops</strong>."
         </blockquote>
