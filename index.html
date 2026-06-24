@@ -1696,7 +1696,7 @@ while True:
       </section>
 
       <section>
-        <h2>Five building blocks</h2>
+        <h2>Six building blocks</h2>
         <div class="grid">
           <div class="card"><h3>Automations</h3><p>The heartbeat that starts runs.</p></div>
           <div class="card"><h3>Worktrees</h3><p>Isolation for parallel or risky changes.</p></div>
@@ -1723,14 +1723,15 @@ while True:
       </section>
 
       <section>
-        <h2>/loop vs /goal</h2>
+        <h2>Loop vs. goal &mdash; patterns, not commands</h2>
         <table>
           <thead><tr><th scope="col">Primitive</th><th scope="col">What it does</th><th scope="col">Risk</th></tr></thead>
           <tbody>
-            <tr><th scope="row">/loop</th><td>Repeats on cadence</td><td>Can repeat without proving success</td></tr>
-            <tr><th scope="row">/goal</th><td>Runs until a condition is verified</td><td>Only as good as the done-condition</td></tr>
+            <tr><th scope="row">Loop</th><td>Repeats on cadence</td><td>Can repeat without proving success</td></tr>
+            <tr><th scope="row">Goal</th><td>Runs until a condition is verified</td><td>Only as good as the done-condition</td></tr>
           </tbody>
         </table>
+        <p class="subtitle">Patterns, not commands. Copilot CLI runs <code>copilot -p "&lt;prompt&gt;"</code>; the slash-commands belong to other tools.</p>
       </section>
 
       <section>
@@ -1834,6 +1835,23 @@ Next step: backfill those rows or add a nullable migration first.
           </ul>
         </div>
         <p class="subtitle">Recurring + bounded + machine-checkable.</p>
+      </section>
+
+      <section>
+        <h2>Case study: Stripe's "Minions"</h2>
+        <div class="grid">
+          <ul>
+            <li>~1,300 PRs/week from one production loop</li>
+            <li>A fork of Goose, run at scale</li>
+            <li>Deterministic gates decide what merges</li>
+          </ul>
+          <ul>
+            <li>Ephemeral Devbox/EC2 per run</li>
+            <li>"Cattle, not pets" isolation</li>
+            <li>Humans set direction; the loop does the toil</li>
+          </ul>
+        </div>
+        <p class="subtitle">Steve Kaliski, Stripe &mdash; the flagship real-world loop.</p>
       </section>
 
       <section>
@@ -1958,6 +1976,8 @@ Next step: backfill those rows or add a nullable migration first.
           <li data-source-year="2024" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="https://ghuntley.com/ralph/" target="_blank" rel="noopener noreferrer">Geoffrey Huntley, "Ralph Wiggum as a software engineer"</a></li>
           <li data-source-year="2025" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/" target="_blank" rel="noopener noreferrer">Simon Willison, "The lethal trifecta for AI agents"</a></li>
           <li data-source-year="2026" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="https://genai.owasp.org/llm-top-10/" target="_blank" rel="noopener noreferrer">OWASP Top 10 for LLM Applications</a> and <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/" target="_blank" rel="noopener noreferrer">Agentic Applications</a></li>
+          <li data-source-year="2026" data-source-checked="2026-06-24T05:47:37.970-04:00">Peter Steinberger (OpenClaw), Boris Cherny (Anthropic), and HuaShu's "Orange Book" &mdash; loop-engineering practitioners</li>
+          <li data-source-year="2026" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="references/Loop-Engineering-IEEE.pdf" target="_blank" rel="noopener noreferrer">"Loop Engineering: The Anthropic Playbook for Designing Systems That Prompt Your Agents" (local PDF; term coined by Addy Osmani)</a></li>
         </ul>
         <a class="button-link" href="workshop.html">Open the workshop deck &rarr;</a>
         <p class="subtitle">Press <kbd>S</kbd> for notes &middot; <kbd>ESC</kbd> for overview</p>
