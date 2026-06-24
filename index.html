@@ -184,6 +184,48 @@
     .reveal section.present .loop-lifecycle .pill { animation: lifecycle-node 4.8s calc(220ms + var(--delay)) ease-in-out infinite; }
     .reveal section.present .loop-lifecycle .pill::after { animation: lifecycle-glint 4.8s calc(220ms + var(--delay)) ease-in-out infinite; }
     .reveal section.present .loop-lifecycle .arrow { animation: lifecycle-arrow 4.8s calc(220ms + var(--delay)) ease-in-out infinite; }
+    @media (min-width: 701px) {
+      .reveal .loop-lifecycle { width: min(82vw, 900px); height: clamp(290px, 38vw, 410px);
+        display: block; margin: 0.35em auto 0; padding: 0; }
+      .reveal .loop-lifecycle::before { left: 9%; right: 9%; top: 8%; bottom: 8%; height: auto;
+        border: 1px solid rgba(156,194,255,0.24); border-radius: 50%; z-index: 0;
+        background:
+          radial-gradient(ellipse at 50% 50%, rgba(77,140,255,0.13), transparent 54%),
+          conic-gradient(from 245deg, rgba(255,106,77,0.42), rgba(102,224,189,0.34), rgba(156,194,255,0.42), rgba(255,106,77,0.42));
+        box-shadow: 0 0 44px rgba(77,140,255,0.18), inset 0 0 36px rgba(255,106,77,0.08);
+        opacity: 0.82; transform: none; }
+      .reveal .loop-lifecycle::after { content: ""; position: absolute; inset: 8% 9%;
+        border-radius: 50%; padding: 2px; pointer-events: none; z-index: 0;
+        background: conic-gradient(from 230deg, transparent 0 44%, var(--fury) 49%, #66e0bd 55%, var(--heading) 61%, transparent 68% 100%);
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude;
+        filter: drop-shadow(0 0 18px rgba(255,106,77,0.42)); opacity: 0.92; }
+      .reveal .loop-lifecycle .pill,
+      .reveal .loop-lifecycle .arrow { position: absolute; left: var(--node-x); top: var(--node-y); z-index: 1; }
+      .reveal .loop-lifecycle .pill { min-width: 6.3em; padding: 0.34em 0.72em 0.38em;
+        text-align: center; transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(8,22,62,0.88), rgba(77,140,255,0.18));
+        box-shadow: 0 14px 34px rgba(2,8,28,0.34), inset 0 1px 0 rgba(255,255,255,0.08); }
+      .reveal .loop-lifecycle .arrow { font-size: 0.68em; transform: translate(-50%, -50%) rotate(var(--arrow-rotation));
+        transform-origin: center; text-shadow: 0 0 18px rgba(255,106,77,0.72); }
+      .reveal .loop-lifecycle .pill:nth-child(1) { --node-x: 50%; --node-y: 8%; }
+      .reveal .loop-lifecycle .arrow:nth-child(2) { --node-x: 65%; --node-y: 14%; --arrow-rotation: 22deg; }
+      .reveal .loop-lifecycle .pill:nth-child(3) { --node-x: 78%; --node-y: 24%; }
+      .reveal .loop-lifecycle .arrow:nth-child(4) { --node-x: 85%; --node-y: 39%; --arrow-rotation: 70deg; }
+      .reveal .loop-lifecycle .pill:nth-child(5) { --node-x: 86%; --node-y: 56%; }
+      .reveal .loop-lifecycle .arrow:nth-child(6) { --node-x: 77%; --node-y: 72%; --arrow-rotation: 124deg; }
+      .reveal .loop-lifecycle .pill:nth-child(7) { --node-x: 62%; --node-y: 84%; }
+      .reveal .loop-lifecycle .arrow:nth-child(8) { --node-x: 50%; --node-y: 88%; --arrow-rotation: 180deg; }
+      .reveal .loop-lifecycle .pill:nth-child(9) { --node-x: 38%; --node-y: 84%; }
+      .reveal .loop-lifecycle .arrow:nth-child(10) { --node-x: 23%; --node-y: 72%; --arrow-rotation: 236deg; }
+      .reveal .loop-lifecycle .pill:nth-child(11) { --node-x: 14%; --node-y: 56%; }
+      .reveal .loop-lifecycle .arrow:nth-child(12) { --node-x: 15%; --node-y: 39%; --arrow-rotation: 290deg; }
+      .reveal .loop-lifecycle .pill:nth-child(13) { --node-x: 22%; --node-y: 24%; }
+      .reveal section.present .loop-lifecycle::before { animation: lifecycle-ring-breathe 4.8s ease-in-out infinite; }
+      .reveal section.present .loop-lifecycle::after { animation: hero-loop-sweep 5.6s linear infinite; }
+      .reveal section.present .loop-lifecycle .pill { animation: lifecycle-node-orbit 4.8s calc(220ms + var(--delay)) ease-in-out infinite; }
+    }
     .reveal .small { font-size: 0.55em; }
     .reveal .tiny { font-size: 0.42em; }
     .reveal table { width: 100%; font-size: 0.48em; border-collapse: separate; border-spacing: 0;
@@ -606,6 +648,15 @@
       0%, 16%, 100% { opacity: 0.52; filter: drop-shadow(0 0 0 rgba(255,106,77,0)); }
       8% { opacity: 1; filter: drop-shadow(0 0 12px rgba(255,106,77,0.7)); }
     }
+    @keyframes lifecycle-ring-breathe {
+      0%, 100% { opacity: 0.68; filter: saturate(0.9); }
+      48% { opacity: 0.92; filter: saturate(1.14); }
+    }
+    @keyframes lifecycle-node-orbit {
+      0%, 16%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 rgba(255,106,77,0), inset 0 1px 0 rgba(255,255,255,0.08); }
+      8% { transform: translate(-50%, -54%) scale(1.045);
+        box-shadow: 0 0 26px rgba(255,106,77,0.28), inset 0 1px 0 rgba(255,255,255,0.14); }
+    }
     @media (prefers-reduced-motion: reduce) {
       .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .reveal .hero-loop::after, .reveal .hero-loop__label,
@@ -615,7 +666,7 @@
       .reveal section.present > h2::before, .reveal section.present > h2::after,
       .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop),
       .reveal section.present .card,
-      .reveal section.present .loop-lifecycle::before, .reveal section.present .loop-lifecycle .pill, .reveal section.present .loop-lifecycle .pill::after, .reveal section.present .loop-lifecycle .arrow,
+      .reveal section.present .loop-lifecycle::before, .reveal section.present .loop-lifecycle::after, .reveal section.present .loop-lifecycle .pill, .reveal section.present .loop-lifecycle .pill::after, .reveal section.present .loop-lifecycle .arrow,
       .reveal section.present .agent-loop :is(.blue-line, .green-line, .red-line, .context-node, .model-node, .decision-node, .tools-node, .end-node) { animation: none; will-change: auto; }
       .reveal section.present .agent-loop :is(.blue-line, .green-line, .red-line) { stroke-dasharray: none; }
       .reveal section.present .agent-loop :is(.context-node, .model-node, .decision-node, .tools-node, .end-node) { filter: none; transform: none; }
@@ -645,6 +696,7 @@
       .reveal section.present > h1, .reveal section.present > h2,
       .reveal section.present > h1::before, .reveal section.present > h1::after,
       .reveal section.present > h2::before, .reveal section.present > h2::after,
+      .reveal section.present .loop-lifecycle::before, .reveal section.present .loop-lifecycle::after, .reveal section.present .loop-lifecycle .pill, .reveal section.present .loop-lifecycle .pill::after, .reveal section.present .loop-lifecycle .arrow,
       .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop) {
         animation: none !important;
       }
