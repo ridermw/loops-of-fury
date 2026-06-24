@@ -74,6 +74,36 @@
       background: rgba(77,140,255,0.15); border-radius: 999px; padding: 0.24em 0.6em;
       font-size: 0.5em; white-space: nowrap; }
     .reveal .arrow { color: var(--fury); font-family: var(--font-display); font-weight: 700; }
+    .reveal .loop-lifecycle { position: relative; isolation: isolate; gap: 0.42em; padding: 0.42em 0.3em; }
+    .reveal .loop-lifecycle::before { content: ""; position: absolute; left: 4%; right: 4%; top: 50%;
+      height: 2px; border-radius: 999px; z-index: -1;
+      background: linear-gradient(90deg, transparent, rgba(255,106,77,0.72), rgba(102,224,189,0.84), rgba(156,194,255,0.72), transparent);
+      box-shadow: 0 0 20px rgba(77,140,255,0.26); transform: scaleX(0);
+      transform-origin: left center; opacity: 0; }
+    .reveal .loop-lifecycle .pill { position: relative; overflow: hidden; backdrop-filter: blur(8px);
+      transition: border-color 260ms ease, background 260ms ease, box-shadow 260ms ease; }
+    .reveal .loop-lifecycle .pill::after { content: ""; position: absolute; inset: 0;
+      background: linear-gradient(110deg, transparent 0 36%, rgba(255,255,255,0.32) 48%, transparent 60% 100%);
+      transform: translateX(-140%); }
+    .reveal .loop-lifecycle .arrow { --delay: 0ms; opacity: 0.66; transform: translateY(-0.02em); }
+    .reveal .loop-lifecycle .pill:nth-child(1) { --delay: 0ms; }
+    .reveal .loop-lifecycle .arrow:nth-child(2) { --delay: 70ms; }
+    .reveal .loop-lifecycle .pill:nth-child(3) { --delay: 145ms; }
+    .reveal .loop-lifecycle .arrow:nth-child(4) { --delay: 218ms; }
+    .reveal .loop-lifecycle .pill:nth-child(5) { --delay: 290ms; }
+    .reveal .loop-lifecycle .arrow:nth-child(6) { --delay: 363ms; }
+    .reveal .loop-lifecycle .pill:nth-child(7) { --delay: 435ms; }
+    .reveal .loop-lifecycle .arrow:nth-child(8) { --delay: 508ms; }
+    .reveal .loop-lifecycle .pill:nth-child(9) { --delay: 580ms; border-color: rgba(102,224,189,0.46);
+      background: linear-gradient(135deg, rgba(102,224,189,0.22), rgba(77,140,255,0.13)); }
+    .reveal .loop-lifecycle .arrow:nth-child(10) { --delay: 653ms; }
+    .reveal .loop-lifecycle .pill:nth-child(11) { --delay: 725ms; }
+    .reveal .loop-lifecycle .arrow:nth-child(12) { --delay: 798ms; }
+    .reveal .loop-lifecycle .pill:nth-child(13) { --delay: 870ms; }
+    .reveal section.present .loop-lifecycle::before { animation: lifecycle-trace 4.8s 180ms cubic-bezier(.17,.84,.44,1) infinite; }
+    .reveal section.present .loop-lifecycle .pill { animation: lifecycle-node 4.8s calc(220ms + var(--delay)) ease-in-out infinite; }
+    .reveal section.present .loop-lifecycle .pill::after { animation: lifecycle-glint 4.8s calc(220ms + var(--delay)) ease-in-out infinite; }
+    .reveal section.present .loop-lifecycle .arrow { animation: lifecycle-arrow 4.8s calc(220ms + var(--delay)) ease-in-out infinite; }
     .reveal .small { font-size: 0.55em; }
     .reveal .tiny { font-size: 0.42em; }
     .reveal table { width: 100%; font-size: 0.48em; border-collapse: separate; border-spacing: 0;
@@ -440,6 +470,24 @@
       0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(156,194,255,0)); }
       48% { transform: scale(1.018); filter: drop-shadow(0 0 18px rgba(156,194,255,0.28)); }
     }
+    @keyframes lifecycle-trace {
+      0%, 8% { opacity: 0; transform: scaleX(0); }
+      18%, 82% { opacity: 0.72; transform: scaleX(1); }
+      100% { opacity: 0; transform: scaleX(1); }
+    }
+    @keyframes lifecycle-node {
+      0%, 16%, 100% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(255,106,77,0); }
+      8% { transform: translateY(-0.08em) scale(1.045);
+        box-shadow: 0 0 26px rgba(255,106,77,0.28), inset 0 1px 0 rgba(255,255,255,0.14); }
+    }
+    @keyframes lifecycle-glint {
+      0%, 4% { transform: translateX(-140%); }
+      13%, 100% { transform: translateX(140%); }
+    }
+    @keyframes lifecycle-arrow {
+      0%, 16%, 100% { opacity: 0.52; filter: drop-shadow(0 0 0 rgba(255,106,77,0)); }
+      8% { opacity: 1; filter: drop-shadow(0 0 12px rgba(255,106,77,0.7)); }
+    }
     @media (prefers-reduced-motion: reduce) {
       .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
@@ -447,6 +495,7 @@
       .reveal section.present > h1::before, .reveal section.present > h1::after,
       .reveal section.present > h2::before, .reveal section.present > h2::after,
       .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop),
+      .reveal section.present .loop-lifecycle::before, .reveal section.present .loop-lifecycle .pill, .reveal section.present .loop-lifecycle .pill::after, .reveal section.present .loop-lifecycle .arrow,
       .reveal section.present .agent-loop :is(.blue-line, .green-line, .red-line, .context-node, .model-node, .decision-node, .tools-node, .end-node) { animation: none; will-change: auto; }
       .reveal section.present .agent-loop :is(.blue-line, .green-line, .red-line) { stroke-dasharray: none; }
       .reveal section.present .agent-loop :is(.context-node, .model-node, .decision-node, .tools-node, .end-node) { filter: none; transform: none; }
@@ -609,7 +658,7 @@ while True:
 
       <section>
         <h2>Loop lifecycle</h2>
-        <div class="flow">
+        <div class="flow loop-lifecycle">
           <span class="pill">Trigger</span><span class="arrow">&rarr;</span>
           <span class="pill">Discover</span><span class="arrow">&rarr;</span>
           <span class="pill">Delegate</span><span class="arrow">&rarr;</span>
