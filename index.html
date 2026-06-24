@@ -151,6 +151,20 @@
     .loop-beacon.is-pulsing { animation: beacon-bloom 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::before { animation: beacon-spin 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
+    .freshness-signal { position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
+      z-index: 4; display: grid; grid-template-columns: auto auto auto; align-items: center; gap: 0.44rem;
+      padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
+      font-family: var(--font-display); font-size: clamp(9px, 0.86vw, 12px); font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; text-shadow: none; pointer-events: none;
+      background: linear-gradient(135deg, rgba(8,22,62,0.82), rgba(77,140,255,0.15));
+      border: 1px solid rgba(156,194,255,0.24); border-radius: 999px;
+      box-shadow: 0 16px 46px rgba(2,8,28,0.34), inset 0 1px 0 rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px); }
+    .freshness-signal::before { content: ""; width: 0.56rem; aspect-ratio: 1; border-radius: 50%;
+      background: var(--fury); box-shadow: 0 0 0 0 rgba(255,106,77,0.54), 0 0 18px rgba(255,106,77,0.72);
+      animation: freshness-ping 2.6s ease-out infinite; }
+    .freshness-signal__label { color: var(--fury); }
+    .freshness-signal__date { color: var(--heading); font-variant-numeric: tabular-nums; }
     .bg-skier { position: fixed; left: 50%; top: 1vh; transform: translate3d(-50%, 0, 0);
       width: 46vw; height: auto;
       opacity: 0.32; z-index: 0; pointer-events: none; user-select: none;
@@ -187,8 +201,12 @@
       24% { opacity: 1; }
       100% { opacity: 0; transform: scale(1.28) rotate(34deg); }
     }
+    @keyframes freshness-ping {
+      0% { box-shadow: 0 0 0 0 rgba(255,106,77,0.5), 0 0 18px rgba(255,106,77,0.72); }
+      72%, 100% { box-shadow: 0 0 0 9px rgba(255,106,77,0), 0 0 18px rgba(255,106,77,0.72); }
+    }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after { animation: none; will-change: auto; }
+      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .freshness-signal::before { animation: none; will-change: auto; }
     }
   </style>
 
@@ -598,6 +616,23 @@ Next step: backfill those rows or add a nullable migration first.
     beacon.className = 'loop-beacon';
     beacon.setAttribute('aria-hidden', 'true');
     document.body.appendChild(beacon);
+
+    const freshness = document.createElement('div');
+    freshness.className = 'freshness-signal';
+    freshness.setAttribute('aria-hidden', 'true');
+    const freshnessLabel = document.createElement('span');
+    freshnessLabel.className = 'freshness-signal__label';
+    freshnessLabel.textContent = 'freshness';
+    const freshnessDivider = document.createElement('span');
+    freshnessDivider.textContent = '/';
+    const freshnessDate = document.createElement('time');
+    freshnessDate.className = 'freshness-signal__date';
+    const modifiedAt = new Date(document.lastModified);
+    const refreshedAt = Number.isNaN(modifiedAt.getTime()) ? new Date() : modifiedAt;
+    freshnessDate.dateTime = refreshedAt.toISOString();
+    freshnessDate.textContent = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(refreshedAt);
+    freshness.append(freshnessLabel, freshnessDivider, freshnessDate);
+    document.body.appendChild(freshness);
 
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
