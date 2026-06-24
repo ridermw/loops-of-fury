@@ -73,6 +73,17 @@ function Test-Command {
     return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+# True when the current process is running with Administrator rights. Scheduled Task
+# registration (S4U principal, AtStartup trigger, root \ task folder) needs this on a
+# locked-down devbox; without it Register-ScheduledTask fails with "Access is denied."
+function Test-IsElevated {
+    try {
+        $id = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+        $wp = New-Object System.Security.Principal.WindowsPrincipal($id)
+        return $wp.IsInRole([System.Security.Principal.WindowsBuiltinRole]::Administrator)
+    } catch { return $false }
+}
+
 function Get-NodeMajor {
     if (-not (Test-Command 'node')) { return 0 }
     $v = (& node -v) 2>$null

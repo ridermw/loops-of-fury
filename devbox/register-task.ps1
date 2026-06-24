@@ -35,7 +35,8 @@ param(
     [string]$RepoPath,
     [string]$TaskPrefix = 'LoopsOfFury',
     [switch]$NoWatchdog,
-    [switch]$Interactive
+    [switch]$Interactive,
+    [switch]$NoElevate
 )
 
 . (Join-Path $PSScriptRoot '_common.ps1')
@@ -44,6 +45,31 @@ $ErrorActionPreference = 'Stop'
 $repo      = Get-RepoRoot $RepoPath
 $runScript = Join-Path $PSScriptRoot 'run-loop.ps1'
 $wdScript  = Join-Path $PSScriptRoot 'watchdog.ps1'
+
+# --- Elevation guard --------------------------------------------------------
+# Task registration requires Administrator rights on a locked-down devbox. If we are
+# not elevated, relaunch this same script elevated (one UAC prompt) and return — unless
+# -NoElevate was passed, in which case surface a precise manual remediation.
+if (-not (Test-IsElevated)) {
+    $elevHint = "Open an Administrator PowerShell and run: powershell -ExecutionPolicy Bypass -File `"$PSCommandPath`" -RepoPath `"$repo`" -Mode $Mode -IntervalHours $IntervalHours"
+    if ($NoElevate) { throw "Scheduled Task registration requires an elevated PowerShell. $elevHint" }
+    Write-Log "Not elevated — relaunching task registration as Administrator (a UAC prompt will appear)." 'WARN'
+    $selfExe = (Get-Process -Id $PID).Path
+    $argList = @('-NoProfile','-ExecutionPolicy','Bypass','-File', $PSCommandPath,
+                 '-NoElevate','-RepoPath', $repo, '-Mode', $Mode,
+                 '-IntervalHours', $IntervalHours, '-WatchdogMinutes', $WatchdogMinutes,
+                 '-TaskPrefix', $TaskPrefix)
+    if ($NoWatchdog)  { $argList += '-NoWatchdog' }
+    if ($Interactive) { $argList += '-Interactive' }
+    try {
+        $p = Start-Process -FilePath $selfExe -Verb RunAs -Wait -PassThru -ArgumentList $argList
+    } catch {
+        throw "Could not self-elevate: $($_.Exception.Message). $elevHint"
+    }
+    if ($p.ExitCode -ne 0) { throw "Elevated task registration exited with code $($p.ExitCode). See the elevated window for details. $elevHint" }
+    Write-Log "Task registration completed in the elevated process." 'OK'
+    return
+}
 $psExe     = (Get-Command powershell.exe -ErrorAction SilentlyContinue).Source
 if (-not $psExe) { $psExe = (Get-Command pwsh.exe).Source }
 $userId    = "$env:USERDOMAIN\$env:USERNAME"
@@ -67,12 +93,18 @@ function Register-LoopTask {
     try {
         Register-ScheduledTask -TaskName $Name -Action $Action -Trigger $Triggers `
             -Principal (New-Principal) -Settings $settings -Force | Out-Null
-        Write-Log "Registered '$Name' (S4U)." 'OK'
+        Write-Log "Registered '$Name' (S4U — runs whether or not you are logged on)." 'OK'
     } catch {
-        Write-Log "S4U registration of '$Name' failed: $($_.Exception.Message). Falling back to Interactive." 'WARN'
-        Register-ScheduledTask -TaskName $Name -Action $Action -Trigger $Triggers `
-            -Principal (New-Principal -ForceInteractive) -Settings $settings -Force | Out-Null
-        Write-Log "Registered '$Name' (Interactive — runs only while logged on)." 'OK'
+        $msg = ($_.Exception.Message -replace '\s+', ' ').Trim()
+        Write-Log "S4U registration of '$Name' failed: $msg. Falling back to an Interactive principal." 'WARN'
+        try {
+            Register-ScheduledTask -TaskName $Name -Action $Action -Trigger $Triggers `
+                -Principal (New-Principal -ForceInteractive) -Settings $settings -Force | Out-Null
+            Write-Log "Registered '$Name' (Interactive — runs only while you are logged on)." 'OK'
+        } catch {
+            $m2 = ($_.Exception.Message -replace '\s+', ' ').Trim()
+            throw "Could not register '$Name'; Interactive fallback also failed: $m2. Run this from an elevated (Administrator) PowerShell."
+        }
     }
 }
 

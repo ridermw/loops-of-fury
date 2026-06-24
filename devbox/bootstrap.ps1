@@ -151,7 +151,14 @@ if ($LASTEXITCODE -ne 0) {
 if ($SkipTaskRegister) {
     Write-Log "Skipping task registration (-SkipTaskRegister). Register later with devbox\register-task.ps1." 'WARN'
 } else {
-    & (Join-Path $PSScriptRoot 'register-task.ps1') -RepoPath $repo -Mode $Mode -IntervalHours $IntervalHours
+    try {
+        & (Join-Path $PSScriptRoot 'register-task.ps1') -RepoPath $repo -Mode $Mode -IntervalHours $IntervalHours
+    } catch {
+        $m = ($_.Exception.Message -replace '\s+', ' ').Trim()
+        Write-Log "Task registration did not complete: $m" 'WARN'
+        Write-Log "The repo is fully provisioned. Finish from an Administrator PowerShell: powershell -ExecutionPolicy Bypass -File devbox\register-task.ps1 -RepoPath `"$repo`" -Mode $Mode -IntervalHours $IntervalHours" 'WARN'
+        Write-Log "Or run one bounded loop now without any scheduling: powershell -ExecutionPolicy Bypass -File devbox\run-loop.ps1 -RepoPath `"$repo`"" 'INFO'
+    }
 }
 
 Write-Log "Bootstrap complete. Mode=$Mode. Logs: devbox\logs. Trigger one now: devbox\run-loop.ps1 -RepoPath `"$repo`"" 'OK'

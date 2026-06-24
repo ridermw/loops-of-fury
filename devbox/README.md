@@ -50,6 +50,13 @@ pwsh -ExecutionPolicy Bypass -File devbox\run-loop.ps1
 
 `bootstrap.ps1` is idempotent — safe to re-run any time.
 
+> **Scheduled Task registration needs Administrator rights.** When bootstrap reaches
+> the task step it will raise a one-time **UAC prompt** to self-elevate. On a headless
+> box (no interactive desktop) UAC can't prompt — instead run an elevated step yourself:
+> `powershell -ExecutionPolicy Bypass -File devbox\register-task.ps1 -Mode Scheduled`.
+> If you skip scheduling entirely, `run-loop.ps1` still runs a bounded loop without any
+> elevation. Provisioning (deps, hooks, baseline) never needs admin.
+
 ## Cadence / spend (this costs real AI credits)
 
 The maker is **~80 credits per landed iteration** (~90–100 s/call); the delight judge
