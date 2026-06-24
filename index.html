@@ -294,7 +294,7 @@
       z-index: 4; display: grid; grid-template-columns: auto auto auto auto auto auto; align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
       font-family: var(--font-display); font-size: clamp(9px, 0.86vw, 12px); font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase; text-shadow: none; pointer-events: none;
+      letter-spacing: 0.08em; text-transform: uppercase; text-shadow: none; pointer-events: auto; cursor: help;
       background: linear-gradient(135deg, rgba(8,22,62,0.82), rgba(77,140,255,0.15));
       border: 1px solid rgba(156,194,255,0.24); border-radius: 999px;
       box-shadow: 0 16px 46px rgba(2,8,28,0.34), inset 0 1px 0 rgba(255,255,255,0.08);
@@ -315,6 +315,38 @@
     .freshness-signal__latest { color: rgba(238,243,255,0.64); font-variant-numeric: tabular-nums; }
     .freshness-signal__sources { padding-left: 0.44rem; color: rgba(238,243,255,0.62);
       border-left: 1px solid rgba(156,194,255,0.2); font-variant-numeric: tabular-nums; }
+    .freshness-signal__panel { position: absolute; top: calc(100% + 0.72rem); right: 0;
+      width: min(430px, calc(100vw - 36px)); padding: 0.86rem; border-radius: 18px;
+      color: rgba(238,243,255,0.84); background: linear-gradient(145deg, rgba(8,22,62,0.96), rgba(4,16,46,0.92));
+      border: 1px solid rgba(156,194,255,0.28); box-shadow: 0 24px 70px rgba(2,8,28,0.52), inset 0 1px 0 rgba(255,255,255,0.07);
+      opacity: 0; pointer-events: none; transform: translate3d(0, -0.42rem, 0) scale(0.98);
+      transition: opacity 180ms ease, transform 240ms cubic-bezier(.17,.84,.44,1);
+      text-transform: none; letter-spacing: 0.01em; line-height: 1.35; }
+    .freshness-signal__panel::before { content: ""; position: absolute; top: -7px; right: 30px;
+      width: 14px; aspect-ratio: 1; transform: rotate(45deg);
+      background: rgba(8,22,62,0.96); border-left: 1px solid rgba(156,194,255,0.28); border-top: 1px solid rgba(156,194,255,0.28); }
+    .freshness-signal:hover .freshness-signal__panel,
+    .freshness-signal:focus-visible .freshness-signal__panel { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    .freshness-signal:focus-visible { outline: 2px solid rgba(102,224,189,0.72); outline-offset: 4px; }
+    .freshness-signal__panel-title { margin-bottom: 0.32rem; color: var(--heading);
+      font-size: 1.05em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .freshness-signal__panel-meta { color: rgba(238,243,255,0.66); font-size: 0.94em; }
+    .freshness-signal__stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.42rem; margin: 0.72rem 0; }
+    .freshness-signal__stat { padding: 0.48rem 0.5rem; border-radius: 12px;
+      background: rgba(255,255,255,0.055); border: 1px solid rgba(156,194,255,0.15); }
+    .freshness-signal__stat-value { display: block; color: var(--ink); font-size: 1.45em; line-height: 1; font-variant-numeric: tabular-nums; }
+    .freshness-signal__stat-label { color: rgba(238,243,255,0.58); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.08em; }
+    .freshness-signal__source-list { display: grid; gap: 0.34rem; }
+    .freshness-signal__source-row { display: grid; grid-template-columns: 1fr auto; gap: 0.66rem; align-items: center;
+      color: rgba(238,243,255,0.76); font-size: 0.9em; }
+    .freshness-signal__source-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .freshness-signal__source-state { padding: 0.1rem 0.38rem 0.12rem; border-radius: 999px;
+      border: 1px solid rgba(156,194,255,0.18); color: rgba(238,243,255,0.62); font-size: 0.76em;
+      text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+    .freshness-signal__source-state[data-state="current"] { color: #66e0bd; background: rgba(102,224,189,0.1); border-color: rgba(102,224,189,0.24); }
+    .freshness-signal__source-state[data-state="context"] { color: var(--heading); background: rgba(77,140,255,0.11); border-color: rgba(156,194,255,0.23); }
+    .freshness-signal__source-state[data-state="archive"] { color: var(--fury); background: rgba(255,106,77,0.1); border-color: rgba(255,106,77,0.26); }
     .freshness-signal[data-state="fresh"]::before { background: #66e0bd;
       box-shadow: 0 0 0 0 rgba(102,224,189,0.5), 0 0 18px rgba(102,224,189,0.64); }
     .freshness-signal[data-state="fresh"] .freshness-signal__age { color: #66e0bd;
@@ -424,6 +456,8 @@
         grid-template-columns: auto auto minmax(0, 1fr) auto; }
       .freshness-signal__date { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .freshness-signal__latest, .freshness-signal__sources { display: none; }
+      .freshness-signal__panel { left: 0; right: 0; width: auto; }
+      .freshness-signal__stats { grid-template-columns: 1fr; }
     }
     @media print {
       html, body {
@@ -894,17 +928,24 @@ Next step: backfill those rows or add a nullable migration first.
       const years = extractReferenceYears(item);
       return Math.max(latest, ...years);
     }, refreshedAt.getUTCFullYear());
-    referenceItems.forEach((item) => {
+    const referenceAudit = referenceItems.map((item) => {
       const years = extractReferenceYears(item);
       const year = years.length ? Math.max(...years) : null;
       const label = item.dataset.sourceStatus || String(year);
+      const state = year === latestReferenceYear || item.dataset.sourceStatus ? 'current' : year >= latestReferenceYear - 1 ? 'context' : 'archive';
+      const title = [...item.querySelectorAll('a')].map((link) => link.textContent.trim()).join(' + ') || item.textContent.trim();
       const badge = document.createElement('span');
       badge.className = 'reference-freshness';
-      badge.dataset.state = year === latestReferenceYear || item.dataset.sourceStatus ? 'current' : year >= latestReferenceYear - 1 ? 'context' : 'archive';
+      badge.dataset.state = state;
       badge.textContent = label;
       badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}` : `Source year ${label}`);
       item.appendChild(badge);
+      return { label, state, title, year: year || 0 };
     });
+    const referenceCounts = referenceAudit.reduce((counts, source) => {
+      counts[source.state] = (counts[source.state] || 0) + 1;
+      return counts;
+    }, {});
     const latestLinkedReferenceYear = referenceLinks.reduce((latest, link) => {
       const years = `${link.href} ${link.textContent}`.match(/\b20\d{2}\b/g) || [];
       return Math.max(latest, ...years.map(Number));
@@ -930,8 +971,56 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessSources.textContent = `${sourceCount} refs`;
     freshness.dataset.state = freshnessState;
     freshness.title = `Freshness signal: ${freshnessState}; source review refreshed ${freshnessAge.textContent} ago; latest dated reference ${latestReferenceYear}; ${sourceCount} external references tracked`;
-    freshness.setAttribute('aria-label', freshness.title);
-    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessLatest, freshnessSources);
+    freshness.setAttribute('aria-label', `${freshness.title}. Focus for source audit.`);
+    freshness.tabIndex = 0;
+    const freshnessPanel = document.createElement('div');
+    freshnessPanel.id = 'freshness-signal-audit';
+    freshnessPanel.className = 'freshness-signal__panel';
+    freshnessPanel.setAttribute('role', 'tooltip');
+    const freshnessPanelTitle = document.createElement('div');
+    freshnessPanelTitle.className = 'freshness-signal__panel-title';
+    freshnessPanelTitle.textContent = 'Source audit';
+    const freshnessPanelMeta = document.createElement('div');
+    freshnessPanelMeta.className = 'freshness-signal__panel-meta';
+    freshnessPanelMeta.textContent = `Refreshed ${freshnessAge.textContent} ago; newest dated source is ${latestReferenceYear}.`;
+    const freshnessStats = document.createElement('div');
+    freshnessStats.className = 'freshness-signal__stats';
+    [
+      ['current', referenceCounts.current || 0],
+      ['context', referenceCounts.context || 0],
+      ['archive', referenceCounts.archive || 0],
+    ].forEach(([label, value]) => {
+      const stat = document.createElement('div');
+      stat.className = 'freshness-signal__stat';
+      const statValue = document.createElement('span');
+      statValue.className = 'freshness-signal__stat-value';
+      statValue.textContent = value;
+      const statLabel = document.createElement('span');
+      statLabel.className = 'freshness-signal__stat-label';
+      statLabel.textContent = label;
+      stat.append(statValue, statLabel);
+      freshnessStats.appendChild(stat);
+    });
+    const freshnessSourceList = document.createElement('div');
+    freshnessSourceList.className = 'freshness-signal__source-list';
+    [...referenceAudit]
+      .sort((a, b) => (b.year - a.year) || a.title.localeCompare(b.title))
+      .forEach((source) => {
+        const row = document.createElement('div');
+        row.className = 'freshness-signal__source-row';
+        const sourceTitle = document.createElement('span');
+        sourceTitle.className = 'freshness-signal__source-title';
+        sourceTitle.textContent = source.title;
+        const sourceState = document.createElement('span');
+        sourceState.className = 'freshness-signal__source-state';
+        sourceState.dataset.state = source.state;
+        sourceState.textContent = source.label;
+        row.append(sourceTitle, sourceState);
+        freshnessSourceList.appendChild(row);
+      });
+    freshnessPanel.append(freshnessPanelTitle, freshnessPanelMeta, freshnessStats, freshnessSourceList);
+    freshness.setAttribute('aria-describedby', freshnessPanel.id);
+    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessLatest, freshnessSources, freshnessPanel);
     document.body.appendChild(freshness);
 
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
