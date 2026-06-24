@@ -442,11 +442,11 @@
     body[data-loop-phase="verify"] { --phase-accent: #66e0bd; --phase-accent-rgb: 102,224,189; }
     body[data-loop-phase="decide"] { --phase-accent: var(--accent); --phase-accent-rgb: 77,140,255; }
     body[data-loop-phase="stop"] { --phase-accent: #ff8b8b; --phase-accent-rgb: 255,139,139; }
-    body { min-height: 100vh; overflow: hidden; isolation: isolate; }
+    body { --delight-x: 50vw; --delight-y: 42vh; min-height: 100vh; overflow: hidden; isolation: isolate; }
     body::after { content: ""; position: fixed; inset: 0; z-index: 0;
       pointer-events: none;
       background:
-        radial-gradient(ellipse at 50% 50%, rgba(var(--phase-accent-rgb),0.13), transparent 34%),
+        radial-gradient(circle at var(--delight-x) var(--delight-y), rgba(var(--phase-accent-rgb),0.26), rgba(var(--phase-accent-rgb),0.08) 12vmax, transparent 30vmax),
         radial-gradient(ellipse at 50% 44%, rgba(4,16,46,0.08) 0%, rgba(4,16,46,0.3) 54%, rgba(4,16,46,0.62) 100%),
         linear-gradient(90deg, rgba(4,16,46,0.58), rgba(4,16,46,0) 22%, rgba(4,16,46,0) 78%, rgba(4,16,46,0.58)); }
     body::before { content: ""; position: fixed; inset: -22vmax; z-index: 0;
@@ -1714,6 +1714,7 @@ Next step: backfill those rows or add a nullable migration first.
     let burstTimer;
     let cometTimer;
     let lastProgress;
+    let spotlightFrame;
 
     const getSlideTitle = (slide, fallback = 'Loops of Fury') => {
       const heading = slide ? slide.querySelector('h1, h2') : null;
@@ -1738,6 +1739,25 @@ Next step: backfill those rows or add a nullable migration first.
       Reveal.slide(indices.h, indices.v, indices.f);
       hidePreview();
     };
+
+    const setSpotlight = (x, y) => {
+      document.body.style.setProperty('--delight-x', `${x}px`);
+      document.body.style.setProperty('--delight-y', `${y}px`);
+    };
+
+    const aimSpotlightAtHeading = () => {
+      const currentSlide = Reveal.getCurrentSlide();
+      const heading = currentSlide ? currentSlide.querySelector('h1, h2') : null;
+      if (!heading) return;
+      const bounds = heading.getBoundingClientRect();
+      setSpotlight(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+    };
+
+    window.addEventListener('pointermove', (event) => {
+      if (reducedMotion.matches || event.pointerType === 'touch') return;
+      cancelAnimationFrame(spotlightFrame);
+      spotlightFrame = requestAnimationFrame(() => setSpotlight(event.clientX, event.clientY));
+    }, { passive: true });
 
     const getPipFromEvent = (event) => {
       const target = event.target instanceof Element ? event.target : null;
@@ -1888,11 +1908,13 @@ Next step: backfill those rows or add a nullable migration first.
 
     Reveal.on('slidechanged', () => {
       updateTelemetry();
+      aimSpotlightAtHeading();
       pulseBeacon();
       fireLoopBurst();
     });
     deckReady.then(() => {
       updateTelemetry();
+      aimSpotlightAtHeading();
       pulseBeacon();
       fireLoopBurst();
     });
