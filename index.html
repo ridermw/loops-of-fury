@@ -798,6 +798,7 @@ Next step: backfill those rows or add a nullable migration first.
 
     const telemetry = document.createElement('div');
     telemetry.className = 'loop-telemetry';
+    telemetry.setAttribute('role', 'navigation');
     telemetry.setAttribute('aria-label', 'Slide progress');
     const phaseEl = document.createElement('span');
     phaseEl.className = 'loop-telemetry__phase';
@@ -807,6 +808,8 @@ Next step: backfill those rows or add a nullable migration first.
     countEl.className = 'loop-telemetry__count';
     const railEl = document.createElement('div');
     railEl.className = 'loop-telemetry__rail';
+    railEl.setAttribute('role', 'group');
+    railEl.setAttribute('aria-label', 'Slide shortcuts');
     const previewEl = document.createElement('div');
     previewEl.className = 'loop-telemetry__preview';
     telemetry.append(phaseEl, titleEl, countEl, railEl, previewEl);
@@ -916,7 +919,12 @@ Next step: backfill those rows or add a nullable migration first.
         pip.classList.toggle('is-visited', index < current);
         pip.classList.toggle('is-current', index === current - 1);
         pip.title = slideTitle;
-        pip.setAttribute('aria-label', `Go to slide ${index + 1}: ${slideTitle}`);
+        pip.setAttribute('aria-label', `${index === current - 1 ? 'Current slide' : 'Go to slide'} ${index + 1}: ${slideTitle}`);
+        if (index === current - 1) {
+          pip.setAttribute('aria-current', 'page');
+        } else {
+          pip.removeAttribute('aria-current');
+        }
         pip.onmouseenter = () => showPreview(pip, slideTitle);
         pip.onfocus = () => showPreview(pip, slideTitle);
         pip.onmouseleave = hidePreview;
