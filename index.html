@@ -154,6 +154,24 @@
       background: rgba(77,140,255,0.15); border-radius: 999px; padding: 0.24em 0.6em;
       font-size: 0.5em; white-space: nowrap; }
     .reveal .arrow { color: var(--fury); font-family: var(--font-display); font-weight: 700; }
+    .reveal .hygiene-loop { counter-reset: hygiene-step; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.58em; margin: 0.72em auto 0.68em; padding: 0; list-style: none; text-align: left; }
+    .reveal .hygiene-loop li { counter-increment: hygiene-step; position: relative; overflow: hidden;
+      min-height: 7.1em; margin: 0; padding: 3.05em 0.74em 0.78em;
+      border: 1px solid rgba(156,194,255,0.28); border-radius: 16px;
+      background:
+        radial-gradient(circle at 86% 10%, rgba(255,106,77,0.16), transparent 34%),
+        linear-gradient(145deg, rgba(8,22,62,0.84), rgba(77,140,255,0.11));
+      box-shadow: 0 16px 40px rgba(2,8,28,0.32), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .reveal .hygiene-loop li::before { content: counter(hygiene-step, decimal-leading-zero); position: absolute;
+      left: 0.74em; top: 0.64em; color: rgba(238,243,255,0.52);
+      font-family: var(--font-display); font-size: 0.78em; font-weight: 700; letter-spacing: 0.05em; text-shadow: none; }
+    .reveal .hygiene-loop li::after { content: ""; position: absolute; left: 0.74em; right: 0.74em; top: 2.48em; height: 2px;
+      border-radius: 999px; background: linear-gradient(90deg, var(--fury), rgba(156,194,255,0.68), transparent); }
+    .reveal .hygiene-loop__label { position: absolute; left: 3.1em; top: 0.74em;
+      color: var(--fury); font-family: var(--font-display); font-size: 0.48em; font-weight: 700;
+      letter-spacing: 0.08em; line-height: 1; text-transform: uppercase; text-shadow: none; }
+    .reveal .hygiene-loop__copy { display: block; font-size: 0.56em; line-height: 1.38; color: rgba(238,243,255,0.9); }
     .reveal .loop-lifecycle { position: relative; isolation: isolate; gap: 0.42em; padding: 0.42em 0.3em; }
     .reveal .loop-lifecycle::before { content: ""; position: absolute; left: 4%; right: 4%; top: 50%;
       height: 2px; border-radius: 999px; z-index: -1;
@@ -679,6 +697,8 @@
       .freshness-signal__panel { left: 0; right: 0; width: auto; }
       .freshness-signal__stats { grid-template-columns: 1fr; }
       .reveal .references { grid-template-columns: 1fr; }
+      .reveal .hygiene-loop { grid-template-columns: 1fr; }
+      .reveal .hygiene-loop li { min-height: 0; padding-top: 2.76em; }
     }
     @media print {
       html, body {
@@ -922,11 +942,11 @@ while True:
 
       <section>
         <h2>Context hygiene</h2>
-        <ul>
-          <li>Compact long runs into a clean handoff.</li>
-          <li>Offload huge outputs to files; feed back only relevant slices.</li>
-          <li>Use sub-agents for messy subtasks; return distilled results.</li>
-          <li>Govern durable memory like code.</li>
+        <ul class="hygiene-loop" aria-label="Context hygiene checklist">
+          <li><span class="hygiene-loop__label">Compact</span><span class="hygiene-loop__copy">Compact long runs into a clean handoff.</span></li>
+          <li><span class="hygiene-loop__label">Offload</span><span class="hygiene-loop__copy">Offload huge outputs to files; feed back only relevant slices.</span></li>
+          <li><span class="hygiene-loop__label">Distill</span><span class="hygiene-loop__copy">Use sub-agents for messy subtasks; return distilled results.</span></li>
+          <li><span class="hygiene-loop__label">Govern</span><span class="hygiene-loop__copy">Govern durable memory like code.</span></li>
         </ul>
         <p class="subtitle">Context is a budget, not a bucket.</p>
       </section>
