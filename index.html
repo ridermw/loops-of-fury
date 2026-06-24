@@ -2331,6 +2331,17 @@ Next step: backfill those rows or add a nullable migration first.
     let spotlightTargetY = spotlightY;
     const slidesRoot = document.querySelector('.reveal .slides');
 
+    const clearLoopEffects = () => {
+      [beaconTimer, burstTimer, cometTimer, skierTimer, echoTimer].forEach(clearTimeout);
+      cancelAnimationFrame(spotlightFrame);
+      spotlightFrame = undefined;
+      telemetry.classList.remove('is-previewing', 'is-comet-flying');
+      beacon.classList.remove('is-pulsing');
+      burst.classList.remove('is-firing');
+      echo.classList.remove('is-tracing');
+      if (skierEl) skierEl.classList.remove('is-carving');
+    };
+
     const getSlideTitle = (slide, fallback = 'Loops of Fury') => {
       const heading = slide ? slide.querySelector('h1, h2') : null;
       return heading ? heading.textContent.replace(/\s+/g, ' ').trim() : fallback;
@@ -2622,6 +2633,13 @@ Next step: backfill those rows or add a nullable migration first.
 
     Reveal.on('slidechanged', syncLoopChrome);
     deckReady.then(syncLoopChrome);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearLoopEffects();
+        return;
+      }
+      syncLoopChrome();
+    });
   </script>
 </body>
 </html>
