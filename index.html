@@ -1555,6 +1555,13 @@ Next step: backfill those rows or add a nullable migration first.
     const sourceCount = referenceItems.length;
     const externalLinkCount = referenceLinks.length;
     const formatShortDate = (date) => new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
+    const formatElapsedAge = (elapsedMs) => {
+      const elapsed = Math.max(0, elapsedMs);
+      if (elapsed < HOUR_MS) return `${Math.max(1, Math.floor(elapsed / MINUTE_MS))}m`;
+      if (elapsed < DAY_MS) return `${Math.floor(elapsed / HOUR_MS)}h`;
+      return `${Math.floor(elapsed / DAY_MS)}d`;
+    };
+    const getSourceAgeLabel = (checkedAt) => formatElapsedAge(Date.now() - checkedAt.getTime());
     const parseSourceCheckedAt = (item) => {
       const sourceChecked = item.dataset.sourceChecked;
       const match = sourceChecked && sourceChecked.match(DATE_ONLY_PATTERN);
@@ -1586,6 +1593,7 @@ Next step: backfill those rows or add a nullable migration first.
       const title = [...item.querySelectorAll('a')].map((link) => link.textContent.trim()).join(' + ') || item.textContent.trim();
       const checkedAt = parseSourceCheckedAt(item);
       const checkedLabel = formatShortDate(checkedAt);
+      const checkedAgeLabel = getSourceAgeLabel(checkedAt);
       const badge = document.createElement('span');
       badge.className = 'reference-freshness';
       badge.dataset.state = state;
@@ -1594,11 +1602,11 @@ Next step: backfill those rows or add a nullable migration first.
       badgeLabel.textContent = label;
       const badgeChecked = document.createElement('span');
       badgeChecked.className = 'reference-freshness__checked';
-      badgeChecked.textContent = `checked ${checkedLabel}`;
+      badgeChecked.textContent = `checked ${checkedLabel} - ${checkedAgeLabel} ago`;
       badge.append(badgeLabel, badgeChecked);
-      badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}; checked ${checkedLabel}` : `Source year ${label}; checked ${checkedLabel}`);
+      badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}; checked ${checkedLabel}, ${checkedAgeLabel} ago` : `Source year ${label}; checked ${checkedLabel}, ${checkedAgeLabel} ago`);
       item.appendChild(badge);
-      return { checkedAt, checkedLabel, label, state, title, year: year || 0 };
+      return { badge, badgeChecked, checkedAt, checkedLabel, label, sourceStatus: item.dataset.sourceStatus, state, title, year: year || 0 };
     });
     const referenceCounts = referenceAudit.reduce((counts, source) => {
       counts[source.state] = (counts[source.state] || 0) + 1;
@@ -1651,11 +1659,7 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessDate.textContent = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(oldestCheckedAt);
     const freshnessAge = document.createElement('span');
     freshnessAge.className = 'freshness-signal__age';
-    const getFreshnessAge = (elapsedMs) => {
-      if (elapsedMs < HOUR_MS) return `${Math.max(1, Math.floor(elapsedMs / MINUTE_MS))}m`;
-      if (elapsedMs < DAY_MS) return `${Math.floor(elapsedMs / HOUR_MS)}h`;
-      return `${Math.floor(elapsedMs / DAY_MS)}d`;
-    };
+    const getFreshnessAge = formatElapsedAge;
     freshnessAge.textContent = getFreshnessAge(elapsedSinceRefresh);
     const freshnessLatest = document.createElement('span');
     freshnessLatest.className = 'freshness-signal__latest';
@@ -1807,7 +1811,8 @@ Next step: backfill those rows or add a nullable migration first.
         sourceTitle.textContent = source.title;
         const sourceChecked = document.createElement('span');
         sourceChecked.className = 'freshness-signal__source-checked';
-        sourceChecked.textContent = `checked ${source.checkedLabel}`;
+        source.sourceChecked = sourceChecked;
+        sourceChecked.textContent = `checked ${source.checkedLabel} - ${getSourceAgeLabel(source.checkedAt)} ago`;
         sourceStack.append(sourceTitle, sourceChecked);
         const sourceState = document.createElement('span');
         sourceState.className = 'freshness-signal__source-state';
@@ -1834,6 +1839,12 @@ Next step: backfill those rows or add a nullable migration first.
       freshness.style.setProperty('--review-progress', `${snapshot.reviewProgress}%`);
       freshness.title = `Freshness signal: ${snapshot.freshnessState}; oldest source check ${ageLabel} ago; ${snapshot.reviewLabel}; source vintage ${sourceVintageLabel}; source mix ${sourceMixSummary}; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
       freshness.setAttribute('aria-label', `${freshness.title}. Focus for source audit.`);
+      referenceAudit.forEach((source) => {
+        const checkedAgeLabel = getSourceAgeLabel(source.checkedAt);
+        source.badgeChecked.textContent = `checked ${source.checkedLabel} - ${checkedAgeLabel} ago`;
+        source.badge.setAttribute('aria-label', source.sourceStatus ? `Freshness marker: ${source.label}; checked ${source.checkedLabel}, ${checkedAgeLabel} ago` : `Source year ${source.label}; checked ${source.checkedLabel}, ${checkedAgeLabel} ago`);
+        if (source.sourceChecked) source.sourceChecked.textContent = `checked ${source.checkedLabel} - ${checkedAgeLabel} ago`;
+      });
     };
     updateFreshnessSignal();
     setInterval(updateFreshnessSignal, MINUTE_MS);
