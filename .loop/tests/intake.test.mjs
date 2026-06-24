@@ -90,6 +90,7 @@ test('buildTaskPrompt embeds title/body/deck and the hard rules', () => {
   assert.match(p, /Do not add or remove whole slides/);
   assert.match(p, /:root design-token block/);
   assert.match(p, /make NO change at all/);
+  assert.match(p, /LEDGER:START/); // engine-owned ledger region is off-limits to the maker
 });
 
 test('buildTaskPrompt handles an empty body gracefully', () => {

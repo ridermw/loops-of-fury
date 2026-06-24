@@ -21,6 +21,7 @@ export function buildPrompt(axis, deck) {
     `- Edit ONLY ${deck}. Do not touch any other file.`,
     '- Do not edit the :root design-token block (colors/fonts are invariant).',
     '- Preserve all existing slide headings, thesis statements, and citations.',
+    '- Never edit anything between the <!-- LEDGER:START --> and <!-- LEDGER:END --> markers; that region is engine-owned (the loop writes its own live progress there).',
     '- Make one focused, high-quality improvement, then stop.',
   ].join('\n');
 }
@@ -63,6 +64,7 @@ export function buildTaskPrompt(task, deck) {
     '- Do not edit the :root design-token block (colors/fonts are invariant).',
     '- Preserve all existing slide headings, thesis statements, and citations.',
     '- Do not add or remove whole slides.',
+    '- Never edit anything between the <!-- LEDGER:START --> and <!-- LEDGER:END --> markers; that region is engine-owned (the loop writes its own live progress there).',
     '- If the request cannot be satisfied within these rules, make NO change at all.',
     '- Make the one requested improvement, then stop.',
   ].join('\n');

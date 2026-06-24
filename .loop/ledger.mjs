@@ -83,38 +83,74 @@ export function formatDuration(ms) {
 }
 
 // Render the inner HTML for the marked region (NO leading indent — replaceRegion
-// re-indents to match the deck). Reuses the deck's existing components verbatim
-// (.big-number hero + .flow/.pill chips + .subtitle) — adds NO new :root tokens
-// (D21/D37) and NO new headings, so the content-anchor floor (D32) never trips.
+// re-indents to match the deck). The engine OWNS this region (D28): it emits the
+// animated `ledger-stage` visualization the deck styles (orbit of signals + radial
+// counter + receipt) and drives it live from ledger.json. It reuses the deck's
+// existing components verbatim (.big-number hero + .flow/.pill chips + .subtitle)
+// and emits ONLY <div>/<span>/<p> — NO new :root tokens (D21/D37) and, critically,
+// NO headings and NO links — so the content-anchor floor (D32) is invariant to it
+// in EVERY state, including mid-run transitions.
 export function renderInner(summary) {
-  const lines = [`<p class="big-number">${Number(summary.total) || 0}</p>`];
+  const total = Number(summary.total) || 0;
+  const state = summary.state;
   const dur = formatDuration(summary.durationMs);
 
-  if (summary.state === 'empty') {
-    lines.push('<p class="subtitle">Verified improvements landed &mdash; waiting for the first unattended run.</p>');
-    return lines.join('\n');
-  }
-
-  let msg;
-  if (summary.state === 'success') {
-    msg = dur
+  // Per-state subtitle (visible — screen readers read it for the run state) and
+  // decorative aria-hidden receipt rows. The stage's aria-label carries only the
+  // landed count, so the empty render stays a fixed point of the committed deck.
+  let subtitle;
+  let receipt;
+  if (state === 'success') {
+    subtitle = dur
       ? `Verified improvements landed across ${dur} &mdash; every axis stronger, zero broken states.`
       : 'Verified improvements landed &mdash; every axis stronger, zero broken states.';
-  } else if (summary.state === 'escalated') {
-    msg = 'Verified improvements landed before the run paused itself for review.';
+    receipt = ['trigger rested', 'verifier green', 'every axis stronger'];
+  } else if (state === 'escalated') {
+    subtitle = 'Verified improvements landed before the run paused itself for review.';
+    receipt = ['trigger held', 'verifier paused', 'awaiting review'];
+  } else if (state === 'empty') {
+    subtitle = 'Verified improvements landed &mdash; waiting for the first unattended run.';
+    receipt = ['trigger armed', 'verifier cold', 'state file waiting'];
   } else {
-    msg = 'Verified improvements landing now &mdash; the unattended run is still going.';
+    subtitle = 'Verified improvements landing now &mdash; the unattended run is still going.';
+    receipt = ['trigger live', 'verifier hot', 'landing now'];
   }
-  lines.push(`<p class="subtitle">${msg}</p>`);
+  const aria = `Improvement ledger status: ${total} verified improvements landed`;
 
-  const chips = Object.entries(summary.perAxis)
-    .map(([axis, n]) => `  <span class="pill">${axis} +${Number(n) || 0}</span>`);
+  const lines = [`<div class="ledger-stage" aria-label="${aria}">`];
+  lines.push('  <div class="ledger-orbit" aria-hidden="true">');
+  for (let i = 0; i < 6; i += 1) lines.push('    <span class="ledger-signal"></span>');
+  lines.push('  </div>');
+  lines.push('  <div class="ledger-counter">');
+  lines.push(`    <p class="big-number">${total}</p>`);
+  lines.push('    <span class="ledger-counter__label">landed</span>');
+  lines.push('  </div>');
+  lines.push('  <div class="ledger-receipt" aria-hidden="true">');
+  for (const row of receipt) lines.push(`    <span>${row}</span>`);
+  lines.push('  </div>');
+  lines.push('</div>');
+  lines.push(`<p class="subtitle">${subtitle}</p>`);
+
+  // Per-axis tally chips — shown once at least one improvement has landed (never in
+  // the empty seed state). Tolerates a missing/empty perAxis without leaking NaN.
+  const chips = state === 'empty'
+    ? []
+    : Object.entries(summary.perAxis || {})
+      .map(([axis, n]) => `  <span class="pill">${axis} +${Number(n) || 0}</span>`);
   if (chips.length) {
     lines.push('<div class="flow">');
     lines.push(...chips);
     lines.push('</div>');
   }
   return lines.join('\n');
+}
+
+// Extract the inner region between the markers (everything regenerated each
+// update), or null when the markers are absent. The driver compares this
+// before/after the maker runs to FENCE the maker out of the engine-owned region.
+export function extractRegion(deckHtml) {
+  const m = deckHtml.match(/<!-- LEDGER:START -->([\s\S]*?)<!-- LEDGER:END -->/);
+  return m ? m[1] : null;
 }
 
 // Splice `inner` between the markers, preserving the START marker's indentation on

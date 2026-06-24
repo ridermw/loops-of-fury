@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   emptyLedger, recordEntry, setStatus, summarize, formatDuration,
-  renderInner, replaceRegion, applyLedger,
+  renderInner, replaceRegion, extractRegion, applyLedger,
   loadLedger, saveLedger, recordEntryToDeck, finalizeLedgerToDeck,
   LEDGER_START, LEDGER_END,
 } from '../ledger.mjs';
@@ -221,6 +221,71 @@ test('applyLedger composes summarize -> renderInner -> replaceRegion', () => {
   assert.match(html, /<span class="pill">delight \+1<\/span>/);
 });
 
+// ---- engine-owned ledger-stage scaffold + region safety (D28 ext) -----------
+
+// Build a summary for each lifecycle state the live deck can be committed in.
+function summaryFor(state) {
+  const l = emptyLedger(AXES);
+  if (state === 'empty') return summarize(l, { now: 0, axes: AXES });
+  recordEntry(l, { iter: 1, axis: 'render', now: 0 });
+  recordEntry(l, { iter: 2, axis: 'delight', now: 1 });
+  if (state === 'success') setStatus(l, 'ended', { now: (5 * 60 + 12) * 60 * 1000 });
+  if (state === 'escalated') setStatus(l, 'escalated', { now: 1000 });
+  return summarize(l, { now: state === 'success' ? 0 : 2000, axes: AXES });
+}
+const ALL_STATES = ['empty', 'partial', 'success', 'escalated'];
+
+test('renderInner emits the animated ledger-stage scaffold in every state', () => {
+  for (const state of ALL_STATES) {
+    const html = renderInner(summaryFor(state));
+    assert.match(html, /<div class="ledger-stage"/, `${state}: stage`);
+    assert.match(html, /<div class="ledger-orbit" aria-hidden="true">/, `${state}: orbit`);
+    assert.equal((html.match(/<span class="ledger-signal">/g) || []).length, 6, `${state}: 6 signals`);
+    assert.match(html, /<p class="big-number">\d+<\/p>/, `${state}: counter hero`);
+    assert.match(html, /<span class="ledger-counter__label">/, `${state}: counter label`);
+    const receipt = html.match(/<div class="ledger-receipt" aria-hidden="true">[\s\S]*?<\/div>/);
+    assert.ok(receipt, `${state}: receipt block`);
+    assert.equal((receipt[0].match(/<span>/g) || []).length, 3, `${state}: 3 receipt rows`);
+  }
+});
+
+test('renderInner adds NO headings and NO links in any state (anchor floor D32 invariant)', () => {
+  for (const state of ALL_STATES) {
+    const html = renderInner(summaryFor(state));
+    assert.equal(/<h[1-6]\b/i.test(html), false, `${state}: no headings`);
+    assert.equal(/<a\b/i.test(html), false, `${state}: no anchors`);
+    assert.equal(/href=/i.test(html), false, `${state}: no hrefs`);
+  }
+});
+
+test('extractRegion returns the inner region, or null when the markers are absent', () => {
+  const deck = deckShell('<p class="big-number">7</p>');
+  const inner = extractRegion(deck);
+  assert.equal(typeof inner, 'string');
+  assert.match(inner, /<p class="big-number">7<\/p>/);
+  assert.equal(extractRegion('<section>no markers</section>'), null);
+});
+
+test('extractRegion round-trips with replaceRegion (re-splicing identical inner is a fixed point)', () => {
+  const deck = deckShell('<p class="big-number">0</p>');
+  const spliced = replaceRegion(deck, 'A\nB').html;
+  const before = extractRegion(spliced);
+  const again = replaceRegion(spliced, 'A\nB').html;
+  assert.equal(extractRegion(again), before);
+});
+
+test('applyLedger leaves every byte OUTSIDE the ledger region unchanged (stamp safety)', () => {
+  const head = '<!DOCTYPE html><head><title>x</title></head><body>\n      <h2>The improvement ledger</h2>\n      ';
+  const tail = '\n      <footer>chrome</footer>\n    </body></html>';
+  const deck = head + deckShell('<p class="big-number">0</p>') + tail;
+  const l = emptyLedger(AXES);
+  recordEntry(l, { iter: 1, axis: 'render', now: 1 });
+  const { html, replaced } = applyLedger(deck, l, { now: 2, axes: AXES });
+  assert.equal(replaced, true);
+  assert.ok(html.startsWith(head), 'bytes before the region are untouched');
+  assert.ok(html.endsWith(tail), 'bytes after the region are untouched');
+});
+
 // ---- IO + driver-facing fs helpers ------------------------------------------
 
 test('loadLedger returns an empty ledger for a missing file', () => {
@@ -309,12 +374,17 @@ test('finalizeLedgerToDeck stamps the terminal status and renders the success st
   assert.match(fs.readFileSync(deckFile, 'utf8'), /every axis stronger/);
 });
 
-// ---- guard: the committed seed slide IS the empty-state render (idempotent) --
+// ---- guard: the committed seed slide IS the engine render of ledger.json ----
 
-test('the committed index.html ledger seed equals applyLedger(emptyLedger) — no spurious first-run diff', () => {
+test('the committed index.html ledger region equals applyLedger(deck, ledger.json) — engine-owned fixed point', () => {
   const deckPath = fileURLToPath(new URL('../../index.html', import.meta.url));
+  const ledgerPath = fileURLToPath(new URL('../ledger.json', import.meta.url));
   const original = fs.readFileSync(deckPath, 'utf8');
-  const { html, replaced } = applyLedger(original, emptyLedger(AXES), { now: 0, axes: AXES });
+  const ledger = loadLedger(ledgerPath, AXES);
+  // The render is `now`-independent at every committed HEAD (partial shows no
+  // duration; success uses endedMs; empty/escalated carry none) — so the engine's
+  // stamp is a true fixed point: re-rendering the committed deck is a no-op.
+  const { html, replaced } = applyLedger(original, ledger, { now: ledger.endedMs || 0, axes: AXES });
   assert.equal(replaced, true);
-  assert.equal(html, original); // seed already in empty state → re-render is a no-op
+  assert.equal(html, original);
 });

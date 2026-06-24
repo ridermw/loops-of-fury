@@ -14,6 +14,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
   REPO_ROOT, DECKS, SLIDES_BASELINE, ANCHORS_BASELINE, BASELINE_DIR, RUN_FILE,
+  LEDGER_FILE, LOOP,
 } from './config.mjs';
 import { withBrowser, renderDeck } from './render.mjs';
 import { runCheck } from './check.mjs';
@@ -22,6 +23,7 @@ import { scanWorktree as scanSecrets } from './secret-scan.mjs';
 import { writeBaseline as writeManifest, verify as verifyManifest } from './control-manifest.mjs';
 import * as G from './lib/git.mjs';
 import { noopMaker, copilotMaker } from './maker.mjs';
+import { recordEntryToDeck, extractRegion } from './ledger.mjs';
 
 const DECK_INDEX = path.join(REPO_ROOT, 'index.html');
 
@@ -67,10 +69,16 @@ function readIssueNumber() {
 // One real iteration. Returns a structured status; never throws on expected paths.
 // Attributes only the delta the maker introduces (snapshot before / diff after),
 // so a not-yet-committed control plane or gitignored runtime files are never
-// mis-attributed to the maker.
-export async function iteration({ commitAndPush, maker }) {
+// mis-attributed to the maker. When committing, the ENGINE stamps the landed entry
+// into the deck's ledger region (axis + iter) BEFORE the single check, so the deck
+// becomes living, self-verified proof of its own thesis.
+export async function iteration({ commitAndPush, maker, axis = 'render', iter = 0 }) {
   const drift = verifyManifest();
   if (!drift.ok) return { status: 'control-drift', drift: drift.drift, reason: drift.reason };
+
+  // Snapshot the engine-owned ledger region BEFORE the maker runs, so we can FENCE
+  // the maker out of it (D28 ext): only the engine ever regenerates this region.
+  const regionBefore = extractRegion(fs.readFileSync(DECK_INDEX, 'utf8'));
 
   const before = new Set(G.changedFiles());
   maker();
@@ -96,9 +104,35 @@ export async function iteration({ commitAndPush, maker }) {
     return { status: 'control-drift', drift: postMaker.drift };
   }
 
+  // FENCE: if the maker touched the ledger region it forged the engine's proof —
+  // revert the whole iteration and block it (treated like any gate violation).
+  const regionAfter = extractRegion(fs.readFileSync(DECK_INDEX, 'utf8'));
+  if (regionAfter !== regionBefore) {
+    G.revertPaths(files);
+    return { status: 'gate-blocked', reason: 'ledger-region' };
+  }
+
+  // STAMP (commit path only): the ENGINE records this landed iteration into
+  // ledger.json and regenerates the deck's ledger region BEFORE the single check,
+  // so the same headless render validates the EXACT bytes we publish. A lost-marker
+  // stamp fails closed (full revert, red) — the deck never ships without its proof.
+  let stampFiles = [];
+  if (commitAndPush) {
+    const stamp = recordEntryToDeck({
+      ledgerFile: LEDGER_FILE, deckFile: DECK_INDEX, entry: { iter, axis }, axes: LOOP.axes,
+    });
+    if (!stamp.replaced) {
+      G.revertPaths([...new Set([...files, 'index.html', '.loop/ledger.json'])]);
+      return { status: 'red', reason: 'ledger-markers-lost', failures: ['index.html lost its LEDGER markers'] };
+    }
+    stampFiles = ['index.html', '.loop/ledger.json'];
+  }
+
+  const toCommit = [...new Set([...files, ...stampFiles])];
+
   const check = await runCheck();
   if (!check.ok) {
-    G.revertPaths(files);
+    G.revertPaths(toCommit);
     return { status: 'red', failures: check.failures };
   }
 
@@ -108,14 +142,14 @@ export async function iteration({ commitAndPush, maker }) {
       issue ? `Refs: #${issue}` : null,
       'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>',
     ].filter(Boolean).join('\n');
-    G.add(files);
+    G.add(toCommit);
     const c = G.commit(`loop: improve decks\n\n${trailer}`);
-    if (!c.ok) return { status: 'commit-failed', stderr: c.stderr };
+    if (!c.ok) { G.revertPaths(toCommit); return { status: 'commit-failed', stderr: c.stderr }; }
     const p = G.push();
     if (!p.ok) return { status: 'push-failed', stderr: p.stderr };
     // Expose the exact pushed SHA so the orchestrator's live-Pages check (D29) can
     // poll the build API for THIS commit and re-verify it on the deployed site.
-    return { status: 'green', committed: true, files, sha: G.headSha() };
+    return { status: 'green', committed: true, files: toCommit, sha: G.headSha() };
   }
 
   G.revertPaths(files);
@@ -190,7 +224,7 @@ async function main(argv) {
     const useCopilot = process.env.LOOP_MAKER === 'copilot';
     const axis = process.env.LOOP_AXIS || 'render';
     const maker = useCopilot ? () => copilotMaker({ axis, deck: 'index.html' }) : noopMaker;
-    const result = await iteration({ commitAndPush: flag === '--once', maker });
+    const result = await iteration({ commitAndPush: flag === '--once', maker, axis, iter: 1 });
     log('iteration:', JSON.stringify(result));
     return result.status === 'green' || result.status === 'noop' ? 0 : 1;
   }

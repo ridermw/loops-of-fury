@@ -21,11 +21,12 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
   LOOP, LOOP_DIR, LOOP_STATUS_FILE, RUN_FILE, SCOREBOARD_FILE, INTAKE,
+  REPO_ROOT, LEDGER_FILE,
 } from './config.mjs';
 import { iteration as realIteration } from './driver.mjs';
 import { verify as verifyManifest } from './control-manifest.mjs';
 import { withBrowser, renderDeck } from './render.mjs';
-import { assertDeck } from './check.mjs';
+import { assertDeck, runCheck } from './check.mjs';
 import { noopMaker, copilotMaker, copilotTaskMaker } from './maker.mjs';
 import { initState, shouldStartIteration, decide, categorize } from './brain.mjs';
 import {
@@ -44,9 +45,11 @@ import {
   drainTaskQueue, listOpenTasks, ensureTaskLabels, closeTaskDone, markTaskNeedsReview,
 } from './intake.mjs';
 import { liveCheckAfterPush } from './pages.mjs';
+import { loadLedger, finalizeLedgerToDeck } from './ledger.mjs';
 
 const FAILURES_LOG = path.join(LOOP_DIR, 'failures.jsonl');
 const LOOP_LOG = path.join(LOOP_DIR, 'loop.log');
+const DECK_INDEX = path.join(REPO_ROOT, 'index.html');
 
 const GOOD_FIXTURE = '.loop/tests/fixtures/good.html';
 const BROKEN_FIXTURE = '.loop/tests/fixtures/broken.html';
@@ -130,7 +133,7 @@ export async function runLoop({
     if (!forcedAxis) recordPick(board, axis);
     let outcome;
     try {
-      outcome = await iteration({ commitAndPush, maker: makerFor(axis) });
+      outcome = await iteration({ commitAndPush, maker: makerFor(axis), axis, iter: ran + 1 });
     } catch (e) {
       outcome = { status: 'red', threw: true, failures: [String(e && e.message ? e.message : e)] };
     }
@@ -405,6 +408,43 @@ async function mainRun() {
   const didEscalate = Boolean(state.escalated) || escalated;
   endRun(run, nowMs(), { status: didEscalate ? 'escalated' : 'ended' });
   saveRun(RUN_FILE, run);
+
+  // Engine-owned ledger (D28), run-end finalize: stamp the run's TERMINAL status into
+  // ledger.json + the deck's ledger region as a last self-verified entry, then
+  // commit+push it — so the PUBLISHED proof slide reflects how the run actually ended
+  // ("ended" vs "escalated", with the run's duration). Strictly best-effort: gated on
+  // real commits, only when the run actually landed entries, fully try/caught, and the
+  // stamped deck is reverted if it fails the check — finalize can never break, halt, or
+  // escalate a run that already completed.
+  if (commitAndPush) {
+    try {
+      const ledger = loadLedger(LEDGER_FILE, LOOP.axes);
+      if (Array.isArray(ledger.entries) && ledger.entries.length > 0) {
+        const status = didEscalate ? 'escalated' : 'ended';
+        const fin = finalizeLedgerToDeck({
+          ledgerFile: LEDGER_FILE, deckFile: DECK_INDEX, status, axes: LOOP.axes,
+        });
+        if (fin.replaced) {
+          const check = await runCheck();
+          if (check.ok) {
+            const trailer = [
+              run.issue ? `Refs: #${run.issue}` : null,
+              'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>',
+            ].filter(Boolean).join('\n');
+            G.add(['index.html', '.loop/ledger.json']);
+            const c = G.commit(`loop: finalize ledger — ${status}\n\n${trailer}`);
+            if (c.ok) { G.push(); log('ledger finalized to deck:', status); }
+            else { G.revertPaths(['index.html', '.loop/ledger.json']); }
+          } else {
+            G.revertPaths(['index.html', '.loop/ledger.json']);
+            err('ledger finalize check RED — reverted (run already complete)');
+          }
+        }
+      }
+    } catch (e) {
+      err('ledger finalize failed (continuing) —', e && e.message ? e.message : e);
+    }
+  }
 
   // D4: close the run-issue as completed on a clean end; otherwise add the
   // escalation label + diagnosis and LEAVE IT OPEN. Only when we actually opened one.
