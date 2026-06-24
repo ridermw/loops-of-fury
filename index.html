@@ -711,6 +711,29 @@
       box-shadow: 0 0 16px rgba(var(--phase-accent-rgb),0.42); }
     .freshness-signal__timeline-scale { display: grid; grid-template-columns: 1fr auto; gap: 0.7rem;
       color: rgba(238,243,255,0.48); font-size: 0.76em; font-variant-numeric: tabular-nums; }
+    .freshness-signal__queue { margin-top: 0.72rem; padding: 0.62rem 0.64rem 0.66rem;
+      border: 1px solid rgba(156,194,255,0.16); border-radius: 14px;
+      background:
+        radial-gradient(circle at 8% 18%, rgba(255,106,77,0.13), transparent 36%),
+        linear-gradient(135deg, rgba(255,255,255,0.052), rgba(77,140,255,0.058)); }
+    .freshness-signal__queue-heading { display: flex; justify-content: space-between; gap: 0.7rem;
+      align-items: baseline; margin-bottom: 0.48rem; color: rgba(238,243,255,0.72); font-size: 0.82em; }
+    .freshness-signal__queue-heading strong { color: var(--ink); font-weight: 700; }
+    .freshness-signal__queue-list { display: grid; gap: 0.34rem; }
+    .freshness-signal__queue-item { display: grid; grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.66rem; align-items: center; padding: 0.4rem 0.46rem; border-radius: 11px;
+      color: rgba(238,243,255,0.76); background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(156,194,255,0.12); }
+    .freshness-signal__queue-item[data-review-state="due"] { border-color: rgba(255,106,77,0.24);
+      background: rgba(255,106,77,0.08); }
+    .freshness-signal__queue-stack { min-width: 0; display: grid; gap: 0.08rem; }
+    .freshness-signal__queue-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .freshness-signal__queue-meta { color: rgba(238,243,255,0.48); font-size: 0.78em; }
+    .freshness-signal__queue-status { padding: 0.1rem 0.38rem 0.12rem; border-radius: 999px;
+      border: 1px solid rgba(156,194,255,0.18); color: var(--heading); background: rgba(77,140,255,0.1);
+      font-size: 0.76em; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+    .freshness-signal__queue-item[data-review-state="due"] .freshness-signal__queue-status {
+      color: var(--fury); background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.28); }
     .freshness-signal__mix { margin-top: 0.72rem; padding: 0.6rem 0.64rem 0.66rem;
       border: 1px solid rgba(156,194,255,0.16); border-radius: 14px;
       background:
@@ -1625,6 +1648,7 @@ Next step: backfill those rows or add a nullable migration first.
       const state = year === latestReferenceYear || item.dataset.sourceStatus ? 'current' : year >= latestReferenceYear - 1 ? 'context' : 'archive';
       const title = [...item.querySelectorAll('a')].map((link) => link.textContent.trim()).join(' + ') || item.textContent.trim();
       const checkedAt = parseSourceCheckedAt(item);
+      const nextCheckAt = new Date(checkedAt.getTime() + SOURCE_REVIEW_INTERVAL_DAYS * DAY_MS);
       const checkedLabel = formatShortDate(checkedAt);
       const checkedAgeLabel = getSourceAgeLabel(checkedAt);
       const badge = document.createElement('span');
@@ -1639,7 +1663,7 @@ Next step: backfill those rows or add a nullable migration first.
       badge.append(badgeLabel, badgeChecked);
       badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}; checked ${checkedLabel}, ${checkedAgeLabel} ago` : `Source year ${label}; checked ${checkedLabel}, ${checkedAgeLabel} ago`);
       item.appendChild(badge);
-      return { badge, badgeChecked, checkedAt, checkedLabel, label, sourceStatus: item.dataset.sourceStatus, state, title, year: year || 0 };
+      return { badge, badgeChecked, checkedAt, checkedLabel, label, nextCheckAt, sourceStatus: item.dataset.sourceStatus, state, title, year: year || 0 };
     });
     const referenceCounts = referenceAudit.reduce((counts, source) => {
       counts[source.state] = (counts[source.state] || 0) + 1;
@@ -1674,6 +1698,13 @@ Next step: backfill those rows or add a nullable migration first.
     const oldestCheckedAt = new Date(Math.min(...checkedTimes));
     const newestCheckedAt = new Date(Math.max(...checkedTimes));
     const nextReviewAt = new Date(oldestCheckedAt.getTime() + SOURCE_REVIEW_INTERVAL_DAYS * DAY_MS);
+    const getSourceReviewLabel = (nextCheckAt) => {
+      const daysUntilReview = Math.ceil((nextCheckAt.getTime() - Date.now()) / DAY_MS);
+      if (daysUntilReview > 0) return `in ${daysUntilReview}d`;
+      if (daysUntilReview === 0) return 'today';
+      return `${Math.abs(daysUntilReview)}d late`;
+    };
+    const getSourceReviewState = (nextCheckAt) => nextCheckAt.getTime() <= Date.now() ? 'due' : 'scheduled';
     const getFreshnessSnapshot = () => {
       const elapsedSinceRefresh = Math.max(0, Date.now() - oldestCheckedAt.getTime());
       const daysSinceRefresh = Math.floor(elapsedSinceRefresh / DAY_MS);
@@ -1754,6 +1785,42 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessTimelineEnd.textContent = `next ${formatShortDate(nextReviewAt)}`;
     freshnessTimelineScale.append(freshnessTimelineStart, freshnessTimelineEnd);
     freshnessTimeline.append(freshnessTimelineCaption, freshnessTimelineRail, freshnessTimelineScale);
+    const freshnessQueue = document.createElement('div');
+    freshnessQueue.className = 'freshness-signal__queue';
+    const freshnessQueueHeading = document.createElement('div');
+    freshnessQueueHeading.className = 'freshness-signal__queue-heading';
+    const freshnessQueueTitle = document.createElement('span');
+    freshnessQueueTitle.textContent = 'Next checks';
+    const freshnessQueueCount = document.createElement('strong');
+    freshnessQueueCount.textContent = 'soonest 3';
+    freshnessQueueHeading.append(freshnessQueueTitle, freshnessQueueCount);
+    const freshnessQueueList = document.createElement('div');
+    freshnessQueueList.className = 'freshness-signal__queue-list';
+    [...referenceAudit]
+      .sort((a, b) => (a.nextCheckAt.getTime() - b.nextCheckAt.getTime()) || a.title.localeCompare(b.title))
+      .slice(0, 3)
+      .forEach((source) => {
+        const row = document.createElement('div');
+        row.className = 'freshness-signal__queue-item';
+        row.dataset.reviewState = getSourceReviewState(source.nextCheckAt);
+        const queueStack = document.createElement('span');
+        queueStack.className = 'freshness-signal__queue-stack';
+        const queueName = document.createElement('span');
+        queueName.className = 'freshness-signal__queue-name';
+        queueName.textContent = source.title;
+        const queueMeta = document.createElement('span');
+        queueMeta.className = 'freshness-signal__queue-meta';
+        queueMeta.textContent = `checked ${source.checkedLabel} - next ${formatShortDate(source.nextCheckAt)}`;
+        queueStack.append(queueName, queueMeta);
+        const queueStatus = document.createElement('span');
+        queueStatus.className = 'freshness-signal__queue-status';
+        queueStatus.textContent = getSourceReviewLabel(source.nextCheckAt);
+        source.reviewQueueRow = row;
+        source.reviewQueueStatus = queueStatus;
+        row.append(queueStack, queueStatus);
+        freshnessQueueList.appendChild(row);
+      });
+    freshnessQueue.append(freshnessQueueHeading, freshnessQueueList);
     const freshnessMix = document.createElement('div');
     freshnessMix.className = 'freshness-signal__mix';
     const freshnessMixLabel = document.createElement('div');
@@ -1854,7 +1921,7 @@ Next step: backfill those rows or add a nullable migration first.
         row.append(sourceStack, sourceState);
         freshnessSourceList.appendChild(row);
       });
-    freshnessPanel.append(freshnessPanelTitle, freshnessPanelMeta, freshnessTimeline, freshnessMix, freshnessVintage, freshnessStats, freshnessSourceList);
+    freshnessPanel.append(freshnessPanelTitle, freshnessPanelMeta, freshnessTimeline, freshnessQueue, freshnessMix, freshnessVintage, freshnessStats, freshnessSourceList);
     freshness.setAttribute('aria-describedby', freshnessPanel.id);
     freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessLatest, freshnessReview, freshnessPulseTrain, freshnessSources, freshnessPanel);
     document.body.appendChild(freshness);
@@ -1877,6 +1944,8 @@ Next step: backfill those rows or add a nullable migration first.
         source.badgeChecked.textContent = `checked ${source.checkedLabel} - ${checkedAgeLabel} ago`;
         source.badge.setAttribute('aria-label', source.sourceStatus ? `Freshness marker: ${source.label}; checked ${source.checkedLabel}, ${checkedAgeLabel} ago` : `Source year ${source.label}; checked ${source.checkedLabel}, ${checkedAgeLabel} ago`);
         if (source.sourceChecked) source.sourceChecked.textContent = `checked ${source.checkedLabel} - ${checkedAgeLabel} ago`;
+        if (source.reviewQueueRow) source.reviewQueueRow.dataset.reviewState = getSourceReviewState(source.nextCheckAt);
+        if (source.reviewQueueStatus) source.reviewQueueStatus.textContent = getSourceReviewLabel(source.nextCheckAt);
       });
     };
     updateFreshnessSignal();
