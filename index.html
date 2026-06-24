@@ -339,7 +339,7 @@
     .loop-beacon.is-pulsing::before { animation: beacon-spin 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
     .freshness-signal { position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
-      z-index: 4; display: grid; grid-template-columns: auto auto auto auto auto auto; align-items: center; gap: 0.44rem;
+      z-index: 4; display: grid; grid-template-columns: auto auto auto auto auto auto auto; align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
       font-family: var(--font-display); font-size: clamp(9px, 0.86vw, 12px); font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase; text-shadow: none; pointer-events: auto; cursor: help;
@@ -361,6 +361,11 @@
       border-radius: 999px; color: rgba(238,243,255,0.84); font-variant-numeric: tabular-nums;
       background: rgba(255,255,255,0.08); border: 1px solid rgba(238,243,255,0.12); }
     .freshness-signal__latest { color: rgba(238,243,255,0.64); font-variant-numeric: tabular-nums; }
+    .freshness-signal__review { padding: 0.16rem 0.4rem 0.18rem; border-radius: 999px;
+      color: rgba(238,243,255,0.7); background: rgba(77,140,255,0.09);
+      border: 1px solid rgba(156,194,255,0.16); font-variant-numeric: tabular-nums; }
+    .freshness-signal[data-review-state="due"] .freshness-signal__review { color: var(--fury);
+      background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.28); }
     .freshness-signal__sources { padding-left: 0.44rem; color: rgba(238,243,255,0.62);
       border-left: 1px solid rgba(156,194,255,0.2); font-variant-numeric: tabular-nums; }
     .freshness-signal__panel { position: absolute; top: calc(100% + 0.72rem); right: 0;
@@ -379,7 +384,7 @@
     .freshness-signal__panel-title { margin-bottom: 0.32rem; color: var(--heading);
       font-size: 1.05em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
     .freshness-signal__panel-meta { color: rgba(238,243,255,0.66); font-size: 0.94em; }
-    .freshness-signal__stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    .freshness-signal__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.42rem; margin: 0.72rem 0; }
     .freshness-signal__stat { padding: 0.48rem 0.5rem; border-radius: 12px;
       background: rgba(255,255,255,0.055); border: 1px solid rgba(156,194,255,0.15); }
@@ -527,7 +532,7 @@
       .freshness-signal { left: clamp(14px, 4vw, 30px); right: clamp(14px, 4vw, 30px);
         grid-template-columns: auto auto minmax(0, 1fr) auto; }
       .freshness-signal__date { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .freshness-signal__latest, .freshness-signal__sources { display: none; }
+      .freshness-signal__latest, .freshness-signal__review, .freshness-signal__sources { display: none; }
       .freshness-signal__panel { left: 0; right: 0; width: auto; }
       .freshness-signal__stats { grid-template-columns: 1fr; }
     }
@@ -987,6 +992,7 @@ Next step: backfill those rows or add a nullable migration first.
     const MINUTE_MS = 60 * 1000;
     const HOUR_MS = 60 * MINUTE_MS;
     const DAY_MS = 24 * HOUR_MS;
+    const SOURCE_REVIEW_INTERVAL_DAYS = 30;
     const refreshedAt = new Date('2026-06-24T04:39:59.972Z');
     const referenceItems = [...document.querySelectorAll('.references li')];
     const referenceLinks = [...document.querySelectorAll('.slides section:last-of-type a[href^="http"]')];
@@ -1025,6 +1031,10 @@ Next step: backfill those rows or add a nullable migration first.
     const elapsedSinceRefresh = Math.max(0, Date.now() - refreshedAt.getTime());
     const daysSinceRefresh = Math.floor(elapsedSinceRefresh / DAY_MS);
     const freshnessState = daysSinceRefresh <= 14 ? 'fresh' : daysSinceRefresh <= 45 ? 'aging' : 'stale';
+    const nextReviewAt = new Date(refreshedAt.getTime() + SOURCE_REVIEW_INTERVAL_DAYS * DAY_MS);
+    const daysUntilReview = Math.ceil((nextReviewAt.getTime() - Date.now()) / DAY_MS);
+    const reviewState = daysUntilReview > 0 ? 'scheduled' : 'due';
+    const reviewLabel = daysUntilReview > 0 ? `review in ${daysUntilReview}d` : daysUntilReview === 0 ? 'review today' : `review due ${Math.abs(daysUntilReview)}d`;
     freshnessDate.dateTime = refreshedAt.toISOString();
     freshnessDate.textContent = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(refreshedAt);
     const freshnessAge = document.createElement('span');
@@ -1038,11 +1048,15 @@ Next step: backfill those rows or add a nullable migration first.
     const freshnessLatest = document.createElement('span');
     freshnessLatest.className = 'freshness-signal__latest';
     freshnessLatest.textContent = `latest ${Math.max(latestReferenceYear, latestLinkedReferenceYear)}`;
+    const freshnessReview = document.createElement('span');
+    freshnessReview.className = 'freshness-signal__review';
+    freshnessReview.textContent = reviewLabel;
     const freshnessSources = document.createElement('span');
     freshnessSources.className = 'freshness-signal__sources';
     freshnessSources.textContent = `${sourceCount} refs`;
     freshness.dataset.state = freshnessState;
-    freshness.title = `Freshness signal: ${freshnessState}; source review refreshed ${freshnessAge.textContent} ago; latest dated reference ${latestReferenceYear}; ${sourceCount} external references tracked`;
+    freshness.dataset.reviewState = reviewState;
+    freshness.title = `Freshness signal: ${freshnessState}; source review refreshed ${freshnessAge.textContent} ago; ${reviewLabel}; latest dated reference ${latestReferenceYear}; ${sourceCount} external references tracked`;
     freshness.setAttribute('aria-label', `${freshness.title}. Focus for source audit.`);
     freshness.tabIndex = 0;
     const freshnessPanel = document.createElement('div');
@@ -1054,13 +1068,14 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessPanelTitle.textContent = 'Source audit';
     const freshnessPanelMeta = document.createElement('div');
     freshnessPanelMeta.className = 'freshness-signal__panel-meta';
-    freshnessPanelMeta.textContent = `Refreshed ${freshnessAge.textContent} ago; newest dated source is ${latestReferenceYear}.`;
+    freshnessPanelMeta.textContent = `Refreshed ${freshnessAge.textContent} ago; ${reviewLabel}; newest dated source is ${latestReferenceYear}.`;
     const freshnessStats = document.createElement('div');
     freshnessStats.className = 'freshness-signal__stats';
     [
       ['current', referenceCounts.current || 0],
       ['context', referenceCounts.context || 0],
       ['archive', referenceCounts.archive || 0],
+      ['cadence', reviewLabel.replace('review ', '')],
     ].forEach(([label, value]) => {
       const stat = document.createElement('div');
       stat.className = 'freshness-signal__stat';
@@ -1092,7 +1107,7 @@ Next step: backfill those rows or add a nullable migration first.
       });
     freshnessPanel.append(freshnessPanelTitle, freshnessPanelMeta, freshnessStats, freshnessSourceList);
     freshness.setAttribute('aria-describedby', freshnessPanel.id);
-    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessLatest, freshnessSources, freshnessPanel);
+    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessLatest, freshnessReview, freshnessSources, freshnessPanel);
     document.body.appendChild(freshness);
 
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
