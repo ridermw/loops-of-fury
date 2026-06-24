@@ -67,8 +67,17 @@
     .reveal .arrow { color: var(--fury); font-family: var(--font-display); font-weight: 700; }
     .reveal .small { font-size: 0.55em; }
     .reveal .tiny { font-size: 0.42em; }
-    .reveal table { font-size: 0.48em; }
-    .reveal table th { color: var(--fury); }
+    .reveal table { width: 100%; font-size: 0.48em; border-collapse: separate; border-spacing: 0;
+      overflow: hidden; border: 1px solid rgba(156,194,255,0.24); border-radius: 14px;
+      background: linear-gradient(180deg, rgba(8,22,62,0.86), rgba(4,16,46,0.68));
+      box-shadow: 0 18px 48px rgba(2,8,28,0.42), inset 0 1px 0 rgba(255,255,255,0.05); }
+    .reveal table th, .reveal table td { border: 0; padding: 0.62em 0.8em; text-align: left; }
+    .reveal table th { color: var(--fury); background: rgba(255,106,77,0.09);
+      font-family: var(--font-display); font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+    .reveal table td { color: rgba(238,243,255,0.9); }
+    .reveal table tr:not(:last-child) td { border-bottom: 1px solid rgba(156,194,255,0.14); }
+    .reveal table th + th, .reveal table td + td { border-left: 1px solid rgba(156,194,255,0.12); }
+    .reveal table tbody tr:nth-child(even) td { background: rgba(77,140,255,0.055); }
     .reveal .button-link { display: inline-block; margin-top: 0.8em; padding: 0.42em 0.8em;
       border-radius: 8px; background: var(--fury); color: #1a0a06; font-family: var(--font-display);
       font-weight: 700; text-decoration: none; text-shadow: none; box-shadow: 0 3px 18px rgba(255,90,60,0.45); }
