@@ -1560,8 +1560,8 @@
           <span class="hero-loop__runner"></span>
         </div>
         <p class="subtitle">Stop hand-cranking agents. Build the loop that prompts, verifies, remembers, and stops them.</p>
-        <aside class="notes">Open with the idea that this is not another prompt-engineering talk. It is a shift in where engineering effort goes.</aside>
-      </section>
+        
+      <aside class="notes">Welcome. This is a research briefing on loop engineering — the discipline of building systems that prompt your agents instead of you prompting them by hand.<br><br>The one-line thesis is on the screen: stop hand-cranking agents. Build the loop that prompts them, verifies their work, remembers state, and knows when to stop.<br><br>By the end you will have a shared vocabulary, the hard parts to watch for, and a concrete contract you can fill in before you ever run one unattended.</aside></section>
 
       <section class="quote-transmission">
         <span class="quote-transmission__halo" aria-hidden="true"></span>
@@ -1570,8 +1570,8 @@
           "I don't prompt Claude anymore. I have <strong>loops that are running</strong>. My job is to <strong>write loops</strong>."
         </blockquote>
         <p class="source">Boris Cherny, creator of Claude Code</p>
-        <aside class="notes">Let this land. The person who built Claude Code says the work moved from prompting the agent to writing loops around it.</aside>
-      </section>
+        
+      <aside class="notes">Boris Cherny, who created Claude Code, put it bluntly: I do not prompt Claude anymore. I have loops that are running. My job is to write loops.<br><br>That is the whole shift in one sentence. The unit of work is moving from the prompt to the loop. Hold onto that quote — everything else today is how to do it responsibly.</aside></section>
 
       <section>
         <h2>The shift</h2>
@@ -1586,7 +1586,7 @@
           </div>
         </div>
         <p class="subtitle">The human moves out of the inner loop and stays accountable at the outer loop.</p>
-      </section>
+      <aside class="notes">Before, you lived inside the inner loop. You prompt, the agent responds, you inspect, you prompt again. You were the runtime.<br><br>Now a system discovers the work, delegates it, checks it, persists state, and decides what comes next.<br><br>You step out of the inner loop — but you stay accountable at the outer loop. That accountability never leaves you, and that is a theme we will return to.</aside></section>
 
       <section>
         <h2>The trivial loop</h2>
@@ -1600,7 +1600,7 @@ while True:
         break
         </code></pre>
         <p class="subtitle">Model &rarr; tools &rarr; context &rarr; repeat. Nobody is competing on the while statement.</p>
-      </section>
+      <aside class="notes">Here is the agent loop everyone already has. The model produces tool calls, you run the tools, append the results to context, and repeat until it stops.<br><br>Nobody is competing on this while statement. The loop itself is trivial — a first-year could write it.<br><br>So if the loop is trivial, the obvious question is: what are we actually engineering?</aside></section>
 
       <section>
         <h2>So what are we engineering?</h2>
@@ -1651,7 +1651,7 @@ while True:
           <text x="690" y="470" text-anchor="middle" class="microcopy">ending a turn != finishing the task</text>
         </svg>
         <p class="subtitle">Our job is not the while loop. Our job is the harness, the verifier, the memory, and the brakes.</p>
-      </section>
+      <aside class="notes">Not the while loop. The interesting work is everything wrapped around it.<br><br>The harness that hands the agent its tools. The verifier that checks the output. The memory that survives a single run. And the brakes that stop it.<br><br>That diagram is basically the whole talk. Hold the picture; we will fill in each piece.</aside></section>
 
       <section>
         <h2>Four floors</h2>
@@ -1664,13 +1664,13 @@ while True:
             <tr><th scope="row">Loop engineering</th><td>What recurring system drives work toward a goal?</td></tr>
           </tbody>
         </table>
-      </section>
+      <aside class="notes">Picture four floors. Prompt engineering asks: what should I say. Context engineering asks: what should the model see.<br><br>Harness engineering asks: what tools, state, errors, and permissions surround one single run.<br><br>Loop engineering sits on top and asks: what recurring system drives work toward a goal across many runs. Today we are living on the top floor.</aside></section>
 
       <section>
         <h2>Working definition</h2>
         <p class="quote">Loop engineering is designing a recurring agent system that <strong>discovers</strong>, <strong>delegates</strong>, <strong>verifies</strong>, <strong>persists</strong>, <strong>decides</strong>, and <strong>stops</strong>.</p>
         <p class="subtitle">A cron job repeats. A loop decides.</p>
-      </section>
+      <aside class="notes">So here is our working definition. Loop engineering is designing a recurring agent system that discovers, delegates, verifies, persists, decides, and stops.<br><br>The load-bearing word is decides. A cron job repeats on a clock. A loop looks at evidence and decides. That difference is the entire discipline.</aside></section>
 
       <section>
         <h2>Loop lifecycle</h2>
@@ -1684,7 +1684,7 @@ while True:
           <span class="pill">Decide</span>
         </div>
         <p class="subtitle">The load-bearing step is verification.</p>
-      </section>
+      <aside class="notes">The lifecycle, left to right: a trigger fires, the system discovers work, delegates it, acts, verifies, persists, and decides what to do next.<br><br>If you remember only one step, remember verification. It is the load-bearing step — every other step is cheap and dangerous without it.</aside></section>
 
       <section>
         <h2>What makes it a loop?</h2>
@@ -1693,7 +1693,7 @@ while True:
           <div class="card"><h3>Memory</h3><p>Progress lives outside the conversation: files, issues, boards, traces.</p></div>
           <div class="card"><h3>Decision</h3><p>Continue, retry, stop, or escalate for a reason.</p></div>
         </div>
-      </section>
+      <aside class="notes">Three ingredients turn a one-shot agent into a real loop. A heartbeat — a schedule, an event, a webhook, a failing check, or an adaptive cadence.<br><br>Memory — progress lives outside the conversation, in files, issues, boards, and traces.<br><br>And a decision — continue, retry, stop, or escalate, always for an explicit reason. No heartbeat, no memory, no decision: it is just a long prompt.</aside></section>
 
       <section>
         <h2>Six building blocks</h2>
@@ -1705,7 +1705,7 @@ while True:
           <div class="card"><h3>Sub-agents</h3><p>Maker, checker, explorer, reviewer.</p></div>
           <div class="card"><h3>Memory</h3><p>The agent forgets. The repo doesn't.</p></div>
         </div>
-      </section>
+      <aside class="notes">Six building blocks you will assemble. Automations are the heartbeat that starts runs. Worktrees give isolation for parallel or risky changes.<br><br>Skills are the project knowledge the agent should not have to guess. Connectors are the real tools — GitHub, Linear, Slack, CI, databases.<br><br>Sub-agents play roles: maker, checker, explorer, reviewer. And memory, because the agent forgets but the repo does not.</aside></section>
 
       <section>
         <h2>Maker vs checker</h2>
@@ -1720,7 +1720,7 @@ while True:
           </div>
         </div>
         <p class="subtitle">The worker does not grade its own homework.</p>
-      </section>
+      <aside class="notes">This is the most important pattern in the talk: separate the maker from the checker.<br><br>The maker proposes the smallest change that could satisfy the goal. The checker defaults to reject, verifies with evidence, and decides whether done is actually real.<br><br>The rule to tattoo on the wall: the worker does not grade its own homework.</aside></section>
 
       <section>
         <h2>Loop vs. goal &mdash; patterns, not commands</h2>
@@ -1732,13 +1732,13 @@ while True:
           </tbody>
         </table>
         <p class="subtitle">Patterns, not commands. Copilot CLI runs <code>copilot -p "&lt;prompt&gt;"</code>; the slash-commands belong to other tools.</p>
-      </section>
+      <aside class="notes">Two primitives. A loop repeats on a cadence — its risk is that it can repeat forever without ever proving success.<br><br>A goal runs until a condition is verified — and it is only ever as good as the done-condition you wrote.<br><br>One clarification so nobody gets tripped up: these are patterns, not literal commands. Copilot CLI runs copilot dash p with a prompt; the slash-commands you may have seen belong to other tools.</aside></section>
 
       <section>
         <h2>Hard part 1: stopping</h2>
         <p class="quote">An agent ending its turn is <strong>not</strong> the same as completing the task.</p>
         <p class="subtitle">"Done" should mean tests pass, not the agent feels good.</p>
-      </section>
+      <aside class="notes">Now the four hard parts. The first is stopping.<br><br>An agent ending its turn is not the same as completing the task. Done has to mean the tests pass — not that the agent feels good about its work.</aside></section>
 
       <section>
         <h2>Honest stop conditions</h2>
@@ -1748,13 +1748,13 @@ while True:
           <div class="card"><h3>Stalled</h3><p>Same failure repeats with no new evidence.</p></div>
           <div class="card"><h3>Needs human</h3><p>Risky, ambiguous, taste-driven, or regulated.</p></div>
         </div>
-      </section>
+      <aside class="notes">Four honest reasons to stop. Goal met — the verifier confirms the done-condition. Budget spent — iterations, time, tokens, or dollars hit the cap.<br><br>Stalled — the same failure repeats with no new evidence. Or needs-human — the work is risky, ambiguous, taste-driven, or regulated.<br><br>If a loop stops for any reason that is not on this list, it did not finish — it quit.</aside></section>
 
       <section>
         <h2>Hard part 2: context rot</h2>
         <p>Long loops accumulate stale tool output, dead ends, and obsolete reasoning.</p>
         <p class="subtitle">A rotted context makes worse decisions, which add more noise, which rots the context further.</p>
-      </section>
+      <aside class="notes">The second hard part: context rot. Long loops accumulate stale tool output, dead ends, and obsolete reasoning.<br><br>And it compounds viciously. A rotted context makes worse decisions, which add more noise, which rot the context further. Left alone, the loop gets dumber over time.</aside></section>
 
       <section>
         <h2>Context hygiene</h2>
@@ -1774,8 +1774,8 @@ while True:
           </ul>
         </div>
         <p class="subtitle">Context is a budget, not a bucket.</p>
-        <aside class="notes">Frame hygiene as an operational discipline: compact only after preserving goal, state, evidence, and next move; offload raw logs instead of stuffing them back into the model; use sub-agents to shrink messy work into findings; treat memory changes as reviewed artifacts.</aside>
-      </section>
+        
+      <aside class="notes">Four moves to fight rot. Compact long runs into a clean handoff. Offload huge outputs to files and feed back only the relevant slices.<br><br>Distill messy subtasks through sub-agents that return just the result. And govern durable memory like you govern code — with review.<br><br>Carry a small handoff capsule every time: goal, state, evidence, next move. Context is a budget, not a bucket.</aside></section>
 
       <section>
         <h2>Hard part 3: tool design</h2>
@@ -1785,7 +1785,7 @@ while True:
           <div class="card"><h3>Agent-readable errors</h3><p>An error should tell the next move.</p></div>
           <div class="card"><h3>Least privilege</h3><p>Scope by what the loop can break, not what you hope it does.</p></div>
         </div>
-      </section>
+      <aside class="notes">Third hard part: tool design. Keep tools few and focused — if a human cannot tell which tool to use, the agent has no chance.<br><br>Make writes idempotent, so retries never create duplicate customers, tickets, commits, or charges. Make errors agent-readable, so they name the next move.<br><br>And least privilege — scope each tool by what the loop can break, not by what you are hoping it does.</aside></section>
 
       <section>
         <h2>Good error messages become prompts</h2>
@@ -1797,13 +1797,13 @@ Good:
 Migration failed because column user_id is nullable in 3 rows.
 Next step: backfill those rows or add a nullable migration first.
         </code></pre>
-      </section>
+      <aside class="notes">This is the highest-leverage slide in the deck. Good error messages become prompts.<br><br>Bad: Migration failed. That is a dead end. Good: Migration failed because column user underscore id is nullable in three rows. Next step: backfill those rows, or add a nullable migration first.<br><br>The good one tells the agent exactly what to do next. Write your errors for the dumbest future reader — which, in a loop, is the agent.</aside></section>
 
       <section>
         <h2>Hard part 4: something says no</h2>
         <p class="quote">A loop with no critic is just an agent nodding along to its own work.</p>
         <p class="subtitle">Use tests, typechecks, linters, rubrics, reviewers, and human gates.</p>
-      </section>
+      <aside class="notes">The fourth hard part: something has to say no. A loop with no critic is just an agent nodding along to its own work.<br><br>Give it a real adversary — tests, typechecks, linters, rubrics, reviewers, and human gates. The critic is what makes the loop trustworthy.</aside></section>
 
       <section>
         <h2>LangChain's stacked loops</h2>
@@ -1816,7 +1816,7 @@ Next step: backfill those rows or add a nullable migration first.
             <tr><th scope="row">L4</th><td>Hill-climbing loop</td><td>Improve the harness from traces</td></tr>
           </tbody>
         </table>
-      </section>
+      <aside class="notes">LangChain frames the maturity path as stacked loops. Level one automates a single task. Level two wraps it in a verification loop to improve correctness.<br><br>Level three is event-driven — it runs in the real ecosystem, on real triggers. Level four is hill-climbing — it improves the harness itself from its own traces.<br><br>You climb this ladder one rung at a time. Nobody starts at level four.</aside></section>
 
       <section>
         <h2>What loops are good for</h2>
@@ -1835,7 +1835,7 @@ Next step: backfill those rows or add a nullable migration first.
           </ul>
         </div>
         <p class="subtitle">Recurring + bounded + machine-checkable.</p>
-      </section>
+      <aside class="notes">Where do loops genuinely shine? Work that is recurring, bounded, and machine-checkable.<br><br>CI failure repair, dependency upgrades, flaky-test hunts, doc-drift repair, issue triage, PR babysitting, benchmark tuning, alert triage.<br><br>The test is simple: does it recur, does it have a boundary, and can a machine check it. Three yeses and you have a loop candidate.</aside></section>
 
       <section>
         <h2>Case study: Stripe's "Minions"</h2>
@@ -1852,7 +1852,7 @@ Next step: backfill those rows or add a nullable migration first.
           </ul>
         </div>
         <p class="subtitle">Steve Kaliski, Stripe &mdash; the flagship real-world loop.</p>
-      </section>
+      <aside class="notes">Here is the flagship real-world example, and it is the newest material in this deck: Stripe’s Minions.<br><br>One production loop ships roughly 1,300 pull requests a week. It is a fork of Goose run at scale, and deterministic gates decide what actually merges.<br><br>Every run gets an ephemeral Devbox or EC2 instance — cattle, not pets. Humans set the direction; the loop does the toil.<br><br>Credit to Steve Kaliski at Stripe. This is not a demo — it is loop engineering in production, today.</aside></section>
 
       <section>
         <h2>When not to loop</h2>
@@ -1863,7 +1863,7 @@ Next step: backfill those rows or add a nullable migration first.
           <li>High-intent-debt legacy work.</li>
           <li>Safety-critical or regulated output with no human gate.</li>
         </ul>
-      </section>
+      <aside class="notes">The honest flip side — when not to loop. When there is no machine-checkable done-condition. When it is a one-off that will not amortize the design cost.<br><br>When it is taste, strategy, architecture, or product judgment. When it is high intent-debt legacy work. Or when it is safety-critical or regulated output with no human gate.<br><br>Knowing when not to build a loop is just as much a part of the skill as building one.</aside></section>
 
       <section>
         <h2>Security: the lethal trifecta</h2>
@@ -1873,7 +1873,7 @@ Next step: backfill those rows or add a nullable migration first.
           <div class="card"><h3>Outbound channel</h3><p>PRs, Slack, email, web requests, artifacts.</p></div>
         </div>
         <p class="subtitle">Break one leg before running unattended.</p>
-      </section>
+      <aside class="notes">Security. Simon Willison’s lethal trifecta. Three ingredients. Private data — your repos, secrets, tickets, and customer records.<br><br>Untrusted input — issues, PRs, web pages, logs, even dependency text. And an outbound channel — PRs, Slack, email, web requests, artifacts.<br><br>Any one of these alone is fine. All three together, running unattended, is exactly how data gets exfiltrated. Break one leg before you go unattended.</aside></section>
 
       <section>
         <h2>Failure modes</h2>
@@ -1883,7 +1883,7 @@ Next step: backfill those rows or add a nullable migration first.
           <div class="card"><h3>Reward hacking</h3><p>Passes the checker without solving the problem.</p></div>
           <div class="card"><h3>Handoff gap</h3><p>Undefined outputs become downstream assumptions.</p></div>
         </div>
-      </section>
+      <aside class="notes">Four failure modes to name so you can spot them. The doom loop — it repeats forever. Silent death — it looks alive but makes no real progress.<br><br>Reward hacking — it passes the checker without actually solving the problem. And the handoff gap — undefined outputs quietly become someone’s downstream assumption.</aside></section>
 
       <section>
         <h2>The two ceilings</h2>
@@ -1898,7 +1898,7 @@ Next step: backfill those rows or add a nullable migration first.
           </div>
         </div>
         <p class="subtitle">Scale the fleet to your review rate.</p>
-      </section>
+      <aside class="notes">Two ceilings will limit you. Money — multi-turn loops re-bill the entire history on every turn, so bound tokens, time, turns, and dollars explicitly.<br><br>And you. You can only merge as many diffs as you can genuinely understand. Scale the fleet to your review rate, not to your ambition.</aside></section>
 
       <section>
         <h2>The debt trilogy</h2>
@@ -1910,7 +1910,7 @@ Next step: backfill those rows or add a nullable migration first.
             <tr><th scope="row">Intent</th><td>The why</td><td>No. Humans must write it down.</td></tr>
           </tbody>
         </table>
-      </section>
+      <aside class="notes">Three kinds of debt. Technical debt lives in the code — agents can often pay it down.<br><br>Comprehension debt lives in people — recoverable, but only with active review. Intent debt is the why, and agents cannot pay it. Humans must write it down.<br><br>That last one is why you never fully leave the loop.</aside></section>
 
       <section>
         <h2>The loop contract</h2>
@@ -1923,7 +1923,7 @@ Next step: backfill those rows or add a nullable migration first.
             <li>Checker</li><li>Done-condition</li><li>Budget</li><li>State</li><li>Escalation</li><li>Exit</li>
           </ul>
         </div>
-      </section>
+      <aside class="notes">So before your first unattended run, write the loop contract. Twelve fields.<br><br>Objective, trigger, intake, workspace, context, maker, checker, done-condition, budget, state, escalation, exit.<br><br>If you cannot fill these in, you are not ready to run unattended. Treat this slide as your pre-flight checklist.</aside></section>
 
       <section id="ledger" data-ledger>
         <p class="kicker">Proof of work</p>
@@ -1956,14 +1956,14 @@ Next step: backfill those rows or add a nullable migration first.
           <span class="pill">delight +27</span>
         </div>
         <!-- LEDGER:END -->
-      </section>
+      <aside class="notes">Proof this actually works. This very deck was built and hardened by a loop.<br><br>109 verified improvements landed. The trigger rested when there was nothing to do, the verifier stayed green, every axis got stronger, and there were zero broken states.<br><br>Render up 28, hygiene up 27, freshness up 27, delight up 27. The loop graded itself honestly and climbed. That is the whole thesis, demonstrated.</aside></section>
 
       <section>
         <h2>The workshop</h2>
         <p>We will fork a repo, use Copilot CLI as the maker, use a separate checker prompt, then design the loop contract.</p>
         <a class="button-link" href="workshop.html">Open the workshop deck &rarr;</a>
         <p class="subtitle">Fork-first. Work in your own account. Upstream stays clean.</p>
-      </section>
+      <aside class="notes">Now we build one together. In the workshop we will fork a repo, use Copilot CLI as the maker, use a separate checker prompt, and then write the loop contract.<br><br>One rule: fork first, work in your own account, and keep upstream clean. Open the workshop deck and let us get hands-on.</aside></section>
 
       <section>
         <h2>References</h2>
@@ -1981,7 +1981,7 @@ Next step: backfill those rows or add a nullable migration first.
         </ul>
         <a class="button-link" href="workshop.html">Open the workshop deck &rarr;</a>
         <p class="subtitle">Press <kbd>S</kbd> for notes &middot; <kbd>ESC</kbd> for overview</p>
-      </section>
+      <aside class="notes">These are the sources if you want to go deeper — Pachaar, Addy Osmani who coined the term, LangChain, the awesome-loop-engineering field guide, Geoffrey Huntley, and Simon Willison on the lethal trifecta.<br><br>Plus the OWASP agentic top ten, practitioners Steinberger, Cherny, and HuaShu’s Orange Book, and the Anthropic playbook PDF linked right here.<br><br>Thank you. Press S any time to see these notes, ESC for the overview. Now let us go build some loops.</aside></section>
 
     </div>
   </div>
