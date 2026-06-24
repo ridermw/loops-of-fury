@@ -262,7 +262,7 @@
     .loop-beacon.is-pulsing::before { animation: beacon-spin 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
     .freshness-signal { position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
-      z-index: 4; display: grid; grid-template-columns: auto auto auto auto auto; align-items: center; gap: 0.44rem;
+      z-index: 4; display: grid; grid-template-columns: auto auto auto auto auto auto; align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
       font-family: var(--font-display); font-size: clamp(9px, 0.86vw, 12px); font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase; text-shadow: none; pointer-events: none;
@@ -283,6 +283,7 @@
     .freshness-signal__age { margin-left: 0.12rem; padding: 0.18rem 0.42rem 0.2rem;
       border-radius: 999px; color: rgba(238,243,255,0.84); font-variant-numeric: tabular-nums;
       background: rgba(255,255,255,0.08); border: 1px solid rgba(238,243,255,0.12); }
+    .freshness-signal__latest { color: rgba(238,243,255,0.64); font-variant-numeric: tabular-nums; }
     .freshness-signal__sources { padding-left: 0.44rem; color: rgba(238,243,255,0.62);
       border-left: 1px solid rgba(156,194,255,0.2); font-variant-numeric: tabular-nums; }
     .freshness-signal[data-state="fresh"]::before { background: #66e0bd;
@@ -382,7 +383,7 @@
       .freshness-signal { left: clamp(14px, 4vw, 30px); right: clamp(14px, 4vw, 30px);
         grid-template-columns: auto auto minmax(0, 1fr) auto; }
       .freshness-signal__date { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .freshness-signal__sources { display: none; }
+      .freshness-signal__latest, .freshness-signal__sources { display: none; }
     }
     @media print {
       html, body {
@@ -822,7 +823,7 @@ Next step: backfill those rows or add a nullable migration first.
 
     const freshness = document.createElement('div');
     freshness.className = 'freshness-signal';
-    freshness.setAttribute('aria-hidden', 'true');
+    freshness.setAttribute('role', 'note');
     const freshnessLabel = document.createElement('span');
     freshnessLabel.className = 'freshness-signal__label';
     freshnessLabel.textContent = 'freshness';
@@ -830,21 +831,36 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessDivider.textContent = '/';
     const freshnessDate = document.createElement('time');
     freshnessDate.className = 'freshness-signal__date';
-    const refreshedAt = new Date('2026-06-24T04:06:36.489Z');
-    const sourceCount = document.querySelectorAll('.slides section:last-of-type a[href^="http"]').length;
-    const daysSinceRefresh = Math.max(0, Math.floor((Date.now() - refreshedAt.getTime()) / 86400000));
+    const refreshedAt = new Date('2026-06-24T04:24:20.276Z');
+    const referenceLinks = [...document.querySelectorAll('.slides section:last-of-type a[href^="http"]')];
+    const sourceCount = referenceLinks.length;
+    const latestReferenceYear = referenceLinks.reduce((latest, link) => {
+      const years = `${link.href} ${link.textContent}`.match(/\b20\d{2}\b/g) || [];
+      return Math.max(latest, ...years.map(Number));
+    }, refreshedAt.getUTCFullYear());
+    const elapsedSinceRefresh = Math.max(0, Date.now() - refreshedAt.getTime());
+    const daysSinceRefresh = Math.floor(elapsedSinceRefresh / 86400000);
     const freshnessState = daysSinceRefresh <= 14 ? 'fresh' : daysSinceRefresh <= 45 ? 'aging' : 'stale';
     freshnessDate.dateTime = refreshedAt.toISOString();
     freshnessDate.textContent = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(refreshedAt);
     const freshnessAge = document.createElement('span');
     freshnessAge.className = 'freshness-signal__age';
-    freshnessAge.textContent = daysSinceRefresh === 0 ? 'today' : `${daysSinceRefresh}d`;
+    const getFreshnessAge = (elapsedMs) => {
+      if (elapsedMs < 3600000) return `${Math.max(1, Math.floor(elapsedMs / 60000))}m`;
+      if (elapsedMs < 86400000) return `${Math.floor(elapsedMs / 3600000)}h`;
+      return `${daysSinceRefresh}d`;
+    };
+    freshnessAge.textContent = getFreshnessAge(elapsedSinceRefresh);
+    const freshnessLatest = document.createElement('span');
+    freshnessLatest.className = 'freshness-signal__latest';
+    freshnessLatest.textContent = `latest ${latestReferenceYear}`;
     const freshnessSources = document.createElement('span');
     freshnessSources.className = 'freshness-signal__sources';
     freshnessSources.textContent = `${sourceCount} refs`;
     freshness.dataset.state = freshnessState;
-    freshness.title = `Freshness signal: ${freshnessState}; source review refreshed ${freshnessAge.textContent}; ${sourceCount} external references tracked`;
-    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessSources);
+    freshness.title = `Freshness signal: ${freshnessState}; source review refreshed ${freshnessAge.textContent} ago; latest dated reference ${latestReferenceYear}; ${sourceCount} external references tracked`;
+    freshness.setAttribute('aria-label', freshness.title);
+    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessLatest, freshnessSources);
     document.body.appendChild(freshness);
 
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
