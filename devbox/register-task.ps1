@@ -4,18 +4,25 @@
   Uses Task Scheduler directly — no WSL.
 
 .DESCRIPTION
-  Creates two tasks (idempotent, -Force overwrites):
+  Creates three tasks (idempotent, -Force overwrites):
     <Prefix>-Run       launches devbox\run-loop.ps1 at startup and on a repeating
                        interval. Each launch is one bounded loop:run; the interval
                        is just how often a new bounded run is (re)started.
     <Prefix>-Watchdog  launches devbox\watchdog.ps1 every WatchdogMinutes to recover
                        a crashed or hung run (stale heartbeat -> kill + relaunch).
+    <Prefix>-Poll      runs devbox\poll-tasks.ps1 every PollMinutes; when an open
+                       `loop-task` issue is waiting and no run is active it triggers
+                       <Prefix>-Run, so enqueued asks start within minutes instead of
+                       at the next cadence. Spends no AI credits on an empty queue.
 
   Cadence by -Mode:
     Scheduled   (default)  every IntervalHours (default 6). Predictable credit spend.
     Continuous             re-checks every 5 min; the overlap lock means a new run
                            starts right after the previous one ends (max spend).
     OnDemand               tasks registered but DISABLED; you trigger runs manually.
+
+  Regardless of -Mode, the Poll task keeps idle issue-pickup latency low (default 3 min)
+  without raising idle spend; pass -NoPoll to omit it or -PollMinutes to retune it.
 
   Tasks run with an S4U principal (no stored password, runs whether or not you are
   logged on). If S4U registration is not permitted, falls back to an Interactive
@@ -32,9 +39,11 @@ param(
     [ValidateSet('Scheduled','Continuous','OnDemand')][string]$Mode = 'Scheduled',
     [int]$IntervalHours = 6,
     [int]$WatchdogMinutes = 15,
+    [int]$PollMinutes = 3,
     [string]$RepoPath,
     [string]$TaskPrefix = 'LoopsOfFury',
     [switch]$NoWatchdog,
+    [switch]$NoPoll,
     [switch]$Interactive,
     [switch]$NoElevate
 )
@@ -58,8 +67,9 @@ if (-not (Test-IsElevated)) {
     $argList = @('-NoProfile','-ExecutionPolicy','Bypass','-File', $PSCommandPath,
                  '-NoElevate','-RepoPath', $repo, '-Mode', $Mode,
                  '-IntervalHours', $IntervalHours, '-WatchdogMinutes', $WatchdogMinutes,
-                 '-TaskPrefix', $TaskPrefix)
+                 '-PollMinutes', $PollMinutes, '-TaskPrefix', $TaskPrefix)
     if ($NoWatchdog)  { $argList += '-NoWatchdog' }
+    if ($NoPoll)      { $argList += '-NoPoll' }
     if ($Interactive) { $argList += '-Interactive' }
     try {
         $p = Start-Process -FilePath $selfExe -Verb RunAs -Wait -PassThru -ArgumentList $argList
@@ -138,5 +148,47 @@ if ($NoWatchdog) {
     Register-LoopTask -Name $wdName -Action $wdAction -Triggers $wdTriggers
     if ($Mode -eq 'OnDemand') { Disable-ScheduledTask -TaskName $wdName | Out-Null; Write-Log "'$wdName' registered DISABLED (OnDemand)." 'WARN' }
 }
+
+# --- Poll task (low-latency issue waker) ------------------------------------
+# Cheap, no-AI cadence: each tick only asks the GitHub API whether an actionable
+# `loop-task` issue is open and, if so and no run is active, triggers the Run task above
+# (its IgnoreNew setting dedupes). Drops idle issue-pickup latency from one cadence
+# interval to ~PollMinutes without adding idle credit spend.
+if ($NoPoll) {
+    Write-Log "Skipping poll task (-NoPoll). New 'loop-task' issues wait for the next $Mode run." 'WARN'
+} else {
+    $pollScript = Join-Path $PSScriptRoot 'poll-tasks.ps1'
+    $pollArg = "-NoProfile -ExecutionPolicy Bypass -File `"$pollScript`" -RepoPath `"$repo`" -RunTaskName `"$runName`""
+    $pollAction = New-ScheduledTaskAction -Execute $psExe -Argument $pollArg -WorkingDirectory $repo
+    $pollTriggers = @(
+        (New-ScheduledTaskTrigger -Once -At ((Get-Date).AddMinutes(3)) -RepetitionInterval (New-TimeSpan -Minutes $PollMinutes))
+    )
+    $pollName = "$TaskPrefix-Poll"
+    Register-LoopTask -Name $pollName -Action $pollAction -Triggers $pollTriggers
+    if ($Mode -eq 'OnDemand') {
+        Disable-ScheduledTask -TaskName $pollName | Out-Null
+        Write-Log "'$pollName' registered DISABLED (OnDemand)." 'WARN'
+    } else {
+        Write-Log "'$pollName' cadence: every $PollMinutes min (wakes a run when a 'loop-task' issue is open)." 'OK'
+    }
+}
+
+# --- Registration fingerprint -----------------------------------------------
+# Record the origin commit of the task-shaping scripts so run-loop.ps1 can warn when the
+# on-disk automation has drifted from the live task DEFINITIONS (which only a re-register
+# updates — a hard-reset pull cannot reshape Scheduled Task objects).
+try {
+    $fp = & git -C $repo log -1 --format=%H -- devbox/register-task.ps1 devbox/run-loop.ps1 devbox/poll-tasks.ps1 devbox/watchdog.ps1 devbox/_common.ps1 2>$null
+    if ($fp) {
+        $state = Get-DevboxStateDir $repo
+        ([ordered]@{
+            commit        = $fp.Trim()
+            registeredAt  = (Get-Date).ToString('o')
+            mode          = $Mode
+            intervalHours = $IntervalHours
+            pollMinutes   = $PollMinutes
+        } | ConvertTo-Json) | Set-Content -Path (Join-Path $state 'registered.json') -Encoding utf8
+    }
+} catch { }
 
 Write-Log "Done. Inspect: Get-ScheduledTask -TaskName '$TaskPrefix-*'. Remove: Unregister-ScheduledTask -TaskName '$TaskPrefix-*'." 'OK'

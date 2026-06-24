@@ -19,7 +19,8 @@ cadence**, plus a **watchdog** that recovers a crashed/hung run using the engine
 ```
 Task Scheduler ──(cadence)──> run-loop.ps1 ──> node .loop/loop.mjs --run  (bounded)
         │                          │  lock + heartbeat (.loop/run.json)
-        └──(every 15 min)──> watchdog.ps1 ──> kill+relaunch if hung/crashed
+        ├──(every 15 min)──> watchdog.ps1 ──> kill+relaunch if hung/crashed
+        └──(every 3 min)───> poll-tasks.ps1 ─> triggers a run when a `loop-task` issue is open
 ```
 
 ## Prerequisites the devbox needs
@@ -74,23 +75,46 @@ pwsh -File devbox\register-task.ps1 -Mode Continuous
 pwsh -File devbox\register-task.ps1 -Mode OnDemand
 ```
 
+## Issue pickup latency (the poll task)
+
+You can hand the loop work by labeling a GitHub issue **`loop-task`**; its intake phase
+drains that queue (oldest first, `priority:high`/`priority:low` honored) at the **start of
+each bounded run**, before autonomous polish. With only a cadence task, a freshly labeled
+issue would therefore wait until the next run begins — up to `-IntervalHours` (6h default).
+
+`poll-tasks.ps1` (task `LoopsOfFury-Poll`, every **3 min** by default) closes that gap and
+spends **zero AI credits**: each tick is a single `gh` API query for an *actionable* open
+`loop-task` issue (one not already `loop-needs-review`, mirroring the engine's own intake
+eligibility). On a hit — and only when no run is active — it triggers `LoopsOfFury-Run`, so
+the issue is picked up within minutes. Empty queue or active run → no-op, so **idle spend is
+unchanged** from the scheduled-only setup. (A brand-new issue that lands mid-run waits for
+the *next* run, since the active run already drained its queue — never longer than one
+bounded run.)
+
+```powershell
+# Retune or disable the poller at registration time:
+pwsh -File devbox\register-task.ps1 -PollMinutes 2     # faster pickup
+pwsh -File devbox\register-task.ps1 -NoPoll            # cadence-only; issues wait for the next run
+```
+
 ## Files
 
 | Script | Role |
 |---|---|
 | `bootstrap.ps1` | one-time provisioning (prereqs → deps → Chromium → hooks → `loop:init` → register tasks). Idempotent. |
 | `run-loop.ps1` | the scheduled entrypoint: lock → load token → sync to `origin/main` → `loop:preflight` gate → one bounded `loop:run` → log. |
-| `register-task.ps1` | create/refresh the `LoopsOfFury-Run` + `LoopsOfFury-Watchdog` Scheduled Tasks. |
+| `poll-tasks.ps1` | every few minutes: if an actionable `loop-task` issue is open and no run is active, trigger `LoopsOfFury-Run`. No AI spend on an empty queue. |
+| `register-task.ps1` | create/refresh the `LoopsOfFury-Run` + `-Watchdog` + `-Poll` Scheduled Tasks; record a registration fingerprint. |
 | `watchdog.ps1` | kill + relaunch a hung/crashed run via the 15-min heartbeat. |
 | `_common.ps1` | shared helpers (dot-sourced). |
 | `.gitignore` | keeps `logs/`, `state/`, `*.log`, `*.lock` out of git. |
 
 ## Operations
 
-- **Logs:** `devbox\logs\` — `run-*.log` (wrapper), `loop-*.out.log` / `.err.log` (the run), `history.log`, `watchdog.log`. All gitignored.
-- **Lock / heartbeat:** `devbox\state\run.lock` records the loop's PID; liveness comes from `.loop\run.json` heartbeat.
+- **Logs:** `devbox\logs\` — `run-*.log` (wrapper), `loop-*.out.log` / `.err.log` (the run), `history.log`, `watchdog.log`, `poll.log`. All gitignored.
+- **Lock / heartbeat:** `devbox\state\run.lock` records the loop's PID; liveness comes from `.loop\run.json` heartbeat. `devbox\state\registered.json` fingerprints what was last registered.
 - **Inspect tasks:** `Get-ScheduledTask -TaskName 'LoopsOfFury-*'`
-- **Pause:** `Disable-ScheduledTask -TaskName 'LoopsOfFury-Run'`
+- **Pause (stop all spend):** `Disable-ScheduledTask -TaskName 'LoopsOfFury-Run'; Disable-ScheduledTask -TaskName 'LoopsOfFury-Poll'` — disable **both**, since the poller can start the Run task on demand even while it is disabled.
 - **Remove:** `Unregister-ScheduledTask -TaskName 'LoopsOfFury-*'`
 - **Run once by hand:** `pwsh -File devbox\run-loop.ps1`
 
@@ -103,6 +127,13 @@ pwsh -File devbox\register-task.ps1 -Mode OnDemand
   self-commits its run-state, so origin is the source of truth). `.loop\.env`,
   `node_modules`, and `devbox\logs|state` are gitignored and survive the reset — the
   script never runs `git clean`. Pass `-NoReset` for a fast-forward pull instead.
+- **Auto-update:** because of that per-run sync, every bounded run already executes the
+  **latest** `.loop` engine + decks from `origin/main` — no manual pull needed. The one
+  thing a pull can't refresh is the Windows **Scheduled Task definitions** (cadence,
+  triggers, which tasks exist); those change only when `register-task.ps1` re-runs
+  (elevated). `run-loop.ps1` detects this: if the `devbox\*.ps1` scripts changed on origin
+  since the last registration (tracked in `devbox\state\registered.json`) it logs a WARN to
+  re-run `bootstrap.ps1` elevated. Re-running bootstrap is always safe (idempotent).
 - These scripts live in `devbox/`, **outside** the maker's write allowlist
   (`ALLOWED_WRITE` = decks + `assets/`), so the loop can never modify its own automation,
   and they are not part of the LF-pinned `.loop/**` control manifest.

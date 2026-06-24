@@ -77,6 +77,24 @@ if ($NoReset) {
     if ($LASTEXITCODE -ne 0) { Write-Log "git reset --hard origin/$Branch failed (exit $LASTEXITCODE)." 'ERROR' $log; Add-Content $history "[$stamp] FAIL (git reset)" -Encoding utf8; exit 1 }
 }
 
+# --- 3b. Automation self-update awareness -----------------------------------
+# The sync above already brought the latest .loop engine + devbox scripts to disk, so THIS
+# bounded run executes current engine code. The Scheduled Task DEFINITIONS, however, are
+# Task Scheduler objects a pull cannot reshape — only register-task.ps1 can. If the
+# task-shaping scripts changed on origin since we last registered, warn the operator to
+# re-run bootstrap (elevated) so cadence/triggers/tasks pick up the change. Best-effort;
+# never blocks the run.
+try {
+    $regFile = Join-Path (Get-DevboxStateDir $repo) 'registered.json'
+    if (Test-Path $regFile) {
+        $reg = Get-Content $regFile -Raw | ConvertFrom-Json
+        $cur = & git log -1 --format=%H -- devbox/register-task.ps1 devbox/run-loop.ps1 devbox/poll-tasks.ps1 devbox/watchdog.ps1 devbox/_common.ps1 2>$null
+        if ($cur -and $reg.commit -and ($cur.Trim() -ne $reg.commit)) {
+            Write-Log ("Devbox automation changed on origin since last registration ({0} -> {1}). Re-run devbox\bootstrap.ps1 (elevated) to refresh the Scheduled Task definitions." -f $reg.commit.Substring(0,7), $cur.Trim().Substring(0,7)) 'WARN' $log
+        }
+    }
+} catch { }
+
 # --- 4. Safety gate ---------------------------------------------------------
 if (-not $SkipPreflight) {
     & node .loop\loop.mjs --preflight *>> $log
