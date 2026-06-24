@@ -577,8 +577,9 @@
     }
     .loop-beacon { --beacon-x: 50vw; --beacon-y: 32vh; position: fixed; left: var(--beacon-x);
       top: var(--beacon-y); width: clamp(130px, 17vw, 240px); aspect-ratio: 1; z-index: 2;
-      pointer-events: none; opacity: 0; transform: translate(-50%, -50%) scale(0.68);
-      border-radius: 50%; mix-blend-mode: screen; filter: drop-shadow(0 0 24px rgba(255,106,77,0.42)); }
+      pointer-events: none; opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.68);
+      border-radius: 50%; mix-blend-mode: screen; filter: drop-shadow(0 0 24px rgba(255,106,77,0.42));
+      will-change: transform, opacity; backface-visibility: hidden; }
     .loop-beacon::before, .loop-beacon::after { content: ""; position: absolute; inset: 0; border-radius: 50%; }
     .loop-beacon::before { background:
         radial-gradient(circle, rgba(var(--phase-accent-rgb),0) 0 38%, rgba(var(--phase-accent-rgb),0.44) 39% 41%, transparent 42% 100%),
@@ -603,7 +604,8 @@
     .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing .loop-beacon__spark { animation: beacon-orbit-spark 980ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-burst { --burst-x: 50vw; --burst-y: 50vh; position: fixed; inset: 0; z-index: 3;
-      overflow: hidden; pointer-events: none; mix-blend-mode: screen; }
+      overflow: hidden; pointer-events: none; mix-blend-mode: screen;
+      contain: layout paint style; isolation: isolate; }
     .loop-burst__spark { --burst-angle: 0deg; --burst-distance: 92px; --burst-delay: 0ms; --spark-color: var(--phase-accent);
       position: absolute; left: var(--burst-x); top: var(--burst-y); width: clamp(6px, 0.74vw, 11px); aspect-ratio: 1;
       border-radius: 50%; color: var(--spark-color); background: currentColor; opacity: 0;
@@ -618,8 +620,9 @@
     }
     .loop-echo { --echo-x: 50vw; --echo-y: 34vh; position: fixed; left: var(--echo-x); top: var(--echo-y);
       width: clamp(300px, 44vw, 620px); aspect-ratio: 1.7; z-index: 0; pointer-events: none;
-      opacity: 0.64; transform: translate(-50%, -50%); mix-blend-mode: screen;
-      filter: drop-shadow(0 0 28px rgba(var(--phase-accent-rgb),0.28)); }
+      opacity: 0.64; transform: translate3d(-50%, -50%, 0); mix-blend-mode: screen;
+      filter: drop-shadow(0 0 28px rgba(var(--phase-accent-rgb),0.28));
+      will-change: transform, opacity; backface-visibility: hidden; }
     .loop-echo svg { width: 100%; height: 100%; overflow: visible; display: block; }
     .loop-echo__trail,
     .loop-echo__glow { fill: none; stroke-linecap: round; stroke-linejoin: round;
@@ -827,7 +830,7 @@
     .bg-skier { position: fixed; left: 50%; top: 1vh; transform: translate3d(-50%, 0, 0);
       width: 46vw; height: auto;
       opacity: 0.32; z-index: 0; pointer-events: none; user-select: none;
-      contain: paint; will-change: transform; backface-visibility: hidden;
+      contain: layout paint style; will-change: transform, opacity; backface-visibility: hidden;
       mix-blend-mode: screen;
       -webkit-mask-image: radial-gradient(ellipse at 50% 42%, #000 0 56%, rgba(0,0,0,0.42) 72%, transparent 92%);
       mask-image: radial-gradient(ellipse at 50% 42%, #000 0 56%, rgba(0,0,0,0.42) 72%, transparent 92%);
@@ -893,9 +896,9 @@
       100% { transform: translateX(120%); }
     }
     @keyframes beacon-bloom {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+      0% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.4); }
       18% { opacity: 0.95; }
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.36); }
+      100% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(1.36); }
     }
     @keyframes beacon-spin {
       from { transform: rotate(-34deg); }
