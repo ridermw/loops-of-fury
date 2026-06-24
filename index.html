@@ -104,6 +104,22 @@
     .reveal .agent-loop .blue-line { fill: none; stroke: var(--heading); stroke-width: 4; }
     .reveal .agent-loop .green-line { fill: none; stroke: #66e0bd; stroke-width: 4; }
     .reveal .agent-loop .red-line { fill: none; stroke: #ff8b8b; stroke-width: 4; }
+    .reveal section.present .agent-loop :is(.blue-line, .green-line, .red-line) {
+      stroke-linecap: round;
+      stroke-dasharray: 14 18;
+      animation: loop-current 1.15s linear infinite;
+    }
+    .reveal section.present .agent-loop .green-line { animation-duration: 0.88s; }
+    .reveal section.present .agent-loop .red-line { animation-duration: 1.35s; }
+    .reveal section.present .agent-loop :is(.context-node, .model-node, .decision-node, .tools-node, .end-node) {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: loop-node-charge 2.4s ease-in-out infinite;
+    }
+    .reveal section.present .agent-loop .model-node { animation-delay: 120ms; }
+    .reveal section.present .agent-loop .decision-node { animation-delay: 240ms; }
+    .reveal section.present .agent-loop .tools-node { animation-delay: 360ms; }
+    .reveal section.present .agent-loop .end-node { animation-delay: 480ms; }
 
     .reveal .slides section.present {
       isolation: isolate;
@@ -384,13 +400,24 @@
       from { opacity: 0; transform: translate3d(0, 0.42em, 0); filter: blur(3px); }
       to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
     }
+    @keyframes loop-current {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: -32; }
+    }
+    @keyframes loop-node-charge {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(156,194,255,0)); }
+      48% { transform: scale(1.018); filter: drop-shadow(0 0 18px rgba(156,194,255,0.28)); }
+    }
     @media (prefers-reduced-motion: reduce) {
       .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
       .reveal section.present > h1, .reveal section.present > h2,
       .reveal section.present > h1::before, .reveal section.present > h1::after,
       .reveal section.present > h2::before, .reveal section.present > h2::after,
-      .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop) { animation: none; will-change: auto; }
+      .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop),
+      .reveal section.present .agent-loop :is(.blue-line, .green-line, .red-line, .context-node, .model-node, .decision-node, .tools-node, .end-node) { animation: none; will-change: auto; }
+      .reveal section.present .agent-loop :is(.blue-line, .green-line, .red-line) { stroke-dasharray: none; }
+      .reveal section.present .agent-loop :is(.context-node, .model-node, .decision-node, .tools-node, .end-node) { filter: none; transform: none; }
     }
     @media (max-width: 700px) {
       .freshness-signal { left: clamp(14px, 4vw, 30px); right: clamp(14px, 4vw, 30px);
@@ -416,6 +443,12 @@
       .reveal section.present > h2::before, .reveal section.present > h2::after,
       .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop) {
         animation: none !important;
+      }
+      .reveal section.present .agent-loop :is(.blue-line, .green-line, .red-line) { stroke-dasharray: none !important; }
+      .reveal section.present .agent-loop :is(.context-node, .model-node, .decision-node, .tools-node, .end-node) {
+        animation: none !important;
+        filter: none !important;
+        transform: none !important;
       }
     }
   </style>
