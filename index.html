@@ -155,7 +155,7 @@
       mask-image: radial-gradient(ellipse at 50% 45%, #000 0 34%, rgba(0,0,0,0.52) 58%, transparent 78%); }
     .reveal { position: relative; z-index: 1; }
     .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content { background: transparent !important; }
-    .loop-telemetry { --loop-progress: 0%; position: fixed; left: clamp(18px, 4vw, 58px);
+    .loop-telemetry { --loop-progress: 0%; --preview-x: 50%; position: fixed; left: clamp(18px, 4vw, 58px);
       right: clamp(18px, 4vw, 58px); bottom: clamp(16px, 3vh, 34px); z-index: 4;
       display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem;
       padding: 0.58rem 0.82rem 0.62rem; color: rgba(238,243,255,0.86);
@@ -178,21 +178,35 @@
     .loop-telemetry__count { color: var(--heading); font-variant-numeric: tabular-nums; }
     .loop-telemetry__rail { position: absolute; left: clamp(12px, 2vw, 32px); right: clamp(12px, 2vw, 32px);
       top: -9px; display: grid; grid-template-columns: repeat(var(--loop-total, 1), minmax(2px, 1fr));
-      gap: clamp(3px, 0.46vw, 7px); align-items: center; height: 10px; }
+      gap: clamp(3px, 0.46vw, 7px); align-items: center; height: 10px; pointer-events: auto; }
     .loop-telemetry__pip { --pip-fill: 0; position: relative; height: 2px; border-radius: 999px;
       background: rgba(156,194,255,0.17); box-shadow: inset 0 0 0 1px rgba(156,194,255,0.12);
-      overflow: visible; transition: height 360ms ease, background 360ms ease, box-shadow 360ms ease; }
+      overflow: visible; transition: height 360ms ease, background 360ms ease, box-shadow 360ms ease;
+      display: block; width: 100%; appearance: none; border: 0; padding: 0; font: inherit; color: inherit;
+      cursor: pointer; touch-action: manipulation; }
     .loop-telemetry__pip::before { content: ""; position: absolute; inset: -2px 0; border-radius: inherit;
       background: linear-gradient(90deg, rgba(255,106,77,0.92), rgba(156,194,255,0.8));
       transform: scaleX(var(--pip-fill)); transform-origin: left center;
       transition: transform 540ms cubic-bezier(.17,.84,.44,1); }
     .loop-telemetry__pip.is-visited { --pip-fill: 1; }
+    .loop-telemetry__pip:hover, .loop-telemetry__pip:focus-visible { height: 6px; outline: 0;
+      background: rgba(255,106,77,0.2);
+      box-shadow: 0 0 18px rgba(255,106,77,0.32), inset 0 0 0 1px rgba(255,106,77,0.34); }
     .loop-telemetry__pip.is-current { height: 4px; background: rgba(255,106,77,0.28);
       box-shadow: 0 0 18px rgba(255,106,77,0.34), inset 0 0 0 1px rgba(255,106,77,0.32); }
     .loop-telemetry__pip.is-current::after { content: ""; position: absolute; right: -5px; top: 50%;
       width: 8px; aspect-ratio: 1; border-radius: 50%; transform: translateY(-50%);
       background: var(--fury); box-shadow: 0 0 16px rgba(255,106,77,0.86), 0 0 0 5px rgba(255,106,77,0.12);
       animation: loop-pip-breathe 1.7s ease-in-out infinite; }
+    .loop-telemetry__preview { position: absolute; left: var(--preview-x); top: -48px;
+      max-width: min(48vw, 460px); padding: 0.48rem 0.72rem 0.52rem; border-radius: 999px;
+      color: var(--ink); background: linear-gradient(135deg, rgba(8,22,62,0.94), rgba(77,140,255,0.22));
+      border: 1px solid rgba(156,194,255,0.3); box-shadow: 0 18px 46px rgba(2,8,28,0.42), 0 0 26px rgba(77,140,255,0.18);
+      backdrop-filter: blur(12px); opacity: 0; pointer-events: none; text-align: center;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      transform: translate3d(-50%, 8px, 0) scale(0.96);
+      transition: opacity 180ms ease, transform 220ms cubic-bezier(.17,.84,.44,1); }
+    .loop-telemetry.is-previewing .loop-telemetry__preview { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1); }
     .loop-beacon { --beacon-x: 50vw; --beacon-y: 32vh; position: fixed; left: var(--beacon-x);
       top: var(--beacon-y); width: clamp(130px, 17vw, 240px); aspect-ratio: 1; z-index: 2;
       pointer-events: none; opacity: 0; transform: translate(-50%, -50%) scale(0.68);
@@ -310,7 +324,7 @@
       to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .freshness-signal::before, .loop-telemetry__pip.is-current::after,
+      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .reveal section.present > h1, .reveal section.present > h2,
       .reveal section.present > h1::before, .reveal section.present > h1::after,
       .reveal section.present > h2::before, .reveal section.present > h2::after,
@@ -735,7 +749,7 @@ Next step: backfill those rows or add a nullable migration first.
 
     const telemetry = document.createElement('div');
     telemetry.className = 'loop-telemetry';
-    telemetry.setAttribute('aria-hidden', 'true');
+    telemetry.setAttribute('aria-label', 'Slide progress');
     const phaseEl = document.createElement('span');
     phaseEl.className = 'loop-telemetry__phase';
     const titleEl = document.createElement('span');
@@ -744,7 +758,9 @@ Next step: backfill those rows or add a nullable migration first.
     countEl.className = 'loop-telemetry__count';
     const railEl = document.createElement('div');
     railEl.className = 'loop-telemetry__rail';
-    telemetry.append(phaseEl, titleEl, countEl, railEl);
+    const previewEl = document.createElement('div');
+    previewEl.className = 'loop-telemetry__preview';
+    telemetry.append(phaseEl, titleEl, countEl, railEl, previewEl);
     document.body.appendChild(telemetry);
 
     const beacon = document.createElement('div');
@@ -784,14 +800,38 @@ Next step: backfill those rows or add a nullable migration first.
     let pipEls = [];
     let beaconTimer;
 
+    const getSlideTitle = (slide, fallback = 'Loops of Fury') => {
+      const heading = slide ? slide.querySelector('h1, h2') : null;
+      return heading ? heading.textContent.replace(/\s+/g, ' ').trim() : fallback;
+    };
+
+    const showPreview = (pip, title) => {
+      const telemetryBounds = telemetry.getBoundingClientRect();
+      const pipBounds = pip.getBoundingClientRect();
+      telemetry.style.setProperty('--preview-x', `${pipBounds.left + pipBounds.width / 2 - telemetryBounds.left}px`);
+      previewEl.textContent = title;
+      telemetry.classList.add('is-previewing');
+    };
+
+    const hidePreview = () => {
+      telemetry.classList.remove('is-previewing');
+    };
+
+    const goToSlide = (slide) => {
+      if (!slide) return;
+      const indices = Reveal.getIndices(slide);
+      Reveal.slide(indices.h, indices.v, indices.f);
+      hidePreview();
+    };
+
     const ensureRail = (total) => {
       if (pipEls.length === total) return;
       telemetry.style.setProperty('--loop-total', total);
       railEl.textContent = '';
       pipEls = Array.from({ length: total }, (_, index) => {
-        const pip = document.createElement('span');
+        const pip = document.createElement('button');
+        pip.type = 'button';
         pip.className = 'loop-telemetry__pip';
-        pip.title = `Slide ${index + 1}`;
         railEl.appendChild(pip);
         return pip;
       });
@@ -814,17 +854,25 @@ Next step: backfill those rows or add a nullable migration first.
     };
 
     const updateTelemetry = () => {
-      const total = Math.max(1, Reveal.getTotalSlides());
+      const slides = Reveal.getSlides();
+      const total = Math.max(1, slides.length || Reveal.getTotalSlides());
       const current = Math.min(total, Reveal.getSlidePastCount() + 1);
       const currentSlide = Reveal.getCurrentSlide();
-      const heading = currentSlide ? currentSlide.querySelector('h1, h2') : null;
-      const title = heading ? heading.textContent.replace(/\s+/g, ' ').trim() : 'Loops of Fury';
+      const title = getSlideTitle(currentSlide);
       const progress = total > 1 ? ((current - 1) / (total - 1)) * 100 : 100;
 
       ensureRail(total);
       pipEls.forEach((pip, index) => {
+        const slideTitle = getSlideTitle(slides[index], `Slide ${index + 1}`);
         pip.classList.toggle('is-visited', index < current);
         pip.classList.toggle('is-current', index === current - 1);
+        pip.title = slideTitle;
+        pip.setAttribute('aria-label', `Go to slide ${index + 1}: ${slideTitle}`);
+        pip.onmouseenter = () => showPreview(pip, slideTitle);
+        pip.onfocus = () => showPreview(pip, slideTitle);
+        pip.onmouseleave = hidePreview;
+        pip.onblur = hidePreview;
+        pip.onclick = () => goToSlide(slides[index]);
       });
       telemetry.style.setProperty('--loop-progress', `${progress}%`);
       phaseEl.textContent = `loop / ${phases[(current - 1) % phases.length]}`;
