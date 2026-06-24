@@ -1483,6 +1483,7 @@ Next step: backfill those rows or add a nullable migration first.
     const HOUR_MS = 60 * MINUTE_MS;
     const DAY_MS = 24 * HOUR_MS;
     const SOURCE_REVIEW_INTERVAL_DAYS = 30;
+    const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
     const refreshedAt = new Date('2026-06-24T04:39:59.972Z');
     const referenceItems = [...document.querySelectorAll('.references li')];
     const referenceLinks = [...document.querySelectorAll('.slides section:last-of-type a[href^="http"]')];
@@ -1491,16 +1492,16 @@ Next step: backfill those rows or add a nullable migration first.
     const formatShortDate = (date) => new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
     const parseSourceCheckedAt = (item) => {
       const sourceChecked = item.dataset.sourceChecked;
-      const match = sourceChecked && sourceChecked.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const match = sourceChecked && sourceChecked.match(DATE_ONLY_PATTERN);
       if (!match) return refreshedAt;
       const [, yearText, monthText, dayText] = match;
       const year = Number(yearText);
       const month = Number(monthText);
       const day = Number(dayText);
-      const checkedAt = new Date(year, month - 1, day);
-      const isExactDate = checkedAt.getFullYear() === year
-        && checkedAt.getMonth() === month - 1
-        && checkedAt.getDate() === day;
+      const checkedAt = new Date(Date.UTC(year, month - 1, day));
+      const isExactDate = checkedAt.getUTCFullYear() === year
+        && checkedAt.getUTCMonth() === month - 1
+        && checkedAt.getUTCDate() === day;
       return isExactDate ? checkedAt : refreshedAt;
     };
     const extractReferenceYears = (item) => {
