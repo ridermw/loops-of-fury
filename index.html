@@ -836,6 +836,9 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessDivider.textContent = '/';
     const freshnessDate = document.createElement('time');
     freshnessDate.className = 'freshness-signal__date';
+    const MINUTE_MS = 60 * 1000;
+    const HOUR_MS = 60 * MINUTE_MS;
+    const DAY_MS = 24 * HOUR_MS;
     const refreshedAt = new Date('2026-06-24T04:24:20.276Z');
     const referenceLinks = [...document.querySelectorAll('.slides section:last-of-type a[href^="http"]')];
     const sourceCount = referenceLinks.length;
@@ -844,16 +847,16 @@ Next step: backfill those rows or add a nullable migration first.
       return Math.max(latest, ...years.map(Number));
     }, refreshedAt.getUTCFullYear());
     const elapsedSinceRefresh = Math.max(0, Date.now() - refreshedAt.getTime());
-    const daysSinceRefresh = Math.floor(elapsedSinceRefresh / 86400000);
+    const daysSinceRefresh = Math.floor(elapsedSinceRefresh / DAY_MS);
     const freshnessState = daysSinceRefresh <= 14 ? 'fresh' : daysSinceRefresh <= 45 ? 'aging' : 'stale';
     freshnessDate.dateTime = refreshedAt.toISOString();
     freshnessDate.textContent = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(refreshedAt);
     const freshnessAge = document.createElement('span');
     freshnessAge.className = 'freshness-signal__age';
     const getFreshnessAge = (elapsedMs) => {
-      if (elapsedMs < 3600000) return `${Math.max(1, Math.floor(elapsedMs / 60000))}m`;
-      if (elapsedMs < 86400000) return `${Math.floor(elapsedMs / 3600000)}h`;
-      return `${daysSinceRefresh}d`;
+      if (elapsedMs < HOUR_MS) return `${Math.max(1, Math.floor(elapsedMs / MINUTE_MS))}m`;
+      if (elapsedMs < DAY_MS) return `${Math.floor(elapsedMs / HOUR_MS)}h`;
+      return `${Math.floor(elapsedMs / DAY_MS)}d`;
     };
     freshnessAge.textContent = getFreshnessAge(elapsedSinceRefresh);
     const freshnessLatest = document.createElement('span');
