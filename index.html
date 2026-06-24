@@ -1501,14 +1501,21 @@ Next step: backfill those rows or add a nullable migration first.
     const checkedTimes = referenceAudit.map((source) => source.checkedAt.getTime());
     const oldestCheckedAt = new Date(Math.min(...checkedTimes));
     const newestCheckedAt = new Date(Math.max(...checkedTimes));
-    const elapsedSinceRefresh = Math.max(0, Date.now() - oldestCheckedAt.getTime());
-    const daysSinceRefresh = Math.floor(elapsedSinceRefresh / DAY_MS);
-    const freshnessState = daysSinceRefresh <= 14 ? 'fresh' : daysSinceRefresh <= 45 ? 'aging' : 'stale';
     const nextReviewAt = new Date(oldestCheckedAt.getTime() + SOURCE_REVIEW_INTERVAL_DAYS * DAY_MS);
-    const daysUntilReview = Math.ceil((nextReviewAt.getTime() - Date.now()) / DAY_MS);
-    const reviewState = daysUntilReview > 0 ? 'scheduled' : 'due';
-    const reviewLabel = daysUntilReview > 0 ? `review in ${daysUntilReview}d` : daysUntilReview === 0 ? 'review today' : `review due ${Math.abs(daysUntilReview)}d`;
-    const reviewProgress = Math.min(100, Math.max(0, (daysSinceRefresh / SOURCE_REVIEW_INTERVAL_DAYS) * 100));
+    const getFreshnessSnapshot = () => {
+      const elapsedSinceRefresh = Math.max(0, Date.now() - oldestCheckedAt.getTime());
+      const daysSinceRefresh = Math.floor(elapsedSinceRefresh / DAY_MS);
+      const daysUntilReview = Math.ceil((nextReviewAt.getTime() - Date.now()) / DAY_MS);
+      return {
+        elapsedSinceRefresh,
+        freshnessState: daysSinceRefresh <= 14 ? 'fresh' : daysSinceRefresh <= 45 ? 'aging' : 'stale',
+        reviewLabel: daysUntilReview > 0 ? `review in ${daysUntilReview}d` : daysUntilReview === 0 ? 'review today' : `review due ${Math.abs(daysUntilReview)}d`,
+        reviewProgress: Math.min(100, Math.max(0, (daysSinceRefresh / SOURCE_REVIEW_INTERVAL_DAYS) * 100)),
+        reviewState: daysUntilReview > 0 ? 'scheduled' : 'due',
+      };
+    };
+    const freshnessSnapshot = getFreshnessSnapshot();
+    const { elapsedSinceRefresh, freshnessState, reviewLabel, reviewProgress, reviewState } = freshnessSnapshot;
     freshnessDate.dateTime = oldestCheckedAt.toISOString();
     freshnessDate.textContent = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(oldestCheckedAt);
     const freshnessAge = document.createElement('span');
@@ -1638,6 +1645,7 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessVintage.append(freshnessVintageCaption, freshnessVintageRail, freshnessVintageScale);
     const freshnessStats = document.createElement('div');
     freshnessStats.className = 'freshness-signal__stats';
+    let cadenceStatValue;
     [
       ...sourceMixItems,
       ['cadence', reviewLabel.replace('review ', '')],
@@ -1647,6 +1655,7 @@ Next step: backfill those rows or add a nullable migration first.
       const statValue = document.createElement('span');
       statValue.className = 'freshness-signal__stat-value';
       statValue.textContent = value;
+      if (label === 'cadence') cadenceStatValue = statValue;
       const statLabel = document.createElement('span');
       statLabel.className = 'freshness-signal__stat-label';
       statLabel.textContent = label;
@@ -1680,6 +1689,23 @@ Next step: backfill those rows or add a nullable migration first.
     freshness.setAttribute('aria-describedby', freshnessPanel.id);
     freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessLatest, freshnessReview, freshnessPulseTrain, freshnessSources, freshnessPanel);
     document.body.appendChild(freshness);
+    const updateFreshnessSignal = () => {
+      const snapshot = getFreshnessSnapshot();
+      const ageLabel = getFreshnessAge(snapshot.elapsedSinceRefresh);
+      const sourceVintageLabel = `${oldestReferenceYear}-${newestReferenceYear}`;
+      freshnessAge.textContent = ageLabel;
+      freshnessReview.textContent = snapshot.reviewLabel;
+      freshnessTimelineNext.textContent = snapshot.reviewLabel;
+      freshnessPanelMeta.textContent = `Oldest source check ${ageLabel} ago (${formatShortDate(oldestCheckedAt)}); latest check ${formatShortDate(newestCheckedAt)}; source vintage spans ${sourceVintageLabel}.`;
+      if (cadenceStatValue) cadenceStatValue.textContent = snapshot.reviewLabel.replace('review ', '');
+      freshness.dataset.state = snapshot.freshnessState;
+      freshness.dataset.reviewState = snapshot.reviewState;
+      freshness.style.setProperty('--review-progress', `${snapshot.reviewProgress}%`);
+      freshness.title = `Freshness signal: ${snapshot.freshnessState}; oldest source check ${ageLabel} ago; ${snapshot.reviewLabel}; source vintage ${sourceVintageLabel}; source mix ${sourceMixSummary}; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
+      freshness.setAttribute('aria-label', `${freshness.title}. Focus for source audit.`);
+    };
+    updateFreshnessSignal();
+    setInterval(updateFreshnessSignal, MINUTE_MS);
 
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
