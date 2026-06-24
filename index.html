@@ -755,9 +755,47 @@
       animation: skier-drift 18s ease-in-out infinite alternate; }
     .bg-skier svg { width: 100%; height: auto; display: block;
       filter: drop-shadow(0 0 30px rgba(77,140,255,0.25)); }
+    .bg-skier::before,
+    .bg-skier::after { content: ""; position: absolute; pointer-events: none; opacity: 0;
+      transform-origin: 46% 50%; mix-blend-mode: screen; }
+    .bg-skier::before { left: 4%; right: 18%; top: 45%; height: clamp(22px, 3.6vw, 46px);
+      border-radius: 999px;
+      background:
+        radial-gradient(ellipse at 2% 52%, rgba(var(--phase-accent-rgb),0.0), rgba(var(--phase-accent-rgb),0.72) 10%, transparent 34%),
+        linear-gradient(90deg, transparent 0 5%, rgba(var(--phase-accent-rgb),0.86) 18%, rgba(156,194,255,0.58) 52%, transparent 88%);
+      filter: blur(1px) drop-shadow(0 0 18px rgba(var(--phase-accent-rgb),0.42));
+      clip-path: polygon(0 42%, 16% 0, 100% 44%, 16% 100%); }
+    .bg-skier::after { left: 11%; top: 36%; width: 54%; height: 44%;
+      background:
+        radial-gradient(circle at 4% 52%, rgba(238,243,255,0.95) 0 1.7px, transparent 2.2px),
+        radial-gradient(circle at 18% 24%, rgba(var(--phase-accent-rgb),0.82) 0 2px, transparent 2.8px),
+        radial-gradient(circle at 32% 66%, rgba(156,194,255,0.7) 0 1.6px, transparent 2.4px),
+        radial-gradient(circle at 48% 30%, rgba(238,243,255,0.72) 0 1.3px, transparent 2px),
+        radial-gradient(circle at 64% 58%, rgba(var(--phase-accent-rgb),0.72) 0 1.8px, transparent 2.6px),
+        radial-gradient(circle at 84% 38%, rgba(156,194,255,0.62) 0 1.4px, transparent 2.2px);
+      filter: drop-shadow(0 0 12px rgba(var(--phase-accent-rgb),0.44)); }
+    .bg-skier.is-carving svg { animation: skier-kick 980ms cubic-bezier(.17,.84,.44,1); }
+    .bg-skier.is-carving::before { animation: skier-powder-ribbon 980ms cubic-bezier(.17,.84,.44,1); }
+    .bg-skier.is-carving::after { animation: skier-powder-spray 980ms cubic-bezier(.17,.84,.44,1); }
     @keyframes skier-drift {
       from { transform: translate3d(-51.5%, -0.8vh, 0) scale(0.985); }
       to { transform: translate3d(-48.5%, 1.2vh, 0) scale(1.015); }
+    }
+    @keyframes skier-kick {
+      0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); filter: drop-shadow(0 0 30px rgba(77,140,255,0.25)); }
+      38% { transform: translate3d(1.8%, -1.4%, 0) rotate(1.4deg) scale(1.018); filter: drop-shadow(0 0 40px rgba(var(--phase-accent-rgb),0.38)); }
+      100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); filter: drop-shadow(0 0 30px rgba(77,140,255,0.25)); }
+    }
+    @keyframes skier-powder-ribbon {
+      0% { opacity: 0; transform: translate3d(18%, 8%, 0) scaleX(0.24) rotate(-7deg); filter: blur(8px) drop-shadow(0 0 0 rgba(var(--phase-accent-rgb),0)); }
+      20% { opacity: 0.88; filter: blur(1px) drop-shadow(0 0 18px rgba(var(--phase-accent-rgb),0.42)); }
+      76% { opacity: 0.5; }
+      100% { opacity: 0; transform: translate3d(-24%, -12%, 0) scaleX(1.14) rotate(-13deg); filter: blur(6px) drop-shadow(0 0 22px rgba(var(--phase-accent-rgb),0.24)); }
+    }
+    @keyframes skier-powder-spray {
+      0% { opacity: 0; transform: translate3d(16%, 10%, 0) rotate(-7deg) scale(0.58); filter: blur(5px) drop-shadow(0 0 0 rgba(var(--phase-accent-rgb),0)); }
+      18% { opacity: 0.92; filter: blur(0) drop-shadow(0 0 12px rgba(var(--phase-accent-rgb),0.44)); }
+      100% { opacity: 0; transform: translate3d(-28%, -20%, 0) rotate(-15deg) scale(1.18); filter: blur(2px) drop-shadow(0 0 16px rgba(var(--phase-accent-rgb),0.24)); }
     }
     @keyframes hero-loop-sweep {
       from { transform: rotate(0deg); }
@@ -906,7 +944,7 @@
       100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
+      .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .loop-telemetry__comet,
       .reveal .hero-loop::after, .reveal .hero-loop__label,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
@@ -1734,12 +1772,14 @@ Next step: backfill those rows or add a nullable migration first.
     updateFreshnessSignal();
     setInterval(updateFreshnessSignal, MINUTE_MS);
 
+    const skierEl = document.querySelector('.bg-skier');
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let pipEls = [];
     let beaconTimer;
     let burstTimer;
     let cometTimer;
+    let skierTimer;
     let lastProgress;
     let spotlightFrame;
 
@@ -1881,6 +1921,15 @@ Next step: backfill those rows or add a nullable migration first.
       burstTimer = setTimeout(() => burst.classList.remove('is-firing'), 980);
     };
 
+    const carveSkier = () => {
+      if (reducedMotion.matches || !skierEl) return;
+      skierEl.classList.remove('is-carving');
+      void skierEl.offsetWidth;
+      skierEl.classList.add('is-carving');
+      clearTimeout(skierTimer);
+      skierTimer = setTimeout(() => skierEl.classList.remove('is-carving'), 1040);
+    };
+
     const launchComet = (progress) => {
       if (lastProgress === undefined) {
         lastProgress = progress;
@@ -1938,12 +1987,14 @@ Next step: backfill those rows or add a nullable migration first.
       aimSpotlightAtHeading();
       pulseBeacon();
       fireLoopBurst();
+      carveSkier();
     });
     deckReady.then(() => {
       updateTelemetry();
       aimSpotlightAtHeading();
       pulseBeacon();
       fireLoopBurst();
+      carveSkier();
     });
   </script>
 </body>
