@@ -2070,22 +2070,17 @@ Next step: backfill those rows or add a nullable migration first.
       launchComet(progress);
     };
 
-    Reveal.on('slidechanged', () => {
+    const syncLoopChrome = () => {
       updateTelemetry();
       aimSpotlightAtHeading();
       traceLoopEcho();
       pulseBeacon();
       fireLoopBurst();
       carveSkier();
-    });
-    deckReady.then(() => {
-      updateTelemetry();
-      aimSpotlightAtHeading();
-      traceLoopEcho();
-      pulseBeacon();
-      fireLoopBurst();
-      carveSkier();
-    });
+    };
+
+    Reveal.on('slidechanged', syncLoopChrome);
+    deckReady.then(syncLoopChrome);
   </script>
 </body>
 </html>
