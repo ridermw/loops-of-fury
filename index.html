@@ -219,10 +219,18 @@
       background: rgba(77,140,255,0.15); border-radius: 999px; padding: 0.24em 0.6em;
       font-size: 0.5em; white-space: nowrap; }
     .reveal .arrow { color: var(--fury); font-family: var(--font-display); font-weight: 700; }
-    .reveal .hygiene-loop { counter-reset: hygiene-step; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    .reveal .hygiene-loop { counter-reset: hygiene-step; position: relative; isolation: isolate;
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.58em; margin: 0.72em auto 0.68em; padding: 0; list-style: none; text-align: left; }
+    .reveal .hygiene-loop::before { content: ""; position: absolute; left: 7%; right: 7%; top: 2.48em; height: 2px;
+      border-radius: 999px; pointer-events: none; z-index: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,106,77,0.82), rgba(156,194,255,0.7), rgba(102,224,189,0.74), transparent);
+      box-shadow: 0 0 18px rgba(77,140,255,0.26); }
+    .reveal .hygiene-loop::after { content: ""; position: absolute; left: 8%; right: 8%; bottom: -0.34em; height: 1.1em;
+      border: 1px dashed rgba(156,194,255,0.24); border-top: 0; border-radius: 0 0 999px 999px;
+      pointer-events: none; z-index: 0; opacity: 0.72; }
     .reveal .hygiene-loop li { counter-increment: hygiene-step; position: relative; overflow: hidden;
-      min-height: 7.1em; margin: 0; padding: 3.05em 0.74em 0.78em;
+      min-height: 7.1em; margin: 0; padding: 3.05em 0.74em 0.78em; z-index: 1;
       border: 1px solid rgba(156,194,255,0.28); border-radius: 16px;
       background:
         radial-gradient(circle at 86% 10%, rgba(255,106,77,0.16), transparent 34%),
@@ -909,6 +917,8 @@
       .reveal .ledger-stage { width: min(92vw, 460px); min-height: 310px; }
       .reveal .ledger-receipt { grid-template-columns: 1fr; bottom: -3%; }
       .reveal .hygiene-loop { grid-template-columns: 1fr; }
+      .reveal .hygiene-loop::before,
+      .reveal .hygiene-loop::after { display: none; }
       .reveal .hygiene-loop li { min-height: 0; padding-top: 2.76em; }
     }
     @media print {
