@@ -1,0 +1,5 @@
+# Devbox runtime artifacts — never committed.
+logs/
+state/
+*.log
+*.lock
