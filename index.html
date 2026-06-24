@@ -1711,11 +1711,12 @@ Next step: backfill those rows or add a nullable migration first.
   <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
   <script>
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const deckReady = Reveal.initialize({
       hash: true,
       margin: 0.1,
       slideNumber: true,
-      transition: 'slide',
+      transition: reducedMotion.matches ? 'none' : 'slide',
       plugins: [RevealHighlight, RevealNotes],
     });
 
@@ -2258,7 +2259,6 @@ Next step: backfill those rows or add a nullable migration first.
 
     const skierEl = document.querySelector('.bg-skier');
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let pipEls = [];
     let beaconTimer;
     let burstTimer;
