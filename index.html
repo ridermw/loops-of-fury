@@ -1101,6 +1101,7 @@
       font-variant-numeric: tabular-nums; }
     .freshness-signal__recipe-row[data-component="recency"] { --component-color: #66e0bd; --component-glow: rgba(102,224,189,0.38); }
     .freshness-signal__recipe-row[data-component="sources"] { --component-color: var(--heading); --component-glow: rgba(156,194,255,0.38); }
+    .freshness-signal__recipe-row[data-component="checks"] { --component-color: rgba(238,243,255,0.92); --component-glow: rgba(238,243,255,0.26); }
     .freshness-signal__recipe-row[data-component="reviews"] { --component-color: var(--fury); --component-glow: rgba(255,106,77,0.34); }
     .freshness-signal__source-list { display: grid; gap: 0.34rem; }
     .freshness-signal__source-row { display: grid; grid-template-columns: 1fr auto; gap: 0.66rem; align-items: center;
@@ -2466,8 +2467,9 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessVintage.append(freshnessVintageCaption, freshnessVintageRail, freshnessVintageScale);
     const formatComponentShare = (share) => `${Math.round(share * 100)}%`;
     const componentRecipes = [
-      ['recency', 'recency window', '58%', 'recencyShare'],
-      ['sources', 'current sources', '32%', 'currentSourceShare'],
+      ['recency', 'recency window', '50%', 'recencyShare'],
+      ['sources', 'current sources', '30%', 'currentSourceShare'],
+      ['checks', 'dated checks', '10%', 'explicitCheckShare'],
       ['reviews', 'review queue', '10%', 'scheduledReviewShare'],
     ];
     const freshnessRecipe = document.createElement('div');
@@ -2477,7 +2479,7 @@ Next step: backfill those rows or add a nullable migration first.
     const freshnessRecipeTitle = document.createElement('span');
     freshnessRecipeTitle.textContent = 'Confidence recipe';
     const freshnessRecipeWeights = document.createElement('strong');
-    freshnessRecipeWeights.textContent = '58 / 32 / 10';
+    freshnessRecipeWeights.textContent = '50/30/10/10';
     freshnessRecipeHeading.append(freshnessRecipeTitle, freshnessRecipeWeights);
     const freshnessRecipeList = document.createElement('div');
     freshnessRecipeList.className = 'freshness-signal__recipe-list';
