@@ -566,9 +566,10 @@
       transform: scaleX(var(--pip-fill)); transform-origin: left center;
       transition: transform 540ms cubic-bezier(.17,.84,.44,1); }
     .loop-telemetry__pip.is-visited { --pip-fill: 1; }
-    .loop-telemetry__pip:hover, .loop-telemetry__pip:focus-visible { height: 6px; outline: 0;
+    .loop-telemetry__pip:hover, .loop-telemetry__pip:focus-visible { height: 6px;
       background: rgba(var(--phase-accent-rgb),0.2);
       box-shadow: 0 0 18px rgba(var(--phase-accent-rgb),0.32), inset 0 0 0 1px rgba(var(--phase-accent-rgb),0.34); }
+    .loop-telemetry__pip:focus-visible { z-index: 2; outline: 2px solid rgba(var(--phase-accent-rgb),0.78); outline-offset: 4px; }
     .loop-telemetry__pip.is-current { height: 4px; background: rgba(var(--phase-accent-rgb),0.28);
       box-shadow: 0 0 18px rgba(var(--phase-accent-rgb),0.34), inset 0 0 0 1px rgba(var(--phase-accent-rgb),0.32); }
     .loop-telemetry__pip.is-current::after { content: ""; position: absolute; right: -5px; top: 50%;
