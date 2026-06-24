@@ -214,6 +214,24 @@ npm test
       </section>
 
       <section>
+        <h2>Appendix: Copilot CLI capability map</h2>
+        <p class="subtitle">Reference only &mdash; not spoken. The loop primitives, and how you build each one on Copilot CLI.</p>
+        <table style="font-size:0.55em">
+          <thead>
+            <tr><th>Capability</th><th>Claude Code surface</th><th>Copilot CLI &mdash; how you actually do it</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Heartbeat / schedule</td><td><code>/loop</code>, automations</td><td>cron / GitHub Actions <code>schedule:</code> / Task Scheduler calling <code>copilot -p</code></td></tr>
+            <tr><td>Run-until-condition</td><td><code>/goal</code></td><td>a <code>while</code>-loop wrapper that re-invokes <code>copilot -p</code> until your checker exits 0</td></tr>
+            <tr><td>Parallel isolation</td><td><code>--worktree</code></td><td><code>git worktree</code> + N <code>copilot -p</code> invocations</td></tr>
+            <tr><td>Maker vs checker</td><td><code>.claude/agents/</code></td><td>two separate prompts / custom agents</td></tr>
+            <tr><td>Connectors</td><td>MCP + plugins</td><td>MCP servers configured in Copilot CLI</td></tr>
+            <tr><td>Skills</td><td><code>SKILL.md</code></td><td>repo prompt files / <code>AGENTS.md</code> / custom agents</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
         <h2>Back to the briefing</h2>
         <p>The workshop is the smallest safe version of the loop discipline.</p>
         <a class="button-link" href="index.html">Back to research deck &rarr;</a>

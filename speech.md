@@ -16,7 +16,7 @@ By the end you will have a shared vocabulary, the hard parts to watch for, and a
 
 ## Slide 2 — Why this matters (Boris Cherny)
 
-Boris Cherny, who created Claude Code, put it bluntly: I do not prompt Claude anymore. I have loops that are running. My job is to write loops.
+Boris Cherny, who leads Claude Code at Anthropic, put it bluntly: I do not prompt Claude anymore. I have loops that are running. My job is to write loops.
 
 That is the whole shift in one sentence. The unit of work is moving from the prompt to the loop. Hold onto that quote — everything else today is how to do it responsibly.
 
@@ -116,6 +116,8 @@ A goal runs until a condition is verified — and it is only ever as good as the
 
 One clarification so nobody gets tripped up: these are patterns, not literal commands. Copilot CLI runs copilot dash p with a prompt; the slash-commands you may have seen belong to other tools.
 
+So on Copilot CLI there is no native goal or loop command — which means you write the while-loop yourself around copilot dash p. That is not a limitation. That is the whole job description.
+
 ---
 
 ## Slide 13 — Hard part 1: stopping
@@ -184,21 +186,23 @@ Give it a real adversary — tests, typechecks, linters, rubrics, reviewers, and
 
 ## Slide 20 — LangChain's stacked loops
 
-LangChain frames the maturity path as stacked loops. Level one automates a single task. Level two wraps it in a verification loop to improve correctness.
+LangChain frames maturity as stacked loops. Level one automates a task; level two wraps it in a verification loop for correctness.
 
-Level three is event-driven — it runs in the real ecosystem, on real triggers. Level four is hill-climbing — it improves the harness itself from its own traces.
-
-You climb this ladder one rung at a time. Nobody starts at level four.
+Level three is event-driven, on real triggers. Level four is hill-climbing — it improves the harness from its own traces. You climb one rung at a time.
 
 ---
 
 ## Slide 21 — What loops are good for
 
-Where do loops genuinely shine? Work that is recurring, bounded, and machine-checkable.
+Eight candidates on the screen — but a category is not a loop until you can see its five parts. Let me make three real.
 
-CI failure repair, dependency upgrades, flaky-test hunts, doc-drift repair, issue triage, PR babysitting, benchmark tuning, alert triage.
+Flaky-test hunt: the trigger is a test CI had to retry to pass; the loop reads its history, runs it two hundred times shuffled, and either fixes the nondeterminism or quarantines it. The exit is binary — two hundred green, or a human gets an issue.
 
-The test is simple: does it recur, does it have a boundary, and can a machine check it. Three yeses and you have a loop candidate.
+Dependency upgrade: the bump PR from the bot is the trigger, the changelog is the context, your own test suite is the tool — and it stops only when CI is green and no public signature moved.
+
+Alert triage: a known alert fires, the loop runs the runbook, correlates with the last deploy, and posts what it sees — but it never rolls back prod. That decision stays yours.
+
+Same shape every time: a machine-checkable exit, and a named human gate.
 
 ---
 
@@ -208,7 +212,7 @@ Here is the flagship real-world example, and it is the newest material in this d
 
 One production loop ships roughly 1,300 pull requests a week. It is a fork of Goose run at scale, and deterministic gates decide what actually merges.
 
-Every run gets an ephemeral Devbox or EC2 instance — cattle, not pets. Humans set the direction; the loop does the toil.
+Every run gets an ephemeral Devbox on EC2 — cattle, not pets. Humans set the direction; the loop does the toil.
 
 Credit to Steve Kaliski at Stripe. This is not a demo — it is loop engineering in production, today.
 
@@ -256,8 +260,6 @@ Three kinds of debt. Technical debt lives in the code — agents can often pay i
 
 Comprehension debt lives in people — recoverable, but only with active review. Intent debt is the why, and agents cannot pay it. Humans must write it down.
 
-That last one is why you never fully leave the loop.
-
 ---
 
 ## Slide 28 — The loop contract
@@ -267,6 +269,12 @@ So before your first unattended run, write the loop contract. Twelve fields.
 Objective, trigger, intake, workspace, context, maker, checker, done-condition, budget, state, escalation, exit.
 
 If you cannot fill these in, you are not ready to run unattended. Treat this slide as your pre-flight checklist.
+
+And here is how you know the contract is real and not theater. You are thinking in loops when you can write the done-condition as a command that exits zero or one before you write the maker; when the trigger is a clock or an event, not you remembering; and when the checker is a different agent than the maker.
+
+You are not there yet when the goal is fix everything with no boundary a machine can see, when the done-condition is a vibe like make it nicer, or when the loop has never once said no.
+
+The tell: if you reach for a loop to avoid judgment, wrong smell. To spend your time on judgment, right smell.
 
 ---
 
@@ -290,11 +298,11 @@ One rule: fork first, work in your own account, and keep upstream clean. Open th
 
 ## Slide 31 — References & close
 
-These are the sources if you want to go deeper — Pachaar, Addy Osmani who coined the term, LangChain, the awesome-loop-engineering field guide, Geoffrey Huntley, and Simon Willison on the lethal trifecta.
+These are your sources — they are on the screen; read them later, I will not recite a bibliography at you. The term was surfaced in one week by Steinberger, Cherny, and Osmani, and named in writing by Osmani.
 
-Plus the OWASP agentic top ten, practitioners Steinberger, Cherny, and HuaShu’s Orange Book, and the Anthropic playbook PDF linked right here.
+Here is what to leave with instead. The how is solved. The loop is twenty lines: copilot dash p, a checker that exits zero or one, a while-loop, a budget cap. Nobody is going to hand you the part that matters — which recurring pain in your week is worth wrapping, and why it is worth your judgment to gate it.
 
-Thank you. Press S any time to see these notes, ESC for the overview. Now let us go build some loops.
+Two people build the same loop from the same parts and get opposite outcomes six months later; the difference is one or two checkpoints, placed by taste. The how is a commodity. The what and the why are yours. Now let us go build some loops.
 
 ---
 
