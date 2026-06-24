@@ -570,10 +570,29 @@
     .reveal { position: relative; z-index: 1; }
     .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content { background: transparent !important; }
     .loop-spotlight { position: fixed; left: 0; top: 0; width: clamp(360px, 60vmax, 960px);
-      aspect-ratio: 1; z-index: 0; pointer-events: none; border-radius: 50%; opacity: 0.76;
-      background: radial-gradient(circle, rgba(var(--phase-accent-rgb),0.26), rgba(var(--phase-accent-rgb),0.08) 42%, transparent 70%);
+      aspect-ratio: 1; z-index: 0; pointer-events: none; border-radius: 50%; opacity: 0.78;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(238,243,255,0.18) 0 5%, transparent 10%),
+        radial-gradient(circle at 50% 50%, rgba(var(--phase-accent-rgb),0.28), rgba(var(--phase-accent-rgb),0.1) 42%, transparent 70%);
       mix-blend-mode: screen; transform: translate3d(var(--delight-x, 50vw), var(--delight-y, 42vh), 0) translate(-50%, -50%);
-      will-change: transform; contain: layout paint style; backface-visibility: hidden; }
+      filter: saturate(1.08); will-change: transform; contain: layout paint style; backface-visibility: hidden; }
+    .loop-spotlight::before,
+    .loop-spotlight::after { content: ""; position: absolute; pointer-events: none; border-radius: 50%; }
+    .loop-spotlight::before { inset: 18%; padding: 2px;
+      background: conic-gradient(from 18deg, transparent 0 18%, rgba(156,194,255,0.5) 22%, transparent 28% 58%, rgba(var(--phase-accent-rgb),0.62) 63%, transparent 70% 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      filter: drop-shadow(0 0 18px rgba(var(--phase-accent-rgb),0.34));
+      animation: spotlight-orbit 16s linear infinite; }
+    .loop-spotlight::after { inset: 29%;
+      background:
+        radial-gradient(circle at 12% 52%, rgba(238,243,255,0.86) 0 1.6px, transparent 2.4px),
+        radial-gradient(circle at 70% 20%, rgba(var(--phase-accent-rgb),0.8) 0 2px, transparent 3px),
+        radial-gradient(circle at 84% 68%, rgba(156,194,255,0.74) 0 1.5px, transparent 2.4px),
+        radial-gradient(circle at 42% 82%, rgba(238,243,255,0.58) 0 1.2px, transparent 2px);
+      opacity: 0.66; filter: drop-shadow(0 0 12px rgba(var(--phase-accent-rgb),0.36));
+      animation: spotlight-sparks 4.8s ease-in-out infinite alternate; }
     .loop-telemetry { --loop-progress: 0%; --preview-x: 50%; position: fixed; left: clamp(18px, 4vw, 58px);
       right: clamp(18px, 4vw, 58px); bottom: clamp(16px, 3vh, 34px); z-index: 4;
       display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem;
@@ -1038,6 +1057,14 @@
       from { transform: translate3d(-3%, 2%, 0) rotate(-4deg); }
       to { transform: translate3d(3%, -2%, 0) rotate(-4deg); }
     }
+    @keyframes spotlight-orbit {
+      from { transform: rotate(0deg) scale(0.98); }
+      to { transform: rotate(360deg) scale(0.98); }
+    }
+    @keyframes spotlight-sparks {
+      from { transform: rotate(-8deg) scale(0.94); opacity: 0.44; }
+      to { transform: rotate(10deg) scale(1.08); opacity: 0.82; }
+    }
     @keyframes telemetry-glint {
       0%, 68% { transform: translateX(-120%); }
       100% { transform: translateX(120%); }
@@ -1194,7 +1221,7 @@
       100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .loop-echo__glow, .loop-echo__trail, .loop-echo__ghost-path, .loop-echo__node, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
+      .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-spotlight, .loop-spotlight::before, .loop-spotlight::after, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .loop-echo__glow, .loop-echo__trail, .loop-echo__ghost-path, .loop-echo__node, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .loop-telemetry__comet,
       .reveal .hero-loop::after, .reveal .hero-loop__label, .reveal .hero-loop__label::before, .reveal .hero-loop__runner,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
@@ -1238,7 +1265,7 @@
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
-      body::before, body::after, .bg-skier, .loop-telemetry, .loop-beacon, .loop-burst, .loop-echo, .freshness-signal {
+      body::before, body::after, .bg-skier, .loop-spotlight, .loop-telemetry, .loop-beacon, .loop-burst, .loop-echo, .freshness-signal {
         display: none !important;
       }
       .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content {
@@ -2240,6 +2267,10 @@ Next step: backfill those rows or add a nullable migration first.
     let echoTimer;
     let lastProgress;
     let spotlightFrame;
+    let spotlightX = window.innerWidth * 0.5;
+    let spotlightY = window.innerHeight * 0.42;
+    let spotlightTargetX = spotlightX;
+    let spotlightTargetY = spotlightY;
     const slidesRoot = document.querySelector('.reveal .slides');
 
     const getSlideTitle = (slide, fallback = 'Loops of Fury') => {
@@ -2271,12 +2302,43 @@ Next step: backfill those rows or add a nullable migration first.
       document.body.style.setProperty('--delight-y', `${y}px`);
     };
 
+    const renderSpotlight = () => {
+      const deltaX = spotlightTargetX - spotlightX;
+      const deltaY = spotlightTargetY - spotlightY;
+      if (Math.abs(deltaX) < 0.35 && Math.abs(deltaY) < 0.35) {
+        spotlightX = spotlightTargetX;
+        spotlightY = spotlightTargetY;
+        setSpotlight(spotlightX, spotlightY);
+        spotlightFrame = undefined;
+        return;
+      }
+
+      spotlightX += deltaX * 0.18;
+      spotlightY += deltaY * 0.18;
+      setSpotlight(spotlightX, spotlightY);
+      spotlightFrame = requestAnimationFrame(renderSpotlight);
+    };
+
+    const glideSpotlightTo = (x, y, { immediate = false } = {}) => {
+      spotlightTargetX = x;
+      spotlightTargetY = y;
+      if (immediate || reducedMotion.matches) {
+        cancelAnimationFrame(spotlightFrame);
+        spotlightFrame = undefined;
+        spotlightX = x;
+        spotlightY = y;
+        setSpotlight(x, y);
+        return;
+      }
+      if (!spotlightFrame) spotlightFrame = requestAnimationFrame(renderSpotlight);
+    };
+
     const aimSpotlightAtHeading = () => {
       const currentSlide = Reveal.getCurrentSlide();
       const heading = currentSlide ? currentSlide.querySelector('h1, h2') : null;
       if (!heading) return;
       const bounds = heading.getBoundingClientRect();
-      setSpotlight(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+      glideSpotlightTo(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
     };
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
@@ -2324,8 +2386,7 @@ Next step: backfill those rows or add a nullable migration first.
 
     window.addEventListener('pointermove', (event) => {
       if (reducedMotion.matches || event.pointerType === 'touch') return;
-      cancelAnimationFrame(spotlightFrame);
-      spotlightFrame = requestAnimationFrame(() => setSpotlight(event.clientX, event.clientY));
+      glideSpotlightTo(event.clientX, event.clientY);
     }, { passive: true });
     if (slidesRoot) {
       slidesRoot.addEventListener('pointermove', setCardSignalGlint, { passive: true });
