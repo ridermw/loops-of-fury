@@ -62,6 +62,16 @@ if (-not $env:GH_TOKEN -and -not $env:GITHUB_TOKEN) {
     Write-Log "No GH_TOKEN/GITHUB_TOKEN — push, the loop-run issue, and Pages verify will fail." 'WARN' $log
 }
 
+# Maker mode visibility. Without LOOP_MAKER=copilot the engine runs its no-op maker and
+# every iteration is an instant no-op — a ~2s "finished OK" that changes nothing. Surface
+# the mode so a dry/misconfigured devbox is never mistaken for real unattended work.
+if ($env:LOOP_MAKER -eq 'copilot') {
+    $commitMode = if ($env:LOOP_COMMIT -eq '1') { 'commit+push' } else { 'dry (no commit/push)' }
+    Write-Log "maker=copilot, commit=$commitMode." 'INFO' $log
+} else {
+    Write-Log "LOOP_MAKER is not 'copilot' — the engine will run its NO-OP maker: it edits nothing and exits in seconds. Set LOOP_MAKER=copilot in .loop\.env for real runs." 'WARN' $log
+}
+
 # --- 3. Sync to origin ------------------------------------------------------
 & git fetch origin --prune *>> $log
 if ($LASTEXITCODE -ne 0) { Write-Log "git fetch failed (exit $LASTEXITCODE)." 'ERROR' $log; Add-Content $history "[$stamp] FAIL (git fetch)" -Encoding utf8; exit 1 }

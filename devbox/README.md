@@ -30,9 +30,16 @@ Task Scheduler ──(cadence)──> run-loop.ps1 ──> node .loop/loop.mjs -
 | **Node ≥ 20** | `engines.node`; runs the whole engine | `bootstrap.ps1` installs via winget if missing |
 | **`npm ci`** | playwright, pixelmatch, pngjs | run by bootstrap |
 | **Chromium** (`npx playwright install chromium`) | the checker renders both decks headless every iteration | without it, every iteration is red |
-| **`copilot` CLI, authenticated** | this **is** the maker (`MAKER.bin='copilot'`) | no copilot → maker no-ops, loop makes no edits |
+| **`copilot` CLI, authenticated** | this **is** the maker (`MAKER.bin='copilot'`) | no copilot **or** `LOOP_MAKER`≠`copilot` → maker no-ops, loop makes no edits |
 | **`gh` CLI + a `GH_TOKEN`** | the loop opens/updates the `loop-run` issue, drains `loop-task` issues, and verifies live Pages — all via `gh`; git push uses gh's credential helper | token needs `contents:write` + `issues:write` on `ridermw/loops-of-fury` |
 | **Hooks + baseline** | `loop:install-hooks` (pre-push barrier D30) and `loop:init` (anchor/slide baseline + manifest) | run by bootstrap |
+
+> **Real vs dry runs.** The engine only drives the real `copilot` maker when
+> `LOOP_MAKER=copilot`, and only commits/pushes GREEN iterations when `LOOP_COMMIT=1`.
+> Both live in `.loop\.env`, and `bootstrap.ps1` sets them for you — the devbox runs real
+> unattended loops by default. Without `LOOP_MAKER=copilot` every run is an instant no-op
+> (a ~2 s `finished OK` that edits nothing). For a no-push dry run — real maker edits +
+> local gates, but nothing lands on `main` — set `LOOP_COMMIT=0`.
 
 ## Quick start
 
@@ -45,7 +52,7 @@ pwsh -ExecutionPolicy Bypass -File devbox\bootstrap.ps1
 #    Then re-run bootstrap so `gh auth setup-git` wires non-interactive push:
 pwsh -ExecutionPolicy Bypass -File devbox\bootstrap.ps1
 
-# 3. (Optional) trigger one run now to verify end-to-end:
+# 3. (Optional) trigger one REAL run now (drives the maker; pushes GREEN edits to main):
 pwsh -ExecutionPolicy Bypass -File devbox\run-loop.ps1
 ```
 

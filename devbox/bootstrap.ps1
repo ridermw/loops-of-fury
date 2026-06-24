@@ -107,10 +107,33 @@ if (-not (Test-Path $envFile)) {
         '# ridermw/loops-of-fury. The loop uses gh (issues, Pages API) and git push.',
         'GH_TOKEN=',
         '# Some tooling reads GITHUB_TOKEN instead; mirror it if needed.',
-        '# GITHUB_TOKEN='
+        '# GITHUB_TOKEN=',
+        '',
+        '# Run mode. The devbox exists to run REAL loops unattended, so enable the copilot',
+        '# maker and autonomous commit+push. WITHOUT LOOP_MAKER=copilot the engine uses a',
+        '# no-op maker and every run is an instant no-op (a ~2s "finished OK" that edits',
+        '# nothing). Set LOOP_COMMIT=0 for a dry run (real edits + local gates, no push).',
+        'LOOP_MAKER=copilot',
+        'LOOP_COMMIT=1'
     ) | Set-Content -Path $envFile -Encoding utf8
     Write-Log "Created template $envFile — set GH_TOKEN before the first real run." 'WARN'
 }
+
+# Ensure the REAL-run toggles exist even in a pre-existing .env (e.g. one created before
+# this kit enabled the maker). They are config toggles, not secrets. Append only when a key
+# is entirely absent, so an operator's explicit choice (e.g. LOOP_COMMIT=0) is never lost.
+$envText = Get-Content $envFile -Raw
+$added = @()
+foreach ($kv in @(@('LOOP_MAKER','copilot'), @('LOOP_COMMIT','1'))) {
+    if ($envText -notmatch ("(?m)^\s*{0}\s*=" -f $kv[0])) {
+        Add-Content -Path $envFile -Value ("{0}={1}" -f $kv[0], $kv[1]) -Encoding utf8
+        $added += ("{0}={1}" -f $kv[0], $kv[1])
+    }
+}
+if ($added.Count) {
+    Write-Log ("Enabled real unattended runs in .loop\.env: " + ($added -join ', ') + " (set LOOP_COMMIT=0 for a no-push dry run).") 'OK'
+}
+
 Import-DotEnv $envFile | Out-Null
 if (-not $env:GH_TOKEN -and -not $env:GITHUB_TOKEN) {
     Write-Log "No GH_TOKEN/GITHUB_TOKEN in .loop\.env yet — issues, Pages verify, and push will fail until set." 'WARN'
