@@ -97,6 +97,45 @@
     .reveal .agent-loop .green-line { fill: none; stroke: #66e0bd; stroke-width: 4; }
     .reveal .agent-loop .red-line { fill: none; stroke: #ff8b8b; stroke-width: 4; }
 
+    .reveal .slides section.present {
+      isolation: isolate;
+    }
+    .reveal .slides section.present::before,
+    .reveal .slides section.present::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .reveal .slides section.present::before {
+      inset: calc(clamp(18px, 3.2vw, 34px) * -1);
+      border: 1px solid rgba(156,194,255,0.18);
+      border-radius: 28px;
+      background:
+        radial-gradient(ellipse at 14% 18%, rgba(255,106,77,0.16), transparent 36%),
+        radial-gradient(ellipse at 86% 78%, rgba(77,140,255,0.2), transparent 42%),
+        linear-gradient(135deg, rgba(8,22,62,0.48), rgba(4,16,46,0.16));
+      box-shadow:
+        0 26px 90px rgba(2,8,28,0.34),
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        inset 0 0 42px rgba(156,194,255,0.05);
+      opacity: 0.92;
+      animation: slide-aperture 780ms cubic-bezier(.17,.84,.44,1) both;
+    }
+    .reveal .slides section.present::after {
+      inset: calc(clamp(13px, 2.4vw, 26px) * -1);
+      border-radius: 24px;
+      background:
+        linear-gradient(90deg, var(--fury), transparent 70%) left top / 118px 2px no-repeat,
+        linear-gradient(180deg, var(--fury), transparent 72%) left top / 2px 118px no-repeat,
+        linear-gradient(270deg, var(--heading), transparent 70%) right bottom / 118px 2px no-repeat,
+        linear-gradient(0deg, var(--heading), transparent 72%) right bottom / 2px 118px no-repeat;
+      filter: drop-shadow(0 0 16px rgba(255,106,77,0.24));
+      mix-blend-mode: screen;
+      opacity: 0.58;
+      animation: slide-aperture-brackets 900ms 80ms cubic-bezier(.17,.84,.44,1) both;
+    }
+
     .reveal section.present > h1,
     .reveal section.present > h2 {
       position: relative;
@@ -303,6 +342,14 @@
       0%, 100% { transform: translateY(-50%) scale(0.82); opacity: 0.7; }
       50% { transform: translateY(-50%) scale(1.18); opacity: 1; }
     }
+    @keyframes slide-aperture {
+      from { opacity: 0; transform: translate3d(0, 0.34em, 0) scale(0.982); }
+      to { opacity: 0.92; transform: translate3d(0, 0, 0) scale(1); }
+    }
+    @keyframes slide-aperture-brackets {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 0.58; transform: scale(1); }
+    }
     @keyframes heading-lock {
       from { opacity: 0.86; transform: translate3d(0, 0.18em, 0) scale(0.985); filter: saturate(0.8); }
       to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: saturate(1); }
@@ -325,6 +372,7 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
+      .reveal .slides section.present::before, .reveal .slides section.present::after,
       .reveal section.present > h1, .reveal section.present > h2,
       .reveal section.present > h1::before, .reveal section.present > h1::after,
       .reveal section.present > h2::before, .reveal section.present > h2::after,
@@ -348,6 +396,7 @@
       .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content {
         background: linear-gradient(to bottom, #0a1b4d, #04102e) !important;
       }
+      .reveal .slides section.present::before, .reveal .slides section.present::after,
       .reveal section.present > h1, .reveal section.present > h2,
       .reveal section.present > h1::before, .reveal section.present > h1::after,
       .reveal section.present > h2::before, .reveal section.present > h2::after,
