@@ -610,6 +610,30 @@
       box-shadow: 0 0 16px rgba(var(--phase-accent-rgb),0.42); }
     .freshness-signal__timeline-scale { display: grid; grid-template-columns: 1fr auto; gap: 0.7rem;
       color: rgba(238,243,255,0.48); font-size: 0.76em; font-variant-numeric: tabular-nums; }
+    .freshness-signal__mix { margin-top: 0.72rem; padding: 0.6rem 0.64rem 0.66rem;
+      border: 1px solid rgba(156,194,255,0.16); border-radius: 14px;
+      background:
+        radial-gradient(circle at 8% 20%, rgba(102,224,189,0.12), transparent 38%),
+        linear-gradient(135deg, rgba(255,255,255,0.052), rgba(77,140,255,0.06)); }
+    .freshness-signal__mix-label { display: flex; justify-content: space-between; gap: 0.7rem;
+      color: rgba(238,243,255,0.72); font-size: 0.82em; }
+    .freshness-signal__mix-label strong { color: var(--ink); font-weight: 700; }
+    .freshness-signal__mix-bar { display: flex; height: 0.5rem; margin: 0.48rem 0 0.42rem;
+      overflow: hidden; border-radius: 999px; background: rgba(156,194,255,0.13);
+      box-shadow: inset 0 0 0 1px rgba(156,194,255,0.12); }
+    .freshness-signal__mix-segment { flex-basis: var(--mix-share); min-width: 2px;
+      box-shadow: 0 0 16px rgba(255,255,255,0.08); }
+    .freshness-signal__mix-segment[data-state="current"] { background: linear-gradient(90deg, #66e0bd, rgba(102,224,189,0.68)); }
+    .freshness-signal__mix-segment[data-state="context"] { background: linear-gradient(90deg, var(--heading), rgba(77,140,255,0.72)); }
+    .freshness-signal__mix-segment[data-state="archive"] { background: linear-gradient(90deg, var(--fury), rgba(255,106,77,0.68)); }
+    .freshness-signal__mix-legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.32rem;
+      color: rgba(238,243,255,0.58); font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.08em; }
+    .freshness-signal__mix-legend span::before { content: ""; display: inline-block; width: 0.46rem; height: 0.46rem;
+      margin-right: 0.32rem; border-radius: 50%; vertical-align: -0.06rem;
+      background: var(--mix-color); box-shadow: 0 0 12px var(--mix-glow); }
+    .freshness-signal__mix-legend [data-state="current"] { --mix-color: #66e0bd; --mix-glow: rgba(102,224,189,0.42); }
+    .freshness-signal__mix-legend [data-state="context"] { --mix-color: var(--heading); --mix-glow: rgba(156,194,255,0.4); }
+    .freshness-signal__mix-legend [data-state="archive"] { --mix-color: var(--fury); --mix-glow: rgba(255,106,77,0.42); }
     .freshness-signal__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.42rem; margin: 0.72rem 0; }
     .freshness-signal__stat { padding: 0.48rem 0.5rem; border-radius: 12px;
@@ -805,7 +829,7 @@
       .freshness-signal__date { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .freshness-signal__latest, .freshness-signal__review, .freshness-signal__pulse-train, .freshness-signal__sources { display: none; }
       .freshness-signal__panel { left: 0; right: 0; width: auto; }
-      .freshness-signal__stats { grid-template-columns: 1fr; }
+      .freshness-signal__mix-legend, .freshness-signal__stats { grid-template-columns: 1fr; }
       .reveal .references { grid-template-columns: 1fr; }
       .reveal .ledger-stage { width: min(92vw, 460px); min-height: 310px; }
       .reveal .ledger-receipt { grid-template-columns: 1fr; bottom: -3%; }
@@ -1357,6 +1381,12 @@ Next step: backfill those rows or add a nullable migration first.
       counts[source.state] = (counts[source.state] || 0) + 1;
       return counts;
     }, {});
+    const sourceMixItems = [
+      ['current', referenceCounts.current || 0],
+      ['context', referenceCounts.context || 0],
+      ['archive', referenceCounts.archive || 0],
+    ];
+    const sourceMixSummary = sourceMixItems.map(([label, count]) => `${count} ${label}`).join(' / ');
     const latestLinkedReferenceYear = referenceLinks.reduce((latest, link) => {
       const years = `${link.href} ${link.textContent}`.match(/\b20\d{2}\b/g) || [];
       return Math.max(latest, ...years.map(Number));
@@ -1409,7 +1439,7 @@ Next step: backfill those rows or add a nullable migration first.
     freshness.dataset.reviewState = reviewState;
     freshness.style.setProperty('--source-count', sourceCount);
     freshness.style.setProperty('--review-progress', `${reviewProgress}%`);
-    freshness.title = `Freshness signal: ${freshnessState}; oldest source check ${freshnessAge.textContent} ago; ${reviewLabel}; latest dated reference ${latestReferenceYear}; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
+    freshness.title = `Freshness signal: ${freshnessState}; oldest source check ${freshnessAge.textContent} ago; ${reviewLabel}; latest dated reference ${latestReferenceYear}; source mix ${sourceMixSummary}; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
     freshness.setAttribute('aria-label', `${freshness.title}. Focus for source audit.`);
     freshness.tabIndex = 0;
     const freshnessPanel = document.createElement('div');
@@ -1442,12 +1472,36 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessTimelineEnd.textContent = `next ${formatShortDate(nextReviewAt)}`;
     freshnessTimelineScale.append(freshnessTimelineStart, freshnessTimelineEnd);
     freshnessTimeline.append(freshnessTimelineCaption, freshnessTimelineRail, freshnessTimelineScale);
+    const freshnessMix = document.createElement('div');
+    freshnessMix.className = 'freshness-signal__mix';
+    const freshnessMixLabel = document.createElement('div');
+    freshnessMixLabel.className = 'freshness-signal__mix-label';
+    const freshnessMixTitle = document.createElement('span');
+    freshnessMixTitle.textContent = 'Source mix';
+    const freshnessMixRatio = document.createElement('strong');
+    freshnessMixRatio.textContent = `${referenceCounts.current || 0}/${sourceCount} current`;
+    freshnessMixLabel.append(freshnessMixTitle, freshnessMixRatio);
+    const freshnessMixBar = document.createElement('div');
+    freshnessMixBar.className = 'freshness-signal__mix-bar';
+    const freshnessMixLegend = document.createElement('div');
+    freshnessMixLegend.className = 'freshness-signal__mix-legend';
+    sourceMixItems.forEach(([state, count]) => {
+      const segment = document.createElement('span');
+      segment.className = 'freshness-signal__mix-segment';
+      segment.dataset.state = state;
+      segment.style.setProperty('--mix-share', `${(count / sourceCount) * 100}%`);
+      segment.title = `${count} ${state} references`;
+      freshnessMixBar.appendChild(segment);
+      const legendItem = document.createElement('span');
+      legendItem.dataset.state = state;
+      legendItem.textContent = `${count} ${state}`;
+      freshnessMixLegend.appendChild(legendItem);
+    });
+    freshnessMix.append(freshnessMixLabel, freshnessMixBar, freshnessMixLegend);
     const freshnessStats = document.createElement('div');
     freshnessStats.className = 'freshness-signal__stats';
     [
-      ['current', referenceCounts.current || 0],
-      ['context', referenceCounts.context || 0],
-      ['archive', referenceCounts.archive || 0],
+      ...sourceMixItems,
       ['cadence', reviewLabel.replace('review ', '')],
     ].forEach(([label, value]) => {
       const stat = document.createElement('div');
@@ -1484,7 +1538,7 @@ Next step: backfill those rows or add a nullable migration first.
         row.append(sourceStack, sourceState);
         freshnessSourceList.appendChild(row);
       });
-    freshnessPanel.append(freshnessPanelTitle, freshnessPanelMeta, freshnessTimeline, freshnessStats, freshnessSourceList);
+    freshnessPanel.append(freshnessPanelTitle, freshnessPanelMeta, freshnessTimeline, freshnessMix, freshnessStats, freshnessSourceList);
     freshness.setAttribute('aria-describedby', freshnessPanel.id);
     freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessLatest, freshnessReview, freshnessPulseTrain, freshnessSources, freshnessPanel);
     document.body.appendChild(freshness);
