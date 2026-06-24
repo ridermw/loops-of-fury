@@ -1657,13 +1657,13 @@ Next step: backfill those rows or add a nullable migration first.
         <h2>References</h2>
         <div class="source-audit-strip" data-source-audit aria-label="Reference freshness audit"></div>
         <ul class="tiny references">
-          <li data-source-year="2026" data-source-checked="2026-06-24"><a href="https://x.com/akshay_pachaar/article/2069118430582866051" target="_blank" rel="noopener noreferrer">Akshay Pachaar, "Loop Engineering Clearly Explained"</a></li>
-          <li data-source-year="2026" data-source-checked="2026-06-24"><a href="https://addyosmani.com/blog/loop-engineering/" target="_blank" rel="noopener noreferrer">Addy Osmani, "Loop Engineering"</a></li>
-          <li data-source-year="2026" data-source-checked="2026-06-24"><a href="https://langchain.com/blog/the-art-of-loop-engineering" target="_blank" rel="noopener noreferrer">LangChain, "The Art of Loop Engineering"</a></li>
-          <li data-source-status="living index" data-source-checked="2026-06-24"><a href="https://github.com/invincible04/awesome-loop-engineering" target="_blank" rel="noopener noreferrer">invincible04/awesome-loop-engineering field guide</a></li>
-          <li data-source-year="2024" data-source-checked="2026-06-24"><a href="https://ghuntley.com/ralph/" target="_blank" rel="noopener noreferrer">Geoffrey Huntley, "Ralph Wiggum as a software engineer"</a></li>
-          <li data-source-year="2025" data-source-checked="2026-06-24"><a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/" target="_blank" rel="noopener noreferrer">Simon Willison, "The lethal trifecta for AI agents"</a></li>
-          <li data-source-year="2026" data-source-checked="2026-06-24"><a href="https://genai.owasp.org/llm-top-10/" target="_blank" rel="noopener noreferrer">OWASP Top 10 for LLM Applications</a> and <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/" target="_blank" rel="noopener noreferrer">Agentic Applications</a></li>
+          <li data-source-year="2026" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="https://x.com/akshay_pachaar/article/2069118430582866051" target="_blank" rel="noopener noreferrer">Akshay Pachaar, "Loop Engineering Clearly Explained"</a></li>
+          <li data-source-year="2026" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="https://addyosmani.com/blog/loop-engineering/" target="_blank" rel="noopener noreferrer">Addy Osmani, "Loop Engineering"</a></li>
+          <li data-source-year="2026" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="https://langchain.com/blog/the-art-of-loop-engineering" target="_blank" rel="noopener noreferrer">LangChain, "The Art of Loop Engineering"</a></li>
+          <li data-source-status="living index" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="https://github.com/invincible04/awesome-loop-engineering" target="_blank" rel="noopener noreferrer">invincible04/awesome-loop-engineering field guide</a></li>
+          <li data-source-year="2024" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="https://ghuntley.com/ralph/" target="_blank" rel="noopener noreferrer">Geoffrey Huntley, "Ralph Wiggum as a software engineer"</a></li>
+          <li data-source-year="2025" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/" target="_blank" rel="noopener noreferrer">Simon Willison, "The lethal trifecta for AI agents"</a></li>
+          <li data-source-year="2026" data-source-checked="2026-06-24T05:47:37.970-04:00"><a href="https://genai.owasp.org/llm-top-10/" target="_blank" rel="noopener noreferrer">OWASP Top 10 for LLM Applications</a> and <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/" target="_blank" rel="noopener noreferrer">Agentic Applications</a></li>
         </ul>
         <a class="button-link" href="workshop.html">Open the workshop deck &rarr;</a>
         <p class="subtitle">Press <kbd>S</kbd> for notes &middot; <kbd>ESC</kbd> for overview</p>
@@ -1776,7 +1776,8 @@ Next step: backfill those rows or add a nullable migration first.
     const DAY_MS = 24 * HOUR_MS;
     const SOURCE_REVIEW_INTERVAL_DAYS = 30;
     const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
-    const refreshedAt = new Date('2026-06-24T04:39:59.972Z');
+    const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/;
+    const refreshedAt = new Date('2026-06-24T05:47:37.970-04:00');
     const referenceItems = [...document.querySelectorAll('.references li')];
     const referenceLinks = [...document.querySelectorAll('.slides section:last-of-type a[href^="http"]')];
     const sourceCount = referenceItems.length;
@@ -1791,6 +1792,8 @@ Next step: backfill those rows or add a nullable migration first.
     const getSourceAgeLabel = (checkedAt) => formatElapsedAge(Date.now() - checkedAt.getTime());
     const parseSourceCheckedAt = (item) => {
       const sourceChecked = item.dataset.sourceChecked;
+      const timestamp = sourceChecked && DATE_TIME_PATTERN.test(sourceChecked) ? new Date(sourceChecked) : null;
+      if (timestamp && !Number.isNaN(timestamp.getTime())) return timestamp;
       const match = sourceChecked && sourceChecked.match(DATE_ONLY_PATTERN);
       if (!match) return refreshedAt;
       const [, yearText, monthText, dayText] = match;
