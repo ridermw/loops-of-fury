@@ -170,7 +170,7 @@
     .loop-beacon.is-pulsing::before { animation: beacon-spin 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
     .freshness-signal { position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
-      z-index: 4; display: grid; grid-template-columns: auto auto auto; align-items: center; gap: 0.44rem;
+      z-index: 4; display: grid; grid-template-columns: auto auto auto auto; align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
       font-family: var(--font-display); font-size: clamp(9px, 0.86vw, 12px); font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase; text-shadow: none; pointer-events: none;
@@ -181,8 +181,24 @@
     .freshness-signal::before { content: ""; width: 0.56rem; aspect-ratio: 1; border-radius: 50%;
       background: var(--fury); box-shadow: 0 0 0 0 rgba(255,106,77,0.54), 0 0 18px rgba(255,106,77,0.72);
       animation: freshness-ping 2.6s ease-out infinite; }
+    .freshness-signal::after { content: ""; position: absolute; inset: -1px; border-radius: inherit;
+      background: conic-gradient(from 140deg, transparent 0 62%, rgba(156,194,255,0.34), transparent 82% 100%);
+      opacity: 0.7; mix-blend-mode: screen; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); padding: 1px;
+      -webkit-mask-composite: xor; mask-composite: exclude; }
     .freshness-signal__label { color: var(--fury); }
     .freshness-signal__date { color: var(--heading); font-variant-numeric: tabular-nums; }
+    .freshness-signal__age { margin-left: 0.12rem; padding: 0.18rem 0.42rem 0.2rem;
+      border-radius: 999px; color: rgba(238,243,255,0.84); font-variant-numeric: tabular-nums;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(238,243,255,0.12); }
+    .freshness-signal[data-state="fresh"]::before { background: #66e0bd;
+      box-shadow: 0 0 0 0 rgba(102,224,189,0.5), 0 0 18px rgba(102,224,189,0.64); }
+    .freshness-signal[data-state="fresh"] .freshness-signal__age { color: #66e0bd;
+      background: rgba(102,224,189,0.1); border-color: rgba(102,224,189,0.28); }
+    .freshness-signal[data-state="aging"] .freshness-signal__age { color: var(--heading);
+      background: rgba(77,140,255,0.12); border-color: rgba(156,194,255,0.26); }
+    .freshness-signal[data-state="stale"] .freshness-signal__age { color: var(--fury);
+      background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.3); }
     .bg-skier { position: fixed; left: 50%; top: 1vh; transform: translate3d(-50%, 0, 0);
       width: 46vw; height: auto;
       opacity: 0.32; z-index: 0; pointer-events: none; user-select: none;
@@ -223,6 +239,11 @@
       0% { box-shadow: 0 0 0 0 rgba(255,106,77,0.5), 0 0 18px rgba(255,106,77,0.72); }
       72%, 100% { box-shadow: 0 0 0 9px rgba(255,106,77,0), 0 0 18px rgba(255,106,77,0.72); }
     }
+    @keyframes freshness-ping-fresh {
+      0% { box-shadow: 0 0 0 0 rgba(102,224,189,0.5), 0 0 18px rgba(102,224,189,0.64); }
+      72%, 100% { box-shadow: 0 0 0 9px rgba(102,224,189,0), 0 0 18px rgba(102,224,189,0.64); }
+    }
+    .freshness-signal[data-state="fresh"]::before { animation-name: freshness-ping-fresh; }
     @keyframes loop-pip-breathe {
       0%, 100% { transform: translateY(-50%) scale(0.82); opacity: 0.7; }
       50% { transform: translateY(-50%) scale(1.18); opacity: 1; }
@@ -653,9 +674,16 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessDate.className = 'freshness-signal__date';
     const modifiedAt = new Date(document.lastModified);
     const refreshedAt = Number.isNaN(modifiedAt.getTime()) ? new Date() : modifiedAt;
+    const daysSinceRefresh = Math.max(0, Math.floor((Date.now() - refreshedAt.getTime()) / 86400000));
+    const freshnessState = daysSinceRefresh <= 14 ? 'fresh' : daysSinceRefresh <= 45 ? 'aging' : 'stale';
     freshnessDate.dateTime = refreshedAt.toISOString();
     freshnessDate.textContent = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(refreshedAt);
-    freshness.append(freshnessLabel, freshnessDivider, freshnessDate);
+    const freshnessAge = document.createElement('span');
+    freshnessAge.className = 'freshness-signal__age';
+    freshnessAge.textContent = daysSinceRefresh === 0 ? 'today' : `${daysSinceRefresh}d`;
+    freshness.dataset.state = freshnessState;
+    freshness.title = `Freshness signal: ${freshnessState}, refreshed ${freshnessAge.textContent}`;
+    freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge);
     document.body.appendChild(freshness);
 
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
