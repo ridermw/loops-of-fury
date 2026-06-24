@@ -577,10 +577,10 @@
       transform: translate3d(-50%, 8px, 0) scale(0.96);
       transition: opacity 180ms ease, transform 220ms cubic-bezier(.17,.84,.44,1); }
     .loop-telemetry.is-previewing .loop-telemetry__preview { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1); }
-    .loop-telemetry__comet { --comet-from: 0%; --comet-to: 0%; --comet-scale: 1;
-      position: absolute; left: var(--comet-to); top: -10px; width: clamp(54px, 7.6vw, 118px); height: 12px;
-      pointer-events: none; opacity: 0; z-index: 1; transform: translateX(-50%) scaleX(var(--comet-scale));
-      transform-origin: center; will-change: left, opacity, filter; }
+    .loop-telemetry__comet { --comet-start-x: 0px; --comet-travel-x: 0px; --comet-scale: 1;
+      position: absolute; left: var(--comet-start-x); top: -10px; width: clamp(54px, 7.6vw, 118px); height: 12px;
+      pointer-events: none; opacity: 0; z-index: 1; transform: translate3d(-50%, 0, 0) scaleX(var(--comet-scale));
+      transform-origin: center; will-change: transform, opacity, filter; }
     .loop-telemetry__comet::before { content: ""; position: absolute; inset: 4px 0 3px; border-radius: 999px;
       background: linear-gradient(90deg, transparent, rgba(156,194,255,0.28) 24%, rgba(var(--phase-accent-rgb),0.88) 72%, var(--phase-accent));
       box-shadow: 0 0 18px rgba(var(--phase-accent-rgb),0.52), 0 0 34px rgba(156,194,255,0.18); }
@@ -1004,10 +1004,10 @@
       50% { transform: translateY(-50%) scale(1.18); opacity: 1; }
     }
     @keyframes loop-comet-flight {
-      0% { left: var(--comet-from); opacity: 0; filter: blur(5px) saturate(0.9); }
+      0% { opacity: 0; transform: translate3d(-50%, 0, 0) translate3d(0, 0, 0) scaleX(var(--comet-scale)); filter: blur(5px) saturate(0.9); }
       14% { opacity: 1; filter: blur(0) saturate(1.24); }
       72% { opacity: 0.94; }
-      100% { left: var(--comet-to); opacity: 0; filter: blur(3px) saturate(1); }
+      100% { opacity: 0; transform: translate3d(-50%, 0, 0) translate3d(var(--comet-travel-x), 0, 0) scaleX(var(--comet-scale)); filter: blur(3px) saturate(1); }
     }
     @keyframes slide-aperture {
       from { opacity: 0; transform: translate3d(0, 0.34em, 0) scale(0.982); }
@@ -2241,8 +2241,11 @@ Next step: backfill those rows or add a nullable migration first.
         return;
       }
 
-      telemetry.style.setProperty('--comet-from', `${lastProgress}%`);
-      telemetry.style.setProperty('--comet-to', `${progress}%`);
+      const telemetryWidth = telemetry.getBoundingClientRect().width;
+      const startX = (lastProgress / 100) * telemetryWidth;
+      const endX = (progress / 100) * telemetryWidth;
+      cometEl.style.setProperty('--comet-start-x', `${startX}px`);
+      cometEl.style.setProperty('--comet-travel-x', `${endX - startX}px`);
       cometEl.style.setProperty('--comet-scale', progress >= lastProgress ? '1' : '-1');
       telemetry.classList.remove('is-comet-flying');
       void cometEl.offsetWidth;
