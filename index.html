@@ -428,6 +428,8 @@
     .freshness-signal__source-row { display: grid; grid-template-columns: 1fr auto; gap: 0.66rem; align-items: center;
       color: rgba(238,243,255,0.76); font-size: 0.9em; }
     .freshness-signal__source-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .freshness-signal__source-stack { min-width: 0; display: grid; gap: 0.08rem; }
+    .freshness-signal__source-checked { color: rgba(238,243,255,0.48); font-size: 0.78em; }
     .freshness-signal__source-state { padding: 0.1rem 0.38rem 0.12rem; border-radius: 999px;
       border: 1px solid rgba(156,194,255,0.18); color: rgba(238,243,255,0.62); font-size: 0.76em;
       text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
@@ -962,13 +964,13 @@ Next step: backfill those rows or add a nullable migration first.
       <section>
         <h2>References</h2>
         <ul class="tiny references">
-          <li data-source-year="2026"><a href="https://x.com/akshay_pachaar/article/2069118430582866051" target="_blank" rel="noopener noreferrer">Akshay Pachaar, "Loop Engineering Clearly Explained"</a></li>
-          <li data-source-year="2026"><a href="https://addyosmani.com/blog/loop-engineering/" target="_blank" rel="noopener noreferrer">Addy Osmani, "Loop Engineering"</a></li>
-          <li data-source-year="2026"><a href="https://langchain.com/blog/the-art-of-loop-engineering" target="_blank" rel="noopener noreferrer">LangChain, "The Art of Loop Engineering"</a></li>
-          <li data-source-status="living index"><a href="https://github.com/invincible04/awesome-loop-engineering" target="_blank" rel="noopener noreferrer">invincible04/awesome-loop-engineering field guide</a></li>
-          <li data-source-year="2024"><a href="https://ghuntley.com/ralph/" target="_blank" rel="noopener noreferrer">Geoffrey Huntley, "Ralph Wiggum as a software engineer"</a></li>
-          <li data-source-year="2025"><a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/" target="_blank" rel="noopener noreferrer">Simon Willison, "The lethal trifecta for AI agents"</a></li>
-          <li data-source-year="2026"><a href="https://genai.owasp.org/llm-top-10/" target="_blank" rel="noopener noreferrer">OWASP Top 10 for LLM Applications</a> and <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/" target="_blank" rel="noopener noreferrer">Agentic Applications</a></li>
+          <li data-source-year="2026" data-source-checked="2026-06-24"><a href="https://x.com/akshay_pachaar/article/2069118430582866051" target="_blank" rel="noopener noreferrer">Akshay Pachaar, "Loop Engineering Clearly Explained"</a></li>
+          <li data-source-year="2026" data-source-checked="2026-06-24"><a href="https://addyosmani.com/blog/loop-engineering/" target="_blank" rel="noopener noreferrer">Addy Osmani, "Loop Engineering"</a></li>
+          <li data-source-year="2026" data-source-checked="2026-06-24"><a href="https://langchain.com/blog/the-art-of-loop-engineering" target="_blank" rel="noopener noreferrer">LangChain, "The Art of Loop Engineering"</a></li>
+          <li data-source-status="living index" data-source-checked="2026-06-24"><a href="https://github.com/invincible04/awesome-loop-engineering" target="_blank" rel="noopener noreferrer">invincible04/awesome-loop-engineering field guide</a></li>
+          <li data-source-year="2024" data-source-checked="2026-06-24"><a href="https://ghuntley.com/ralph/" target="_blank" rel="noopener noreferrer">Geoffrey Huntley, "Ralph Wiggum as a software engineer"</a></li>
+          <li data-source-year="2025" data-source-checked="2026-06-24"><a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/" target="_blank" rel="noopener noreferrer">Simon Willison, "The lethal trifecta for AI agents"</a></li>
+          <li data-source-year="2026" data-source-checked="2026-06-24"><a href="https://genai.owasp.org/llm-top-10/" target="_blank" rel="noopener noreferrer">OWASP Top 10 for LLM Applications</a> and <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/" target="_blank" rel="noopener noreferrer">Agentic Applications</a></li>
         </ul>
         <a class="button-link" href="workshop.html">Open the workshop deck &rarr;</a>
         <p class="subtitle">Press <kbd>S</kbd> for notes &middot; <kbd>ESC</kbd> for overview</p>
@@ -1030,7 +1032,16 @@ Next step: backfill those rows or add a nullable migration first.
     const refreshedAt = new Date('2026-06-24T04:39:59.972Z');
     const referenceItems = [...document.querySelectorAll('.references li')];
     const referenceLinks = [...document.querySelectorAll('.slides section:last-of-type a[href^="http"]')];
-    const sourceCount = referenceLinks.length;
+    const sourceCount = referenceItems.length;
+    const externalLinkCount = referenceLinks.length;
+    const formatShortDate = (date) => new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
+    const parseSourceCheckedAt = (item) => {
+      if (!item.dataset.sourceChecked) return refreshedAt;
+      const [year, month, day] = item.dataset.sourceChecked.split('-').map(Number);
+      if (![year, month, day].every(Number.isInteger)) return refreshedAt;
+      const checkedAt = new Date(year, month - 1, day);
+      return Number.isNaN(checkedAt.getTime()) ? refreshedAt : checkedAt;
+    };
     const extractReferenceYears = (item) => {
       const annotatedYear = Number(item.dataset.sourceYear);
       const linkedYears = `${item.textContent} ${[...item.querySelectorAll('a[href]')].map((link) => link.href).join(' ')}`.match(/\b20\d{2}\b/g) || [];
@@ -1046,13 +1057,15 @@ Next step: backfill those rows or add a nullable migration first.
       const label = item.dataset.sourceStatus || String(year);
       const state = year === latestReferenceYear || item.dataset.sourceStatus ? 'current' : year >= latestReferenceYear - 1 ? 'context' : 'archive';
       const title = [...item.querySelectorAll('a')].map((link) => link.textContent.trim()).join(' + ') || item.textContent.trim();
+      const checkedAt = parseSourceCheckedAt(item);
+      const checkedLabel = formatShortDate(checkedAt);
       const badge = document.createElement('span');
       badge.className = 'reference-freshness';
       badge.dataset.state = state;
       badge.textContent = label;
-      badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}` : `Source year ${label}`);
+      badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}; checked ${checkedLabel}` : `Source year ${label}; checked ${checkedLabel}`);
       item.appendChild(badge);
-      return { label, state, title, year: year || 0 };
+      return { checkedAt, checkedLabel, label, state, title, year: year || 0 };
     });
     const referenceCounts = referenceAudit.reduce((counts, source) => {
       counts[source.state] = (counts[source.state] || 0) + 1;
@@ -1062,15 +1075,18 @@ Next step: backfill those rows or add a nullable migration first.
       const years = `${link.href} ${link.textContent}`.match(/\b20\d{2}\b/g) || [];
       return Math.max(latest, ...years.map(Number));
     }, refreshedAt.getUTCFullYear());
-    const elapsedSinceRefresh = Math.max(0, Date.now() - refreshedAt.getTime());
+    const checkedTimes = referenceAudit.map((source) => source.checkedAt.getTime());
+    const oldestCheckedAt = new Date(Math.min(...checkedTimes));
+    const newestCheckedAt = new Date(Math.max(...checkedTimes));
+    const elapsedSinceRefresh = Math.max(0, Date.now() - oldestCheckedAt.getTime());
     const daysSinceRefresh = Math.floor(elapsedSinceRefresh / DAY_MS);
     const freshnessState = daysSinceRefresh <= 14 ? 'fresh' : daysSinceRefresh <= 45 ? 'aging' : 'stale';
-    const nextReviewAt = new Date(refreshedAt.getTime() + SOURCE_REVIEW_INTERVAL_DAYS * DAY_MS);
+    const nextReviewAt = new Date(oldestCheckedAt.getTime() + SOURCE_REVIEW_INTERVAL_DAYS * DAY_MS);
     const daysUntilReview = Math.ceil((nextReviewAt.getTime() - Date.now()) / DAY_MS);
     const reviewState = daysUntilReview > 0 ? 'scheduled' : 'due';
     const reviewLabel = daysUntilReview > 0 ? `review in ${daysUntilReview}d` : daysUntilReview === 0 ? 'review today' : `review due ${Math.abs(daysUntilReview)}d`;
-    freshnessDate.dateTime = refreshedAt.toISOString();
-    freshnessDate.textContent = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(refreshedAt);
+    freshnessDate.dateTime = oldestCheckedAt.toISOString();
+    freshnessDate.textContent = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(oldestCheckedAt);
     const freshnessAge = document.createElement('span');
     freshnessAge.className = 'freshness-signal__age';
     const getFreshnessAge = (elapsedMs) => {
@@ -1090,7 +1106,7 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessSources.textContent = `${sourceCount} refs`;
     freshness.dataset.state = freshnessState;
     freshness.dataset.reviewState = reviewState;
-    freshness.title = `Freshness signal: ${freshnessState}; source review refreshed ${freshnessAge.textContent} ago; ${reviewLabel}; latest dated reference ${latestReferenceYear}; ${sourceCount} external references tracked`;
+    freshness.title = `Freshness signal: ${freshnessState}; oldest source check ${freshnessAge.textContent} ago; ${reviewLabel}; latest dated reference ${latestReferenceYear}; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
     freshness.setAttribute('aria-label', `${freshness.title}. Focus for source audit.`);
     freshness.tabIndex = 0;
     const freshnessPanel = document.createElement('div');
@@ -1102,7 +1118,7 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessPanelTitle.textContent = 'Source audit';
     const freshnessPanelMeta = document.createElement('div');
     freshnessPanelMeta.className = 'freshness-signal__panel-meta';
-    freshnessPanelMeta.textContent = `Refreshed ${freshnessAge.textContent} ago; ${reviewLabel}; newest dated source is ${latestReferenceYear}.`;
+    freshnessPanelMeta.textContent = `Oldest source check ${freshnessAge.textContent} ago (${formatShortDate(oldestCheckedAt)}); latest check ${formatShortDate(newestCheckedAt)}; newest dated source is ${latestReferenceYear}.`;
     const freshnessStats = document.createElement('div');
     freshnessStats.className = 'freshness-signal__stats';
     [
@@ -1129,14 +1145,20 @@ Next step: backfill those rows or add a nullable migration first.
       .forEach((source) => {
         const row = document.createElement('div');
         row.className = 'freshness-signal__source-row';
+        const sourceStack = document.createElement('span');
+        sourceStack.className = 'freshness-signal__source-stack';
         const sourceTitle = document.createElement('span');
         sourceTitle.className = 'freshness-signal__source-title';
         sourceTitle.textContent = source.title;
+        const sourceChecked = document.createElement('span');
+        sourceChecked.className = 'freshness-signal__source-checked';
+        sourceChecked.textContent = `checked ${source.checkedLabel}`;
+        sourceStack.append(sourceTitle, sourceChecked);
         const sourceState = document.createElement('span');
         sourceState.className = 'freshness-signal__source-state';
         sourceState.dataset.state = source.state;
         sourceState.textContent = source.label;
-        row.append(sourceTitle, sourceState);
+        row.append(sourceStack, sourceState);
         freshnessSourceList.appendChild(row);
       });
     freshnessPanel.append(freshnessPanelTitle, freshnessPanelMeta, freshnessStats, freshnessSourceList);
