@@ -647,6 +647,36 @@
     .freshness-signal__mix-legend [data-state="current"] { --mix-color: #66e0bd; --mix-glow: rgba(102,224,189,0.42); }
     .freshness-signal__mix-legend [data-state="context"] { --mix-color: var(--heading); --mix-glow: rgba(156,194,255,0.4); }
     .freshness-signal__mix-legend [data-state="archive"] { --mix-color: var(--fury); --mix-glow: rgba(255,106,77,0.42); }
+    .freshness-signal__vintage { margin-top: 0.72rem; padding: 0.62rem 0.64rem 0.66rem;
+      border: 1px solid rgba(156,194,255,0.16); border-radius: 14px;
+      background:
+        radial-gradient(circle at 92% 16%, rgba(255,106,77,0.13), transparent 38%),
+        linear-gradient(135deg, rgba(255,255,255,0.05), rgba(77,140,255,0.055)); }
+    .freshness-signal__vintage-caption { display: flex; justify-content: space-between; gap: 0.7rem;
+      color: rgba(238,243,255,0.72); font-size: 0.82em; }
+    .freshness-signal__vintage-caption strong { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .freshness-signal__vintage-rail { position: relative; height: 1.32rem; margin: 0.54rem 0 0.4rem;
+      border-radius: 999px; background: rgba(156,194,255,0.1);
+      box-shadow: inset 0 0 0 1px rgba(156,194,255,0.1); }
+    .freshness-signal__vintage-rail::before { content: ""; position: absolute; left: 0.34rem; right: 0.34rem; top: 50%;
+      height: 2px; border-radius: 999px; transform: translateY(-50%);
+      background: linear-gradient(90deg, var(--fury), var(--heading), #66e0bd);
+      box-shadow: 0 0 14px rgba(var(--phase-accent-rgb),0.28); }
+    .freshness-signal__vintage-tick { position: absolute; left: var(--year-position); top: 50%;
+      width: var(--tick-size); height: var(--tick-size); border-radius: 50%;
+      transform: translate(-50%, -50%); background: rgba(238,243,255,0.4);
+      box-shadow: 0 0 0 1px rgba(238,243,255,0.12), 0 0 15px rgba(238,243,255,0.12); }
+    .freshness-signal__vintage-tick[data-state="current"] { background: #66e0bd;
+      box-shadow: 0 0 0 1px rgba(102,224,189,0.22), 0 0 16px rgba(102,224,189,0.46); }
+    .freshness-signal__vintage-tick[data-state="context"] { background: var(--heading);
+      box-shadow: 0 0 0 1px rgba(156,194,255,0.24), 0 0 16px rgba(77,140,255,0.42); }
+    .freshness-signal__vintage-tick[data-state="archive"] { background: var(--fury);
+      box-shadow: 0 0 0 1px rgba(255,106,77,0.24), 0 0 16px rgba(255,106,77,0.44); }
+    .freshness-signal__vintage-tick.is-oldest::after,
+    .freshness-signal__vintage-tick.is-newest::before { content: ""; position: absolute; inset: -0.18rem;
+      border-radius: 50%; border: 1px solid currentColor; opacity: 0.58; }
+    .freshness-signal__vintage-scale { display: grid; grid-template-columns: 1fr auto; gap: 0.7rem;
+      color: rgba(238,243,255,0.48); font-size: 0.76em; font-variant-numeric: tabular-nums; }
     .freshness-signal__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.42rem; margin: 0.72rem 0; }
     .freshness-signal__stat { padding: 0.48rem 0.5rem; border-radius: 12px;
@@ -1416,6 +1446,21 @@ Next step: backfill those rows or add a nullable migration first.
       const years = `${link.href} ${link.textContent}`.match(/\b20\d{2}\b/g) || [];
       return Math.max(latest, ...years.map(Number));
     }, refreshedAt.getUTCFullYear());
+    const referenceVintageYears = referenceAudit
+      .map((source) => source.year || (source.state === 'current' ? latestReferenceYear : 0))
+      .filter((year) => year > 0);
+    const oldestReferenceYear = referenceVintageYears.length ? Math.min(...referenceVintageYears) : refreshedAt.getUTCFullYear();
+    const newestReferenceYear = referenceVintageYears.length ? Math.max(...referenceVintageYears) : refreshedAt.getUTCFullYear();
+    const referenceYearSpan = Math.max(1, newestReferenceYear - oldestReferenceYear);
+    const vintageBuckets = [...referenceAudit.reduce((buckets, source) => {
+      const year = source.year || (source.state === 'current' ? newestReferenceYear : oldestReferenceYear);
+      const bucket = buckets.get(year) || { year, count: 0, current: 0, context: 0, archive: 0 };
+      bucket.count += 1;
+      bucket[source.state] += 1;
+      buckets.set(year, bucket);
+      return buckets;
+    }, new Map()).values()].sort((a, b) => a.year - b.year);
+    const getVintageBucketState = (bucket) => bucket.current ? 'current' : bucket.context ? 'context' : 'archive';
     const checkedTimes = referenceAudit.map((source) => source.checkedAt.getTime());
     const oldestCheckedAt = new Date(Math.min(...checkedTimes));
     const newestCheckedAt = new Date(Math.max(...checkedTimes));
@@ -1464,7 +1509,7 @@ Next step: backfill those rows or add a nullable migration first.
     freshness.dataset.reviewState = reviewState;
     freshness.style.setProperty('--source-count', sourceCount);
     freshness.style.setProperty('--review-progress', `${reviewProgress}%`);
-    freshness.title = `Freshness signal: ${freshnessState}; oldest source check ${freshnessAge.textContent} ago; ${reviewLabel}; latest dated reference ${latestReferenceYear}; source mix ${sourceMixSummary}; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
+    freshness.title = `Freshness signal: ${freshnessState}; oldest source check ${freshnessAge.textContent} ago; ${reviewLabel}; source vintage ${oldestReferenceYear}-${newestReferenceYear}; source mix ${sourceMixSummary}; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
     freshness.setAttribute('aria-label', `${freshness.title}. Focus for source audit.`);
     freshness.tabIndex = 0;
     const freshnessPanel = document.createElement('div');
@@ -1476,7 +1521,7 @@ Next step: backfill those rows or add a nullable migration first.
     freshnessPanelTitle.textContent = 'Source audit';
     const freshnessPanelMeta = document.createElement('div');
     freshnessPanelMeta.className = 'freshness-signal__panel-meta';
-    freshnessPanelMeta.textContent = `Oldest source check ${freshnessAge.textContent} ago (${formatShortDate(oldestCheckedAt)}); latest check ${formatShortDate(newestCheckedAt)}; newest dated source is ${latestReferenceYear}.`;
+    freshnessPanelMeta.textContent = `Oldest source check ${freshnessAge.textContent} ago (${formatShortDate(oldestCheckedAt)}); latest check ${formatShortDate(newestCheckedAt)}; source vintage spans ${oldestReferenceYear}-${newestReferenceYear}.`;
     const freshnessTimeline = document.createElement('div');
     freshnessTimeline.className = 'freshness-signal__timeline';
     const freshnessTimelineCaption = document.createElement('div');
@@ -1523,6 +1568,37 @@ Next step: backfill those rows or add a nullable migration first.
       freshnessMixLegend.appendChild(legendItem);
     });
     freshnessMix.append(freshnessMixLabel, freshnessMixBar, freshnessMixLegend);
+    const freshnessVintage = document.createElement('div');
+    freshnessVintage.className = 'freshness-signal__vintage';
+    const freshnessVintageCaption = document.createElement('div');
+    freshnessVintageCaption.className = 'freshness-signal__vintage-caption';
+    const freshnessVintageTitle = document.createElement('span');
+    freshnessVintageTitle.textContent = 'Source vintage';
+    const freshnessVintageRange = document.createElement('strong');
+    freshnessVintageRange.textContent = `${oldestReferenceYear}-${newestReferenceYear}`;
+    freshnessVintageCaption.append(freshnessVintageTitle, freshnessVintageRange);
+    const freshnessVintageRail = document.createElement('div');
+    freshnessVintageRail.className = 'freshness-signal__vintage-rail';
+    vintageBuckets.forEach((bucket) => {
+      const tick = document.createElement('span');
+      tick.className = 'freshness-signal__vintage-tick';
+      tick.dataset.state = getVintageBucketState(bucket);
+      tick.style.setProperty('--year-position', `${((bucket.year - oldestReferenceYear) / referenceYearSpan) * 100}%`);
+      tick.style.setProperty('--tick-size', `${Math.min(0.9, 0.42 + bucket.count * 0.08)}rem`);
+      tick.title = `${bucket.count} reference${bucket.count === 1 ? '' : 's'} from ${bucket.year}`;
+      tick.setAttribute('aria-label', tick.title);
+      if (bucket.year === oldestReferenceYear) tick.classList.add('is-oldest');
+      if (bucket.year === newestReferenceYear) tick.classList.add('is-newest');
+      freshnessVintageRail.appendChild(tick);
+    });
+    const freshnessVintageScale = document.createElement('div');
+    freshnessVintageScale.className = 'freshness-signal__vintage-scale';
+    const freshnessVintageOldest = document.createElement('span');
+    freshnessVintageOldest.textContent = `${oldestReferenceYear} oldest`;
+    const freshnessVintageNewest = document.createElement('span');
+    freshnessVintageNewest.textContent = `${newestReferenceYear} newest`;
+    freshnessVintageScale.append(freshnessVintageOldest, freshnessVintageNewest);
+    freshnessVintage.append(freshnessVintageCaption, freshnessVintageRail, freshnessVintageScale);
     const freshnessStats = document.createElement('div');
     freshnessStats.className = 'freshness-signal__stats';
     [
@@ -1563,7 +1639,7 @@ Next step: backfill those rows or add a nullable migration first.
         row.append(sourceStack, sourceState);
         freshnessSourceList.appendChild(row);
       });
-    freshnessPanel.append(freshnessPanelTitle, freshnessPanelMeta, freshnessTimeline, freshnessMix, freshnessStats, freshnessSourceList);
+    freshnessPanel.append(freshnessPanelTitle, freshnessPanelMeta, freshnessTimeline, freshnessMix, freshnessVintage, freshnessStats, freshnessSourceList);
     freshness.setAttribute('aria-describedby', freshnessPanel.id);
     freshness.append(freshnessLabel, freshnessDivider, freshnessDate, freshnessAge, freshnessLatest, freshnessReview, freshnessPulseTrain, freshnessSources, freshnessPanel);
     document.body.appendChild(freshness);
