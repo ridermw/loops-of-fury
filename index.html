@@ -138,6 +138,11 @@
     .reveal .card > * { position: relative; z-index: 1; }
     .reveal .card h3 { margin-top: 0; font-size: 0.82em; color: var(--fury); }
     .reveal .card p, .reveal .card li { font-size: 0.55em; }
+    .reveal .grid:has(> .card:nth-child(5)) { gap: 0.5em; }
+    .reveal .grid:has(> .card:nth-child(5)) .card { padding: 0.58em 0.66em; }
+    .reveal .grid:has(> .card:nth-child(5)) .card h3 { margin-bottom: 0.24em; font-size: 0.74em; }
+    .reveal .grid:has(> .card:nth-child(5)) .card p,
+    .reveal .grid:has(> .card:nth-child(5)) .card li { font-size: 0.49em; line-height: 1.36; }
     .reveal section.present .card { animation: card-materialize 680ms calc(220ms + var(--card-delay, 0ms)) cubic-bezier(.17,.84,.44,1) both; }
     .reveal section.present .card:nth-child(2) { --card-delay: 55ms; }
     .reveal section.present .card:nth-child(3) { --card-delay: 110ms; }
