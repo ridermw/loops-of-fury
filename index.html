@@ -848,7 +848,7 @@
     .loop-echo.is-tracing .loop-echo__trail { animation: loop-echo-trace 1200ms 60ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__ghost-path { animation: loop-echo-ghost 1400ms var(--ghost-delay, 0ms) cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__node { animation: loop-echo-node 760ms calc(160ms + var(--node-delay, 0ms)) cubic-bezier(.17,.84,.44,1) both; }
-    .freshness-signal { --source-count: 1; --review-progress: 0%; position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
+    .freshness-signal { --source-count: 1; --review-progress: 0%; --freshness-ring-color: #66e0bd; position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
       z-index: 4; display: grid; grid-template-columns: repeat(10, auto); align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
       font-family: var(--font-display); font-size: clamp(9px, 0.86vw, 12px); font-weight: 700;
@@ -861,7 +861,9 @@
       background: var(--fury); box-shadow: 0 0 0 0 rgba(255,106,77,0.54), 0 0 18px rgba(255,106,77,0.72);
       animation: freshness-ping 2.6s ease-out infinite; }
     .freshness-signal::after { content: ""; position: absolute; inset: -1px; border-radius: inherit;
-      background: conic-gradient(from 140deg, transparent 0 62%, rgba(156,194,255,0.34), transparent 82% 100%);
+      background:
+        conic-gradient(from -90deg, var(--freshness-ring-color) 0 var(--freshness-score, 0%), rgba(156,194,255,0.14) var(--freshness-score, 0%) 100%),
+        conic-gradient(from 140deg, transparent 0 62%, rgba(156,194,255,0.34), transparent 82% 100%);
       opacity: 0.7; mix-blend-mode: screen; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); padding: 1px;
       -webkit-mask-composite: xor; mask-composite: exclude; }
@@ -886,8 +888,10 @@
     .freshness-signal__score::before { content: ""; width: 0.58rem; aspect-ratio: 1; border-radius: 50%;
       background: conic-gradient(var(--score-color) var(--freshness-score, 0%), rgba(238,243,255,0.16) 0);
       box-shadow: 0 0 12px color-mix(in srgb, var(--score-color) 44%, transparent); }
+    .freshness-signal[data-score-state="watch"] { --freshness-ring-color: var(--heading); }
     .freshness-signal[data-score-state="watch"] .freshness-signal__score { --score-color: var(--heading);
       background: rgba(77,140,255,0.12); border-color: rgba(156,194,255,0.26); box-shadow: 0 0 18px rgba(77,140,255,0.13); }
+    .freshness-signal[data-score-state="weak"] { --freshness-ring-color: var(--fury); }
     .freshness-signal[data-score-state="weak"] .freshness-signal__score { --score-color: var(--fury);
       background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.3); box-shadow: 0 0 18px rgba(255,106,77,0.14); }
     .freshness-signal__pulse-train { display: grid; grid-template-columns: repeat(var(--source-count), 0.38rem);
