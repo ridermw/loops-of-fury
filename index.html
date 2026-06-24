@@ -767,7 +767,7 @@
       top: var(--beacon-y); width: clamp(130px, 17vw, 240px); aspect-ratio: 1; z-index: 2;
       pointer-events: none; opacity: 0; visibility: hidden; transform: translate3d(-50%, -50%, 0) scale(0.68);
       border-radius: 50%; mix-blend-mode: screen; filter: drop-shadow(0 0 24px rgba(255,106,77,0.42));
-      contain: layout style; will-change: transform, opacity; backface-visibility: hidden; }
+      contain: layout style; content-visibility: hidden; will-change: transform, opacity; backface-visibility: hidden; }
     .loop-beacon::before, .loop-beacon::after { content: ""; position: absolute; inset: 0; border-radius: 50%; }
     .loop-beacon::before { background:
         radial-gradient(circle, rgba(var(--phase-accent-rgb),0) 0 38%, rgba(var(--phase-accent-rgb),0.44) 39% 41%, transparent 42% 100%),
@@ -787,13 +787,13 @@
     .loop-beacon__spark:nth-child(4) { --spark-angle: 48deg; }
     .loop-beacon__spark:nth-child(5) { --spark-angle: 104deg; background: var(--heading); box-shadow: 0 0 18px rgba(156,194,255,0.78), 0 0 0 4px rgba(156,194,255,0.1); }
     .loop-beacon__spark:nth-child(6) { --spark-angle: 164deg; background: rgba(238,243,255,0.92); box-shadow: 0 0 18px rgba(238,243,255,0.72), 0 0 0 4px rgba(238,243,255,0.08); }
-    .loop-beacon.is-pulsing { visibility: visible; animation: beacon-bloom 980ms cubic-bezier(.17,.84,.44,1); }
+    .loop-beacon.is-pulsing { visibility: visible; content-visibility: visible; animation: beacon-bloom 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::before { animation: beacon-spin 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing .loop-beacon__spark { animation: beacon-orbit-spark 980ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-burst { --burst-x: 50vw; --burst-y: 50vh; position: fixed; inset: 0; z-index: 3;
       overflow: hidden; pointer-events: none; mix-blend-mode: screen;
-      contain: layout paint style; isolation: isolate; }
+      contain: layout paint style; content-visibility: hidden; isolation: isolate; }
     .loop-burst__spark { --burst-angle: 0deg; --burst-distance: 92px; --burst-delay: 0ms; --burst-spin: 0deg; --spark-color: var(--phase-accent);
       --spark-size: clamp(6px, 0.74vw, 11px);
       position: absolute; left: var(--burst-x); top: var(--burst-y); width: var(--spark-size); aspect-ratio: 1;
@@ -816,6 +816,7 @@
     .loop-burst__spark:nth-child(5n)::after { inset: 18%; border: 0; background: currentColor;
       clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%);
       opacity: 0.86; transform: rotate(12deg); }
+    .loop-burst.is-firing { content-visibility: visible; }
     .loop-burst.is-firing .loop-burst__spark {
       visibility: visible;
       animation: loop-burst-spark 880ms var(--burst-delay) cubic-bezier(.17,.84,.44,1) both;
@@ -824,7 +825,7 @@
       width: clamp(300px, 44vw, 620px); aspect-ratio: 1.7; z-index: 0; pointer-events: none;
       opacity: 0.64; visibility: hidden; transform: translate3d(-50%, -50%, 0); mix-blend-mode: screen;
       filter: drop-shadow(0 0 28px rgba(var(--phase-accent-rgb),0.28));
-      contain: layout style; will-change: transform, opacity; backface-visibility: hidden; }
+      contain: layout style; content-visibility: hidden; will-change: transform, opacity; backface-visibility: hidden; }
     .loop-echo svg { width: 100%; height: 100%; overflow: visible; display: block; }
     .loop-echo__trail,
     .loop-echo__glow { fill: none; stroke-linecap: round; stroke-linejoin: round;
@@ -847,13 +848,13 @@
     .loop-echo__node:nth-child(2n) { fill: var(--heading); }
     .loop-echo__node:nth-child(3n) { fill: rgba(238,243,255,0.88); }
     .loop-echo.is-tracing .loop-echo__glow { animation: loop-echo-glow 1200ms cubic-bezier(.17,.84,.44,1) both; }
-    .loop-echo.is-tracing { visibility: visible; }
+    .loop-echo.is-tracing { visibility: visible; content-visibility: visible; }
     .loop-echo.is-tracing .loop-echo__trail { animation: loop-echo-trace 1200ms 60ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__ghost-path { animation: loop-echo-ghost 1400ms var(--ghost-delay, 0ms) cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__node { animation: loop-echo-node 760ms calc(160ms + var(--node-delay, 0ms)) cubic-bezier(.17,.84,.44,1) both; }
     .loop-finale { --seal-x: 50vw; --seal-y: 42vh; position: fixed; inset: 0; z-index: 3;
       pointer-events: none; visibility: hidden; opacity: 0; mix-blend-mode: screen;
-      contain: layout paint style; isolation: isolate; }
+      contain: layout paint style; content-visibility: hidden; isolation: isolate; }
     .loop-finale__ring,
     .loop-finale__core,
     .loop-finale__spark { position: absolute; left: var(--seal-x); top: var(--seal-y); }
@@ -892,7 +893,7 @@
       width: clamp(34px, 5vw, 76px); height: 2px; border-radius: 999px;
       transform: translateY(-50%); background: linear-gradient(90deg, transparent, currentColor);
       opacity: 0.72; }
-    .loop-finale.is-sealing { visibility: visible; animation: finale-presence 1500ms cubic-bezier(.17,.84,.44,1) both; }
+    .loop-finale.is-sealing { visibility: visible; content-visibility: visible; animation: finale-presence 1500ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-finale.is-sealing .loop-finale__ring { animation: finale-ring-seal 1500ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-finale.is-sealing .loop-finale__ring::before { animation: hero-loop-sweep 1500ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-finale.is-sealing .loop-finale__core { animation: finale-core-lock 980ms 120ms cubic-bezier(.17,.84,.44,1) both; }
