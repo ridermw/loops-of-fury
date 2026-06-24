@@ -62,10 +62,28 @@
     .reveal .reference-freshness[data-state="archive"] { color: var(--fury); background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.3); }
     .reveal .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7em; align-items: stretch; }
     .reveal .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .reveal .card { background: rgba(8,22,62,0.74); border: 1px solid rgba(156,194,255,0.28);
-      border-radius: 12px; padding: 0.7em; box-shadow: 0 10px 30px rgba(2,8,28,0.35); }
+    .reveal .card { position: relative; overflow: hidden;
+      background:
+        radial-gradient(circle at 92% 14%, rgba(156,194,255,0.2), transparent 28%),
+        linear-gradient(145deg, rgba(8,22,62,0.86), rgba(8,22,62,0.62) 52%, rgba(77,140,255,0.12));
+      border: 1px solid rgba(156,194,255,0.3);
+      border-radius: 12px; padding: 0.7em; box-shadow: 0 10px 30px rgba(2,8,28,0.35), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .reveal .card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px;
+      background: linear-gradient(180deg, var(--fury), var(--heading));
+      box-shadow: 0 0 18px rgba(255,106,77,0.42); }
+    .reveal .card::after { content: ""; position: absolute; right: -1.8em; top: -1.8em;
+      width: 5.4em; aspect-ratio: 1; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.16), transparent 62%);
+      pointer-events: none; }
+    .reveal .card > * { position: relative; z-index: 1; }
     .reveal .card h3 { margin-top: 0; font-size: 0.82em; color: var(--fury); }
     .reveal .card p, .reveal .card li { font-size: 0.55em; }
+    .reveal section.present .card { animation: card-materialize 680ms calc(220ms + var(--card-delay, 0ms)) cubic-bezier(.17,.84,.44,1) both; }
+    .reveal section.present .card:nth-child(2) { --card-delay: 55ms; }
+    .reveal section.present .card:nth-child(3) { --card-delay: 110ms; }
+    .reveal section.present .card:nth-child(4) { --card-delay: 165ms; }
+    .reveal section.present .card:nth-child(5) { --card-delay: 220ms; }
+    .reveal section.present .card:nth-child(6) { --card-delay: 275ms; }
     .reveal .kicker { color: var(--fury); font-family: var(--font-display); font-size: 0.46em;
       letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
     .reveal .big-number { color: var(--fury); font-family: var(--font-display); font-size: 2em; font-weight: 700; }
@@ -462,6 +480,10 @@
       from { opacity: 0; transform: translate3d(0, 0.42em, 0); filter: blur(3px); }
       to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
     }
+    @keyframes card-materialize {
+      from { opacity: 0; transform: translate3d(0, 0.38em, 0) scale(0.982); filter: blur(2px) saturate(0.82); }
+      to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0) saturate(1); }
+    }
     @keyframes loop-current {
       from { stroke-dashoffset: 0; }
       to { stroke-dashoffset: -32; }
@@ -495,6 +517,7 @@
       .reveal section.present > h1::before, .reveal section.present > h1::after,
       .reveal section.present > h2::before, .reveal section.present > h2::after,
       .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop),
+      .reveal section.present .card,
       .reveal section.present .loop-lifecycle::before, .reveal section.present .loop-lifecycle .pill, .reveal section.present .loop-lifecycle .pill::after, .reveal section.present .loop-lifecycle .arrow,
       .reveal section.present .agent-loop :is(.blue-line, .green-line, .red-line, .context-node, .model-node, .decision-node, .tools-node, .end-node) { animation: none; will-change: auto; }
       .reveal section.present .agent-loop :is(.blue-line, .green-line, .red-line) { stroke-dasharray: none; }
