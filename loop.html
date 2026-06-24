@@ -86,13 +86,20 @@
         <p class="kicker">Loops of Fury</p>
         <h1>The engine <span class="tag">Copilot CLI</span></h1>
         <p class="subtitle">A deck that improves itself &mdash; and pushes to <code>main</code> without asking.</p>
-        <aside class="notes">This deck is about the loop itself: the control plane that edits the other two decks. index.html is the research briefing, workshop.html is the hands-on lab, this is the machine that runs between them.</aside>
+        <aside class="notes">
+          <p>Frame the three decks before you start. <code>index.html</code> is the research briefing &mdash; the argument for loop engineering. <code>workshop.html</code> is the hands-on lab where people fix a failing suite and design their own loop. This deck is about the machine that sits between them: the autonomous engine under <code>.loop/</code> that improves the other two decks unattended and pushes every verified win straight to <code>main</code>.</p>
+          <p>The one-sentence pitch: this repo doesn't just teach loop engineering &mdash; it runs a real loop on itself. The slides you're looking at are maintained by the very pattern they describe. Everything in the next ten minutes is grounded in code you can open in <code>.loop/</code>, not aspiration. If someone asks &ldquo;is this real?&rdquo; the answer is: it has run for eight hours straight, over a hundred iterations, with no human in the gate.</p>
+        </aside>
       </section>
 
       <section>
         <p class="kicker">The thesis</p>
         <blockquote class="quote">What if the deck <strong>improved itself</strong>?</blockquote>
         <p class="subtitle">A control plane reads the decks, makes one small change, proves it is better, and ships to <code>main</code> &mdash; then does it again. Over an 8-hour window, a hundred times.</p>
+        <aside class="notes">
+          <p>This is the whole idea in one question. A normal deck is frozen the moment you stop editing it. This one has a control plane that wakes up, reads its own slides, makes exactly <strong>one</strong> small change, runs an objective check to prove the change is actually better, and &mdash; only if it passes &mdash; commits and pushes to <code>main</code>. Then it does it again.</p>
+          <p>The numbers matter: an eight-hour budget, around a hundred iterations, and <strong>zero</strong> pull requests. No review queue, no human approving each diff. The discipline that makes that safe is the rest of this deck. The thesis the repo teaches &mdash; done-condition, narrow maker, independent checker, explicit contract &mdash; is exactly the machine improving this slide right now.</p>
+        </aside>
       </section>
 
       <section>
@@ -103,7 +110,10 @@
           <div class="card"><h3>Checker</h3><p>The objective gate. Renders the deck in real Chromium and returns RED or GREEN with evidence.</p></div>
           <div class="card"><h3>Brain</h3><p>Pure decisions, no side effects: continue, retry, switch axis, or stop.</p></div>
         </div>
-        <aside class="notes">The maker proposes, the checker disposes, the driver is the hands, the brain is the will. Separation of powers — the maker can never mark its own work as done.</aside>
+        <aside class="notes">
+          <p>This is separation of powers, and it's the core mental model. The <strong>maker</strong> is Copilot CLI given only two tools &mdash; view and write &mdash; and allowed to touch only the decks. It proposes a change and nothing more: it can't run shell, can't see the checker, can't decide it's done. The <strong>driver</strong> (<code>driver.mjs</code>) owns every git operation &mdash; snapshot, commit, push, revert &mdash; and is the only thing that touches <code>main</code>.</p>
+          <p>The <strong>checker</strong> (<code>check.mjs</code> plus anchors, hygiene, and visual) re-renders the edited deck in a real Chromium and returns RED or GREEN with evidence &mdash; never an opinion. The <strong>brain</strong> (<code>brain.mjs</code>) is pure decision logic with an injected clock: given an outcome it says continue, retry, switch axis, or stop. The single most important rule: the maker proposes, but it can never mark its own work as done, and it can never edit the machine that judges it.</p>
+        </aside>
       </section>
 
       <section>
@@ -122,6 +132,10 @@
           <span class="pill">Decide</span>
         </div>
         <p class="subtitle">RED at any gate &rarr; the whole iteration reverts byte-for-byte. GREEN all the way &rarr; it is already on <code>main</code>.</p>
+        <aside class="notes">
+          <p>Walk the pipeline left to right &mdash; this is one iteration. First pick the weakest axis from the scoreboard. The maker edits one deck. Then a stack of gates runs in order: the diff-gate checks that only decks and assets changed; the secret-scan reads the added lines for tokens; the manifest checks that no control-plane file drifted; then the deck is rendered and the objective floors run. Only if all of that is green does the driver commit, push to <code>main</code>, and verify the live Pages deploy. Finally it records the win in the ledger and the brain decides what's next.</p>
+          <p>The key property is all-or-nothing. RED at <em>any</em> gate reverts the whole iteration byte-for-byte &mdash; the working tree goes back to the last good state as if nothing happened. GREEN all the way through means the change is already live on <code>main</code> before the next iteration starts. There is no &ldquo;mostly done&rdquo; state and no half-committed deck.</p>
+        </aside>
       </section>
 
       <section>
@@ -132,6 +146,10 @@
           <div class="card"><h3>GREEN</h3><p>Render, structure, links, and visuals all pass &mdash; so the commit has already shipped.</p></div>
         </div>
         <p class="subtitle">The checker is <code>.loop/check.mjs</code> &mdash; never <code>npm test</code>, never a reviewer.</p>
+        <aside class="notes">
+          <p>This is the part that makes people nervous, so address it head-on. Nothing here waits for a human. There is no pull request, no reviewer, no approval step. The thing that decides whether a change reaches <code>main</code> is the objective gate, and only the objective gate.</p>
+          <p>RED means the render failed, or a slide disappeared, or an internal link broke, or the layout overflowed &mdash; and the deck is restored to its last good state automatically. GREEN means render, structure, links, and visuals all passed, so the commit has already shipped. Critically, the checker is <code>.loop/check.mjs</code> &mdash; a purpose-built deck gate &mdash; <em>not</em> <code>npm test</code>. The repo's test suite is intentionally red; it's the workshop exercise. Wiring the loop to <code>npm test</code> would be the classic mistake: checking the wrong done-condition.</p>
+        </aside>
       </section>
 
       <section>
@@ -144,7 +162,10 @@
           <div class="card"><h3>Live-Pages verify</h3><p>Re-render the deployed SHA. Genuinely broken &rarr; forward-revert.</p></div>
           <div class="card"><h3>Auto-revert</h3><p>Any failure restores the last good deck. <code>main</code> never ships broken.</p></div>
         </div>
-        <aside class="notes">Defense in depth. The keystone is the control-manifest: the maker writes decks and assets, the whole .loop control plane is hash-verified, so the loop physically cannot weaken its own checker.</aside>
+        <aside class="notes">
+          <p>Defense in depth &mdash; an edit has to clear all six of these to reach <code>main</code>. The diff-gate runs <em>before</em> the checker and reverts if anything outside the deck-and-asset allowlist changed. The secret-scan reads the added lines for credential-shaped tokens and redacts any match in the logs. The control-manifest is the keystone: a SHA-256 hash of every control-plane file, verified every single iteration.</p>
+          <p>That manifest is why the maker can't cheat. The maker can write decks and assets, but the entire <code>.loop</code> machine &mdash; the gate, the brain, the config &mdash; is hash-checked, so changing the gate <em>is</em> drift and gets caught instantly. On top of that there's an out-of-process pre-push hook (a completely separate code path to <code>main</code>), a live-Pages re-render of the deployed SHA, and auto-revert on any failure. Least privilege, an immutable control plane, and two independent barriers: the loop physically cannot weaken its own checker.</p>
+        </aside>
       </section>
 
       <section>
@@ -162,6 +183,10 @@
             <p>Delight only chooses what to work on next. It can inform, but it can <strong>never</strong> revert <code>main</code>.</p>
           </div>
         </div>
+        <aside class="notes">
+            <p>Each iteration works exactly one axis. <strong>Render</strong> and <strong>hygiene</strong> are hard-gated &mdash; a broken render or a dead internal link reverts <code>main</code>. <strong>Freshness</strong> (external citations) is soft: a flaky third-party link never reverts the deck; it's recorded and only escalates after several consecutive misses. <strong>Delight</strong> is an LLM judge scored against this deck's own design tokens &mdash; not generic &ldquo;make it pretty&rdquo; &mdash; and it is completely non-gating.</p>
+            <p>This is the most important safety idea in the whole system, called Premise 3: only the objective floor protects <code>main</code>. The floor is render plus content anchors plus the hard hygiene checks plus visual invariants. Subjective quality &mdash; the delight judge, pixel drift, link flakiness &mdash; can <em>inform</em> which axis to work on next, but it can <strong>never</strong> revert <code>main</code>. We never let a taste model gate a public branch.</p>
+        </aside>
       </section>
 
       <section>
@@ -179,6 +204,10 @@
 }
         </code></pre>
         <p class="subtitle">No weighted optimizer. Lowest score wins &mdash; a new reader understands it in 30 seconds.</p>
+        <aside class="notes">
+          <p>Axis selection is deliberately dumb, and that's a feature. A persistent scoreboard tracks a score per axis, and the next iteration always goes to the lowest-scoring one. A verified green nudges that axis's score up, so attention naturally shifts away from it; a revert or no-op leaves it weak, so the loop comes back to it. Ties break round-robin by least-recently-picked, using a monotonic sequence counter &mdash; not wall-clock &mdash; so the ordering is exact.</p>
+          <p>Notice what this <em>isn't</em>: there's no weighted optimizer, no learned policy, no reward function to tune. A new engineer can read <code>scoreboard.json</code> and understand exactly why the loop is about to work hygiene next, in about thirty seconds. When you're running something unattended for eight hours, legibility beats cleverness. If you can't explain why the loop did what it did, you can't trust it.</p>
+        </aside>
       </section>
 
       <section>
@@ -188,6 +217,10 @@
           <div class="card"><h3>loop-task</h3><p>You file an issue labelled <code>loop-task</code>. The next run drains the queue, lands it through the same gate, and closes it &mdash; or labels it <code>needs-review</code> and moves on.</p></div>
         </div>
         <p class="subtitle">Observability, not an approval gate. No step ever waits on a human.</p>
+        <aside class="notes">
+          <p>Two separate GitHub flows, and neither is ever an approval gate. The <strong>loop-run</strong> issue is observability: one issue per run, opened before the first commit, and every commit carries a non-closing <code>Refs: #N</code> trailer so you can trace exactly which run produced which change. A clean finish closes it; a failure leaves it open with a <code>loop-escalation</code> label and a diagnosis comment for a human.</p>
+          <p>The <strong>loop-task</strong> queue is how you direct the loop. You file an ordinary issue labelled <code>loop-task</code>, and before its normal polish work each run drains those oldest-first through the <em>same</em> gated, live-verified spine. If the ask lands within the gates, it commits, comments the deploying SHA, and labels it <code>loop-done</code>. If it can't &mdash; a structural change like adding or removing slides &mdash; the maker makes no change, the issue is labelled <code>loop-needs-review</code>, and the loop moves on. It's bounded by a per-run task cap, the time budget, and retry limits.</p>
+        </aside>
       </section>
 
       <section>
@@ -205,6 +238,10 @@
             <li>Too many reverts &rarr; pause and escalate.</li>
           </ul>
         </div>
+        <aside class="notes">
+          <p>Unattended means it <em>will</em> crash eventually, so the lifecycle is built for it. Every run stamps a unique UUID into <code>run.json</code> and refreshes a heartbeat each iteration. At startup the loop classifies whatever it finds: the same UUID means resume; a different run whose heartbeat is older than fifteen minutes gets finalized as dead &mdash; and crucially its run-issue is never inherited; a different run still heartbeating means refuse to start, because you must never have two drivers pushing <code>main</code> at once.</p>
+          <p>The terminators are all code, not vibes. An eight-hour hard wall-clock cap. Stop after five consecutive no-op iterations. Retry an axis three times, then switch. And an anti-thrash churn cap: too many forward-reverts inside a thirty-minute window pauses the run and escalates. The loop stops honestly &mdash; it never spins forever pretending to make progress.</p>
+        </aside>
       </section>
 
       <section>
@@ -212,6 +249,10 @@
         <h2>The deck counts its own wins</h2>
         <p>A driver-owned ledger slide regenerates from <code>.loop/ledger.json</code>, tallying every <strong>verified</strong> improvement by axis.</p>
         <p class="subtitle">The deck becomes living proof of its own thesis.</p>
+        <aside class="notes">
+          <p>This is the part that closes the loop on the thesis. <code>ledger.mjs</code> owns a slide inside <code>index.html</code>, regenerated from <code>ledger.json</code>, that counts every <em>verified</em> improvement broken down by axis. The research deck literally shows a running tally of the loop's own successful commits &mdash; the presentation becomes living proof of its own argument.</p>
+          <p>Two engineering details worth mentioning if asked. It only reuses existing components &mdash; big-number, pill, flow &mdash; so it adds no new headings or tokens and never trips the anchor floor. And it's CRLF-preserving and idempotent: re-rendering the committed empty seed is a byte-for-byte no-op, so the very first unattended run doesn't produce a spurious &ldquo;the ledger changed&rdquo; commit. A self-report that pollutes its own diff would undermine the whole point.</p>
+        </aside>
       </section>
 
       <section>
@@ -224,6 +265,10 @@
           <div class="card"><div class="big-number">0</div><p>pull requests</p></div>
           <div class="card"><div class="big-number">8h</div><p>unattended window</p></div>
         </div>
+        <aside class="notes">
+          <p>Use these to make it concrete. Twenty-one control-plane modules, each one maker-forbidden and hash-tracked. Thirty-eight numbered design decisions cited directly in the code comments &mdash; every non-obvious choice is written down and referenced, so the codebase explains itself. Six independent safety barriers between an edit and <code>main</code>. Four quality axes, only the objective ones gating.</p>
+          <p>And the two numbers that usually land hardest: <strong>zero</strong> pull requests and an <strong>eight-hour</strong> unattended window. People expect autonomy to mean either &ldquo;a human still reviews every diff&rdquo; or &ldquo;it's a reckless free-for-all.&rdquo; This is neither &mdash; it's fully autonomous <em>and</em> safe, because safety lives in the gate, not in a reviewer. The discipline is what buys you the zero.</p>
+        </aside>
       </section>
 
       <section>
@@ -237,6 +282,10 @@ npm run loop:preflight   # refuse to start if the gate can't catch a broken deck
 npm run loop:run         # drain loop-task issues, then polish the weakest axis
         </code></pre>
         <p class="subtitle"><code>npm run loop:selftest</code> proves the gate end-to-end without touching <code>main</code>.</p>
+        <aside class="notes">
+          <p>Show how little it takes to run. Set a push token, point <code>LOOP_MAKER</code> at the real Copilot CLI maker (the default is a no-op maker that just proves the spine without spending credits), and set <code>LOOP_COMMIT=1</code> to allow pushes. Then <code>loop:preflight</code> does a red-on-broken go/no-go: it deliberately breaks a deck and confirms the gate catches it, and <em>refuses to start</em> if the gate can't. You never run an autonomous loop whose checker you haven't just proven works.</p>
+          <p>Then <code>loop:run</code> drains any loop-task issues and polishes the weakest axis until a stop condition. The safest thing to demo live is <code>loop:selftest</code>: it injects a known-good deck edit, watches the gate, manifest, and check all go green, then reverts clean &mdash; proving the entire pipeline end-to-end without ever touching <code>main</code>. There's a companion <code>loop:selftest-gate</code> that injects a <em>forbidden</em> change and proves the diff-gate blocks it.</p>
+        </aside>
       </section>
 
       <section>
@@ -248,6 +297,10 @@ npm run loop:run         # drain loop-task issues, then polish the weakest axis
           <a class="pill" href="https://github.com/ridermw/loops-of-fury/blob/main/.loop/README.md">Engine reference</a>
         </div>
         <p class="subtitle">Press <kbd>S</kbd> for notes &middot; <kbd>ESC</kbd> for overview</p>
+        <aside class="notes">
+          <p>Land the real takeaway. The decks are almost incidental &mdash; they're just the thing this particular loop happens to improve. What's reusable is the shape: a machine-checkable done-condition, a maker kept deliberately narrow, a checker the maker can't see or weaken, and a loop contract whose stop conditions are code. Point that same shape at CI repair, flaky-test triage, dependency bumps, or doc maintenance and the safety properties carry over unchanged.</p>
+          <p>So the one line to leave people with: the gate is the product. If your objective check is honest and your maker can't edit it, autonomy stops being scary. From here, the research deck has the full argument, the workshop deck is where you build one yourself, and the engine reference under <code>.loop/</code> is every decision in detail. Press <kbd>S</kbd> any time to read these notes; <kbd>ESC</kbd> for the slide overview.</p>
+        </aside>
       </section>
 
     </div>

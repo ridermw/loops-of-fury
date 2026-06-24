@@ -4,6 +4,8 @@
 
 **Live workshop deck:** https://ridermw.github.io/loops-of-fury/workshop.html
 
+**Live loop-engine deck:** https://ridermw.github.io/loops-of-fury/loop.html
+
 A hands-on workshop for practicing loop engineering with GitHub Copilot CLI.
 
 Participants fork this repo, clone their own fork, run a small failing test suite, use Copilot CLI to fix the app, then design a bounded maker/checker loop around the same workflow.
