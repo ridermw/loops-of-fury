@@ -127,6 +127,21 @@
     .loop-telemetry__title { min-width: 0; overflow: hidden; color: rgba(238,243,255,0.72);
       text-overflow: ellipsis; white-space: nowrap; text-align: center; }
     .loop-telemetry__count { color: var(--heading); font-variant-numeric: tabular-nums; }
+    .loop-beacon { --beacon-x: 50vw; --beacon-y: 32vh; position: fixed; left: var(--beacon-x);
+      top: var(--beacon-y); width: clamp(130px, 17vw, 240px); aspect-ratio: 1; z-index: 2;
+      pointer-events: none; opacity: 0; transform: translate(-50%, -50%) scale(0.68);
+      border-radius: 50%; mix-blend-mode: screen; filter: drop-shadow(0 0 24px rgba(255,106,77,0.42)); }
+    .loop-beacon::before, .loop-beacon::after { content: ""; position: absolute; inset: 0; border-radius: 50%; }
+    .loop-beacon::before { background:
+        radial-gradient(circle, rgba(255,106,77,0.0) 0 38%, rgba(255,106,77,0.44) 39% 41%, transparent 42% 100%),
+        conic-gradient(from 25deg, transparent 0 18%, rgba(156,194,255,0.92) 21%, transparent 24% 55%, rgba(255,106,77,0.94) 59%, transparent 63% 100%);
+      -webkit-mask-image: radial-gradient(circle, transparent 0 45%, #000 47% 59%, transparent 61% 100%);
+      mask-image: radial-gradient(circle, transparent 0 45%, #000 47% 59%, transparent 61% 100%); }
+    .loop-beacon::after { inset: 36%; background: var(--fury);
+      box-shadow: 0 -68px 0 -5px rgba(156,194,255,0.9), 62px 30px 0 -7px rgba(255,106,77,0.86), -58px 38px 0 -8px rgba(238,243,255,0.78); }
+    .loop-beacon.is-pulsing { animation: beacon-bloom 980ms cubic-bezier(.17,.84,.44,1); }
+    .loop-beacon.is-pulsing::before { animation: beacon-spin 980ms cubic-bezier(.17,.84,.44,1); }
+    .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
     .bg-skier { position: fixed; left: 50%; top: 1vh; transform: translate3d(-50%, 0, 0);
       width: 46vw; height: auto;
       opacity: 0.32; z-index: 0; pointer-events: none; user-select: none;
@@ -149,8 +164,22 @@
       0%, 68% { transform: translateX(-120%); }
       100% { transform: translateX(120%); }
     }
+    @keyframes beacon-bloom {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+      18% { opacity: 0.95; }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.36); }
+    }
+    @keyframes beacon-spin {
+      from { transform: rotate(-34deg); }
+      to { transform: rotate(54deg); }
+    }
+    @keyframes beacon-sparks {
+      0% { opacity: 0; transform: scale(0.64) rotate(-18deg); }
+      24% { opacity: 1; }
+      100% { opacity: 0; transform: scale(1.28) rotate(34deg); }
+    }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, body::before, .loop-telemetry::after { animation: none; will-change: auto; }
+      .bg-skier, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after { animation: none; will-change: auto; }
     }
   </style>
 
@@ -550,10 +579,32 @@ Next step: backfill those rows or add a nullable migration first.
     telemetry.innerHTML = '<span class="loop-telemetry__phase"></span><span class="loop-telemetry__title"></span><span class="loop-telemetry__count"></span>';
     document.body.appendChild(telemetry);
 
+    const beacon = document.createElement('div');
+    beacon.className = 'loop-beacon';
+    beacon.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(beacon);
+
     const phaseEl = telemetry.querySelector('.loop-telemetry__phase');
     const titleEl = telemetry.querySelector('.loop-telemetry__title');
     const countEl = telemetry.querySelector('.loop-telemetry__count');
     const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let beaconTimer;
+
+    const pulseBeacon = () => {
+      if (reducedMotion.matches) return;
+      const heading = Reveal.getCurrentSlide().querySelector('h1, h2');
+      if (!heading) return;
+      const bounds = heading.getBoundingClientRect();
+
+      beacon.style.setProperty('--beacon-x', `${bounds.left + bounds.width / 2}px`);
+      beacon.style.setProperty('--beacon-y', `${bounds.top + bounds.height / 2}px`);
+      beacon.classList.remove('is-pulsing');
+      void beacon.offsetWidth;
+      beacon.classList.add('is-pulsing');
+      clearTimeout(beaconTimer);
+      beaconTimer = setTimeout(() => beacon.classList.remove('is-pulsing'), 1000);
+    };
 
     const updateTelemetry = () => {
       const total = Reveal.getTotalSlides();
@@ -568,8 +619,14 @@ Next step: backfill those rows or add a nullable migration first.
       countEl.textContent = `${String(current).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
     };
 
-    Reveal.on('ready', updateTelemetry);
-    Reveal.on('slidechanged', updateTelemetry);
+    Reveal.on('ready', () => {
+      updateTelemetry();
+      pulseBeacon();
+    });
+    Reveal.on('slidechanged', () => {
+      updateTelemetry();
+      pulseBeacon();
+    });
     requestAnimationFrame(updateTelemetry);
   </script>
 </body>
