@@ -401,7 +401,7 @@
       border: 1px dashed rgba(156,194,255,0.24); border-top: 0; border-radius: 0 0 999px 999px;
       pointer-events: none; z-index: 0; opacity: 0.72; }
     .reveal .hygiene-loop li { counter-increment: hygiene-step; position: relative; overflow: hidden;
-      min-height: 7.1em; margin: 0; padding: 3.05em 0.74em 0.78em; z-index: 1;
+      min-height: 7.8em; margin: 0; padding: 3.05em 0.74em 0.82em; z-index: 1;
       border: 1px solid rgba(156,194,255,0.28); border-radius: 16px;
       background:
         radial-gradient(circle at 86% 10%, rgba(255,106,77,0.16), transparent 34%),
@@ -416,6 +416,11 @@
       color: var(--fury); font-family: var(--font-display); font-size: 0.48em; font-weight: 700;
       letter-spacing: 0.08em; line-height: 1; text-transform: uppercase; text-shadow: none; }
     .reveal .hygiene-loop__copy { display: block; font-size: 0.56em; line-height: 1.38; color: rgba(238,243,255,0.9); }
+    .reveal .hygiene-loop__trigger { display: inline-flex; margin-top: 0.58em; padding: 0.16em 0.5em 0.18em;
+      border: 1px solid rgba(102,224,189,0.22); border-radius: 999px;
+      color: #66e0bd; background: rgba(102,224,189,0.09); font-family: var(--font-display);
+      font-size: 0.34em; font-weight: 700; letter-spacing: 0.08em; line-height: 1.1;
+      text-transform: uppercase; text-shadow: none; white-space: nowrap; }
     .reveal .hygiene-loop__handoff { display: grid; grid-template-columns: auto minmax(0, 1fr);
       gap: 0.34em; align-items: center; width: min(900px, 92%); margin: 0.18em auto 0;
       padding: 0.38em 0.5em; border: 1px solid rgba(102,224,189,0.24); border-radius: 999px;
@@ -1676,10 +1681,10 @@ while True:
       <section>
         <h2>Context hygiene</h2>
         <ol class="hygiene-loop" aria-label="Context hygiene sequence">
-          <li><span class="hygiene-loop__label">Compact</span><span class="hygiene-loop__copy">Compact long runs into a clean handoff.</span></li>
-          <li><span class="hygiene-loop__label">Offload</span><span class="hygiene-loop__copy">Offload huge outputs to files; feed back only relevant slices.</span></li>
-          <li><span class="hygiene-loop__label">Distill</span><span class="hygiene-loop__copy">Use sub-agents for messy subtasks; return distilled results.</span></li>
-          <li><span class="hygiene-loop__label">Govern</span><span class="hygiene-loop__copy">Govern durable memory like code.</span></li>
+          <li><span class="hygiene-loop__label">Compact</span><span class="hygiene-loop__copy">Compact long runs into a clean handoff.</span><span class="hygiene-loop__trigger">Before handoff</span></li>
+          <li><span class="hygiene-loop__label">Offload</span><span class="hygiene-loop__copy">Offload huge outputs to files; feed back only relevant slices.</span><span class="hygiene-loop__trigger">After bulk output</span></li>
+          <li><span class="hygiene-loop__label">Distill</span><span class="hygiene-loop__copy">Use sub-agents for messy subtasks; return distilled results.</span><span class="hygiene-loop__trigger">When branches multiply</span></li>
+          <li><span class="hygiene-loop__label">Govern</span><span class="hygiene-loop__copy">Govern durable memory like code.</span><span class="hygiene-loop__trigger">Before reuse</span></li>
         </ol>
         <div class="hygiene-loop__handoff" role="group" aria-labelledby="handoff-capsule-label">
           <strong id="handoff-capsule-label" class="hygiene-loop__handoff-label">Handoff capsule</strong>
