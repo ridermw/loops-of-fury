@@ -622,11 +622,14 @@
       max-width: min(48vw, 460px); padding: 0.48rem 0.72rem 0.52rem; border-radius: 999px;
       color: var(--ink); background: linear-gradient(135deg, rgba(8,22,62,0.94), rgba(77,140,255,0.22));
       border: 1px solid rgba(156,194,255,0.3); box-shadow: 0 18px 46px rgba(2,8,28,0.42), 0 0 26px rgba(77,140,255,0.18);
-      backdrop-filter: blur(12px); opacity: 0; pointer-events: none; text-align: center;
+      backdrop-filter: blur(12px); opacity: 0; visibility: hidden; pointer-events: none; text-align: center;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       transform: translate3d(-50%, 8px, 0) scale(0.96);
-      transition: opacity 180ms ease, transform 220ms cubic-bezier(.17,.84,.44,1); }
-    .loop-telemetry.is-previewing .loop-telemetry__preview { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1); }
+      contain: layout style; will-change: opacity, transform;
+      transition: opacity 180ms ease, transform 220ms cubic-bezier(.17,.84,.44,1), visibility 0s linear 220ms; }
+    .loop-telemetry.is-previewing .loop-telemetry__preview {
+      opacity: 1; visibility: visible; transform: translate3d(-50%, 0, 0) scale(1);
+      transition-delay: 0s, 0s, 0s; }
     .loop-telemetry__comet { --comet-start-x: 0px; --comet-travel-x: 0px; --comet-scale: 1;
       position: absolute; left: var(--comet-start-x); top: -10px; width: clamp(54px, 7.6vw, 118px); height: 12px;
       pointer-events: none; opacity: 0; z-index: 1; transform: translate3d(-50%, 0, 0) scaleX(var(--comet-scale));
@@ -642,9 +645,9 @@
     }
     .loop-beacon { --beacon-x: 50vw; --beacon-y: 32vh; position: fixed; left: var(--beacon-x);
       top: var(--beacon-y); width: clamp(130px, 17vw, 240px); aspect-ratio: 1; z-index: 2;
-      pointer-events: none; opacity: 0; transform: translate3d(-50%, -50%, 0) scale(0.68);
+      pointer-events: none; opacity: 0; visibility: hidden; transform: translate3d(-50%, -50%, 0) scale(0.68);
       border-radius: 50%; mix-blend-mode: screen; filter: drop-shadow(0 0 24px rgba(255,106,77,0.42));
-      will-change: transform, opacity; backface-visibility: hidden; }
+      contain: layout style; will-change: transform, opacity; backface-visibility: hidden; }
     .loop-beacon::before, .loop-beacon::after { content: ""; position: absolute; inset: 0; border-radius: 50%; }
     .loop-beacon::before { background:
         radial-gradient(circle, rgba(var(--phase-accent-rgb),0) 0 38%, rgba(var(--phase-accent-rgb),0.44) 39% 41%, transparent 42% 100%),
@@ -664,7 +667,7 @@
     .loop-beacon__spark:nth-child(4) { --spark-angle: 48deg; }
     .loop-beacon__spark:nth-child(5) { --spark-angle: 104deg; background: var(--heading); box-shadow: 0 0 18px rgba(156,194,255,0.78), 0 0 0 4px rgba(156,194,255,0.1); }
     .loop-beacon__spark:nth-child(6) { --spark-angle: 164deg; background: rgba(238,243,255,0.92); box-shadow: 0 0 18px rgba(238,243,255,0.72), 0 0 0 4px rgba(238,243,255,0.08); }
-    .loop-beacon.is-pulsing { animation: beacon-bloom 980ms cubic-bezier(.17,.84,.44,1); }
+    .loop-beacon.is-pulsing { visibility: visible; animation: beacon-bloom 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::before { animation: beacon-spin 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing::after { animation: beacon-sparks 980ms cubic-bezier(.17,.84,.44,1); }
     .loop-beacon.is-pulsing .loop-beacon__spark { animation: beacon-orbit-spark 980ms cubic-bezier(.17,.84,.44,1) both; }
@@ -674,7 +677,7 @@
     .loop-burst__spark { --burst-angle: 0deg; --burst-distance: 92px; --burst-delay: 0ms; --burst-spin: 0deg; --spark-color: var(--phase-accent);
       --spark-size: clamp(6px, 0.74vw, 11px);
       position: absolute; left: var(--burst-x); top: var(--burst-y); width: var(--spark-size); aspect-ratio: 1;
-      border-radius: 50%; color: var(--spark-color); background: radial-gradient(circle, rgba(255,255,255,0.96) 0 18%, currentColor 24% 100%); opacity: 0;
+      border-radius: 50%; color: var(--spark-color); background: radial-gradient(circle, rgba(255,255,255,0.96) 0 18%, currentColor 24% 100%); opacity: 0; visibility: hidden;
       transform: translate(-50%, -50%) rotate(var(--burst-angle)) translateX(0) scale(0.4);
       box-shadow: 0 0 18px currentColor, 0 0 0 5px color-mix(in srgb, currentColor 16%, transparent);
       will-change: transform, opacity, filter; }
@@ -694,13 +697,14 @@
       clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%);
       opacity: 0.86; transform: rotate(12deg); }
     .loop-burst.is-firing .loop-burst__spark {
+      visibility: visible;
       animation: loop-burst-spark 880ms var(--burst-delay) cubic-bezier(.17,.84,.44,1) both;
     }
     .loop-echo { --echo-x: 50vw; --echo-y: 34vh; position: fixed; left: var(--echo-x); top: var(--echo-y);
       width: clamp(300px, 44vw, 620px); aspect-ratio: 1.7; z-index: 0; pointer-events: none;
-      opacity: 0.64; transform: translate3d(-50%, -50%, 0); mix-blend-mode: screen;
+      opacity: 0.64; visibility: hidden; transform: translate3d(-50%, -50%, 0); mix-blend-mode: screen;
       filter: drop-shadow(0 0 28px rgba(var(--phase-accent-rgb),0.28));
-      will-change: transform, opacity; backface-visibility: hidden; }
+      contain: layout style; will-change: transform, opacity; backface-visibility: hidden; }
     .loop-echo svg { width: 100%; height: 100%; overflow: visible; display: block; }
     .loop-echo__trail,
     .loop-echo__glow { fill: none; stroke-linecap: round; stroke-linejoin: round;
@@ -723,6 +727,7 @@
     .loop-echo__node:nth-child(2n) { fill: var(--heading); }
     .loop-echo__node:nth-child(3n) { fill: rgba(238,243,255,0.88); }
     .loop-echo.is-tracing .loop-echo__glow { animation: loop-echo-glow 1200ms cubic-bezier(.17,.84,.44,1) both; }
+    .loop-echo.is-tracing { visibility: visible; }
     .loop-echo.is-tracing .loop-echo__trail { animation: loop-echo-trace 1200ms 60ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__ghost-path { animation: loop-echo-ghost 1400ms var(--ghost-delay, 0ms) cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__node { animation: loop-echo-node 760ms calc(160ms + var(--node-delay, 0ms)) cubic-bezier(.17,.84,.44,1) both; }
@@ -786,14 +791,17 @@
       width: min(430px, calc(100vw - 36px)); padding: 0.86rem; border-radius: 18px;
       color: rgba(238,243,255,0.84); background: linear-gradient(145deg, rgba(8,22,62,0.96), rgba(4,16,46,0.92));
       border: 1px solid rgba(156,194,255,0.28); box-shadow: 0 24px 70px rgba(2,8,28,0.52), inset 0 1px 0 rgba(255,255,255,0.07);
-      opacity: 0; pointer-events: none; transform: translate3d(0, -0.42rem, 0) scale(0.98);
-      transition: opacity 180ms ease, transform 240ms cubic-bezier(.17,.84,.44,1);
+      opacity: 0; visibility: hidden; pointer-events: none; transform: translate3d(0, -0.42rem, 0) scale(0.98);
+      contain: layout style; will-change: opacity, transform;
+      transition: opacity 180ms ease, transform 240ms cubic-bezier(.17,.84,.44,1), visibility 0s linear 240ms;
       text-transform: none; letter-spacing: 0.01em; line-height: 1.35; }
     .freshness-signal__panel::before { content: ""; position: absolute; top: -7px; right: 30px;
       width: 14px; aspect-ratio: 1; transform: rotate(45deg);
       background: rgba(8,22,62,0.96); border-left: 1px solid rgba(156,194,255,0.28); border-top: 1px solid rgba(156,194,255,0.28); }
     .freshness-signal:hover .freshness-signal__panel,
-    .freshness-signal:focus-visible .freshness-signal__panel { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    .freshness-signal:focus-visible .freshness-signal__panel {
+      opacity: 1; visibility: visible; transform: translate3d(0, 0, 0) scale(1);
+      transition-delay: 0s, 0s, 0s; }
     .freshness-signal:focus-visible { outline: 2px solid rgba(102,224,189,0.72); outline-offset: 4px; }
     .freshness-signal__panel-title { margin-bottom: 0.32rem; color: var(--heading);
       font-size: 1.05em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
