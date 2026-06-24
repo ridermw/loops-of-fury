@@ -314,6 +314,25 @@
       .reveal section.present > h2::before, .reveal section.present > h2::after,
       .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop) { animation: none; will-change: auto; }
     }
+    @media print {
+      html, body {
+        background: linear-gradient(to bottom, #0a1b4d, #04102e) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body::before, body::after, .bg-skier, .loop-telemetry, .loop-beacon, .freshness-signal {
+        display: none !important;
+      }
+      .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content {
+        background: linear-gradient(to bottom, #0a1b4d, #04102e) !important;
+      }
+      .reveal section.present > h1, .reveal section.present > h2,
+      .reveal section.present > h1::before, .reveal section.present > h1::after,
+      .reveal section.present > h2::before, .reveal section.present > h2::after,
+      .reveal section.present > :is(p, ul, ol, .grid, .flow, table, pre, .agent-loop) {
+        animation: none !important;
+      }
+    }
   </style>
 
 </head>
