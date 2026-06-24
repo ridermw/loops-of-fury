@@ -185,12 +185,14 @@
       background: linear-gradient(180deg, rgba(8,22,62,0.86), rgba(4,16,46,0.68));
       box-shadow: 0 18px 48px rgba(2,8,28,0.42), inset 0 1px 0 rgba(255,255,255,0.05); }
     .reveal table th, .reveal table td { border: 0; padding: 0.62em 0.8em; text-align: left; }
-    .reveal table th { color: var(--fury); background: rgba(255,106,77,0.09);
+    .reveal table thead th { color: var(--fury); background: rgba(255,106,77,0.09);
       font-family: var(--font-display); font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+    .reveal table tbody th { color: var(--ink); background: rgba(77,140,255,0.075);
+      font-family: var(--font-display); font-weight: 700; }
     .reveal table td { color: rgba(238,243,255,0.9); }
-    .reveal table tr:not(:last-child) td { border-bottom: 1px solid rgba(156,194,255,0.14); }
-    .reveal table th + th, .reveal table td + td { border-left: 1px solid rgba(156,194,255,0.12); }
-    .reveal table tbody tr:nth-child(even) td { background: rgba(77,140,255,0.055); }
+    .reveal table tbody tr:not(:last-child) :is(th, td) { border-bottom: 1px solid rgba(156,194,255,0.14); }
+    .reveal table :is(th, td) + :is(th, td) { border-left: 1px solid rgba(156,194,255,0.12); }
+    .reveal table tbody tr:nth-child(even) :is(th, td) { background: rgba(77,140,255,0.055); }
     .reveal .button-link { display: inline-block; margin-top: 0.8em; padding: 0.42em 0.8em;
       border-radius: 8px; background: var(--fury); color: #1a0a06; font-family: var(--font-display);
       font-weight: 700; text-decoration: none; text-shadow: none; box-shadow: 0 3px 18px rgba(255,90,60,0.45); }
@@ -746,10 +748,10 @@ while True:
         <table>
           <thead><tr><th scope="col">Layer</th><th scope="col">Question</th></tr></thead>
           <tbody>
-            <tr><td>Prompt engineering</td><td>What should I say?</td></tr>
-            <tr><td>Context engineering</td><td>What should the model see?</td></tr>
-            <tr><td>Harness engineering</td><td>What tools, state, errors, and permissions surround one run?</td></tr>
-            <tr><td>Loop engineering</td><td>What recurring system drives work toward a goal?</td></tr>
+            <tr><th scope="row">Prompt engineering</th><td>What should I say?</td></tr>
+            <tr><th scope="row">Context engineering</th><td>What should the model see?</td></tr>
+            <tr><th scope="row">Harness engineering</th><td>What tools, state, errors, and permissions surround one run?</td></tr>
+            <tr><th scope="row">Loop engineering</th><td>What recurring system drives work toward a goal?</td></tr>
           </tbody>
         </table>
       </section>
@@ -815,8 +817,8 @@ while True:
         <table>
           <thead><tr><th scope="col">Primitive</th><th scope="col">What it does</th><th scope="col">Risk</th></tr></thead>
           <tbody>
-            <tr><td>/loop</td><td>Repeats on cadence</td><td>Can repeat without proving success</td></tr>
-            <tr><td>/goal</td><td>Runs until a condition is verified</td><td>Only as good as the done-condition</td></tr>
+            <tr><th scope="row">/loop</th><td>Repeats on cadence</td><td>Can repeat without proving success</td></tr>
+            <tr><th scope="row">/goal</th><td>Runs until a condition is verified</td><td>Only as good as the done-condition</td></tr>
           </tbody>
         </table>
       </section>
@@ -887,10 +889,10 @@ Next step: backfill those rows or add a nullable migration first.
         <table>
           <thead><tr><th scope="col">Level</th><th scope="col">Loop</th><th scope="col">Impact</th></tr></thead>
           <tbody>
-            <tr><td>L1</td><td>Agent loop</td><td>Automate one task</td></tr>
-            <tr><td>L2</td><td>Verification loop</td><td>Improve correctness</td></tr>
-            <tr><td>L3</td><td>Event-driven loop</td><td>Run in the real ecosystem</td></tr>
-            <tr><td>L4</td><td>Hill-climbing loop</td><td>Improve the harness from traces</td></tr>
+            <tr><th scope="row">L1</th><td>Agent loop</td><td>Automate one task</td></tr>
+            <tr><th scope="row">L2</th><td>Verification loop</td><td>Improve correctness</td></tr>
+            <tr><th scope="row">L3</th><td>Event-driven loop</td><td>Run in the real ecosystem</td></tr>
+            <tr><th scope="row">L4</th><td>Hill-climbing loop</td><td>Improve the harness from traces</td></tr>
           </tbody>
         </table>
       </section>
@@ -965,9 +967,9 @@ Next step: backfill those rows or add a nullable migration first.
         <table>
           <thead><tr><th scope="col">Debt</th><th scope="col">Lives in</th><th scope="col">Can agents pay it down?</th></tr></thead>
           <tbody>
-            <tr><td>Technical</td><td>The code</td><td>Often yes</td></tr>
-            <tr><td>Comprehension</td><td>People</td><td>Recoverable with active review</td></tr>
-            <tr><td>Intent</td><td>The why</td><td>No. Humans must write it down.</td></tr>
+            <tr><th scope="row">Technical</th><td>The code</td><td>Often yes</td></tr>
+            <tr><th scope="row">Comprehension</th><td>People</td><td>Recoverable with active review</td></tr>
+            <tr><th scope="row">Intent</th><td>The why</td><td>No. Humans must write it down.</td></tr>
           </tbody>
         </table>
       </section>
