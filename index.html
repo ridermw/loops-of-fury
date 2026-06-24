@@ -2397,17 +2397,22 @@ Next step: backfill those rows or add a nullable migration first.
     let skierTimer;
     let echoTimer;
     let lastProgress;
+    let pointerRenderFrame;
     let spotlightFrame;
     let spotlightX = window.innerWidth * 0.5;
     let spotlightY = window.innerHeight * 0.42;
     let spotlightTargetX = spotlightX;
     let spotlightTargetY = spotlightY;
+    let latestPointer;
     const slidesRoot = document.querySelector('.reveal .slides');
 
     const clearLoopEffects = () => {
       [beaconTimer, burstTimer, cometTimer, skierTimer, echoTimer].forEach(clearTimeout);
+      cancelAnimationFrame(pointerRenderFrame);
       cancelAnimationFrame(spotlightFrame);
+      pointerRenderFrame = undefined;
       spotlightFrame = undefined;
+      latestPointer = undefined;
       telemetry.classList.remove('is-previewing', 'is-comet-flying');
       beacon.classList.remove('is-pulsing');
       burst.classList.remove('is-firing');
@@ -2485,17 +2490,36 @@ Next step: backfill those rows or add a nullable migration first.
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-    const setCardSignalGlint = (event) => {
-      if (reducedMotion.matches || event.pointerType === 'touch') return;
-      const target = event.target instanceof Element ? event.target : null;
+    const setCardSignalGlint = ({ clientX, clientY, target }) => {
+      if (reducedMotion.matches) return;
       const card = target ? target.closest('.card') : null;
       if (!card || !slidesRoot || !slidesRoot.contains(card)) return;
 
       const bounds = card.getBoundingClientRect();
-      const glowX = clamp(((event.clientX - bounds.left) / bounds.width) * 100, 0, 100);
-      const glowY = clamp(((event.clientY - bounds.top) / bounds.height) * 100, 0, 100);
+      const glowX = clamp(((clientX - bounds.left) / bounds.width) * 100, 0, 100);
+      const glowY = clamp(((clientY - bounds.top) / bounds.height) * 100, 0, 100);
       card.style.setProperty('--card-glow-x', `${glowX.toFixed(1)}%`);
       card.style.setProperty('--card-glow-y', `${glowY.toFixed(1)}%`);
+    };
+
+    const renderPointerChrome = () => {
+      pointerRenderFrame = undefined;
+      if (!latestPointer || reducedMotion.matches || latestPointer.pointerType === 'touch') return;
+
+      glideSpotlightTo(latestPointer.clientX, latestPointer.clientY);
+      setCardSignalGlint(latestPointer);
+    };
+
+    const schedulePointerChrome = (event) => {
+      if (reducedMotion.matches || event.pointerType === 'touch') return;
+      const target = event.target instanceof Element ? event.target : null;
+      latestPointer = {
+        clientX: event.clientX,
+        clientY: event.clientY,
+        pointerType: event.pointerType,
+        target,
+      };
+      if (!pointerRenderFrame) pointerRenderFrame = requestAnimationFrame(renderPointerChrome);
     };
 
     const clearCardSignalGlint = (event) => {
@@ -2526,14 +2550,8 @@ Next step: backfill those rows or add a nullable migration first.
       echoTimer = setTimeout(() => echo.classList.remove('is-tracing'), 1300);
     };
 
-    window.addEventListener('pointermove', (event) => {
-      if (reducedMotion.matches || event.pointerType === 'touch') return;
-      glideSpotlightTo(event.clientX, event.clientY);
-    }, { passive: true });
-    if (slidesRoot) {
-      slidesRoot.addEventListener('pointermove', setCardSignalGlint, { passive: true });
-      slidesRoot.addEventListener('pointerout', clearCardSignalGlint);
-    }
+    window.addEventListener('pointermove', schedulePointerChrome, { passive: true });
+    if (slidesRoot) slidesRoot.addEventListener('pointerout', clearCardSignalGlint);
 
     const getPipFromEvent = (event) => {
       const target = event.target instanceof Element ? event.target : null;
