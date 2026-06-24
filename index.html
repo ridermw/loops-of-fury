@@ -237,6 +237,9 @@
     .reveal .reference-freshness[data-state="current"] { color: #66e0bd; background: rgba(102,224,189,0.1); border-color: rgba(102,224,189,0.28); }
     .reveal .reference-freshness[data-state="context"] { color: var(--heading); background: rgba(77,140,255,0.12); border-color: rgba(156,194,255,0.26); }
     .reveal .reference-freshness[data-state="archive"] { color: var(--fury); background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.3); }
+    .reveal .reference-freshness[data-metadata-state="inferred"] { border-color: rgba(255,106,77,0.48);
+      box-shadow: 0 0 18px rgba(255,106,77,0.16); }
+    .reveal .reference-freshness[data-metadata-state="inferred"] .reference-freshness__checked { color: var(--fury); }
     .reveal .source-audit-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.38em;
       width: min(920px, 94%); margin: 0.42em auto 0; text-align: left; }
     .reveal .source-audit-strip:empty { display: none; }
@@ -2096,9 +2099,15 @@ Next step: backfill those rows or add a nullable migration first.
     const parseSourceCheckedAt = (item) => {
       const sourceChecked = item.dataset.sourceChecked;
       const timestamp = sourceChecked && DATE_TIME_PATTERN.test(sourceChecked) ? new Date(sourceChecked) : null;
-      if (timestamp && !Number.isNaN(timestamp.getTime())) return timestamp;
+      if (timestamp && !Number.isNaN(timestamp.getTime())) return { checkedAt: timestamp, metadataState: 'verified' };
       const match = sourceChecked && sourceChecked.match(DATE_ONLY_PATTERN);
-      if (!match) return refreshedAt;
+      if (!match) {
+        return {
+          checkedAt: refreshedAt,
+          metadataIssue: sourceChecked ? 'invalid checked timestamp' : 'missing checked timestamp',
+          metadataState: 'inferred',
+        };
+      }
       const [, yearText, monthText, dayText] = match;
       const year = Number(yearText);
       const month = Number(monthText);
@@ -2107,7 +2116,9 @@ Next step: backfill those rows or add a nullable migration first.
       const isExactDate = checkedAt.getUTCFullYear() === year
         && checkedAt.getUTCMonth() === month - 1
         && checkedAt.getUTCDate() === day;
-      return isExactDate ? checkedAt : refreshedAt;
+      return isExactDate
+        ? { checkedAt, metadataState: 'verified' }
+        : { checkedAt: refreshedAt, metadataIssue: 'invalid checked date', metadataState: 'inferred' };
     };
     const getSourceReviewLabel = (nextCheckAt) => {
       const daysUntilReview = Math.ceil((nextCheckAt.getTime() - Date.now()) / DAY_MS);
@@ -2131,33 +2142,40 @@ Next step: backfill those rows or add a nullable migration first.
       const label = item.dataset.sourceStatus || String(year);
       const state = year === latestReferenceYear || item.dataset.sourceStatus ? 'current' : year >= latestReferenceYear - 1 ? 'context' : 'archive';
       const title = [...item.querySelectorAll('a')].map((link) => link.textContent.trim()).join(' + ') || item.textContent.trim();
-      const checkedAt = parseSourceCheckedAt(item);
+      const checkMetadata = parseSourceCheckedAt(item);
+      const { checkedAt } = checkMetadata;
       const nextCheckAt = new Date(checkedAt.getTime() + SOURCE_REVIEW_INTERVAL_DAYS * DAY_MS);
       const checkedLabel = formatShortDate(checkedAt);
       const checkedAgeLabel = getSourceAgeLabel(checkedAt);
       const reviewLabel = getSourceReviewLabel(nextCheckAt);
+      const checkVerb = checkMetadata.metadataState === 'inferred' ? 'inferred' : 'checked';
       const badge = document.createElement('span');
       badge.className = 'reference-freshness';
       badge.dataset.state = state;
       badge.dataset.reviewState = getSourceReviewState(nextCheckAt);
+      badge.dataset.metadataState = checkMetadata.metadataState;
       const badgeLabel = document.createElement('span');
       badgeLabel.className = 'reference-freshness__label';
       badgeLabel.textContent = label;
       const badgeChecked = document.createElement('span');
       badgeChecked.className = 'reference-freshness__checked';
-      badgeChecked.textContent = `checked ${checkedLabel} - ${checkedAgeLabel} ago`;
+      badgeChecked.textContent = `${checkVerb} ${checkedLabel} - ${checkedAgeLabel} ago`;
       const badgeNext = document.createElement('span');
       badgeNext.className = 'reference-freshness__next';
       badgeNext.textContent = reviewLabel;
       badge.append(badgeLabel, badgeChecked, badgeNext);
-      badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}; checked ${checkedLabel}, ${checkedAgeLabel} ago; ${reviewLabel}` : `Source year ${label}; checked ${checkedLabel}, ${checkedAgeLabel} ago; ${reviewLabel}`);
+      const metadataQualifier = checkMetadata.metadataIssue ? `; ${checkMetadata.metadataIssue}` : '';
+      badge.setAttribute('aria-label', item.dataset.sourceStatus ? `Freshness marker: ${label}; ${checkVerb} ${checkedLabel}, ${checkedAgeLabel} ago${metadataQualifier}; ${reviewLabel}` : `Source year ${label}; ${checkVerb} ${checkedLabel}, ${checkedAgeLabel} ago${metadataQualifier}; ${reviewLabel}`);
       item.appendChild(badge);
-      return { badge, badgeChecked, badgeNext, checkedAt, checkedLabel, label, nextCheckAt, sourceStatus: item.dataset.sourceStatus, state, title, year: year || 0 };
+      return { badge, badgeChecked, badgeNext, checkedAt, checkedLabel, label, metadataIssue: checkMetadata.metadataIssue, metadataState: checkMetadata.metadataState, nextCheckAt, sourceStatus: item.dataset.sourceStatus, state, title, year: year || 0 };
     });
     const referenceCounts = referenceAudit.reduce((counts, source) => {
       counts[source.state] = (counts[source.state] || 0) + 1;
       return counts;
     }, {});
+    const explicitCheckCount = referenceAudit.filter((source) => source.metadataState === 'verified').length;
+    const getSourceCheckVerb = (source) => source.metadataState === 'inferred' ? 'inferred' : 'checked';
+    const getSourceMetadataQualifier = (source) => source.metadataIssue ? `; ${source.metadataIssue}` : '';
     const sourceMixItems = [
       ['current', referenceCounts.current || 0],
       ['context', referenceCounts.context || 0],
@@ -2190,11 +2208,12 @@ Next step: backfill those rows or add a nullable migration first.
     const getFreshnessComponents = (daysSinceRefresh) => {
       const recencyShare = 1 - Math.min(1, daysSinceRefresh / SOURCE_REVIEW_INTERVAL_DAYS);
       const currentSourceShare = sourceCount ? (referenceCounts.current || 0) / sourceCount : 0;
+      const explicitCheckShare = sourceCount ? explicitCheckCount / sourceCount : 0;
       const scheduledReviewShare = sourceCount
         ? referenceAudit.filter((source) => getSourceReviewState(source.nextCheckAt) === 'scheduled').length / sourceCount
         : 0;
-      const sourceConfidenceScore = Math.round((recencyShare * 0.58 + currentSourceShare * 0.32 + scheduledReviewShare * 0.1) * 100);
-      return { currentSourceShare, recencyShare, scheduledReviewShare, sourceConfidenceScore };
+      const sourceConfidenceScore = Math.round((recencyShare * 0.5 + currentSourceShare * 0.3 + explicitCheckShare * 0.1 + scheduledReviewShare * 0.1) * 100);
+      return { currentSourceShare, explicitCheckShare, recencyShare, scheduledReviewShare, sourceConfidenceScore };
     };
     const getFreshnessScoreState = (score) => score >= 85 ? 'strong' : score >= 70 ? 'watch' : 'weak';
     const getFreshnessSnapshot = () => {
@@ -2233,7 +2252,7 @@ Next step: backfill those rows or add a nullable migration first.
         {
           label: 'confidence',
           value: `${sourceConfidenceScore}%`,
-          meta: `${referenceCounts.current || 0}/${sourceCount} current sources`,
+          meta: `${referenceCounts.current || 0}/${sourceCount} current / ${explicitCheckCount}/${sourceCount} dated`,
           state: scoreState,
         },
         {
@@ -2319,7 +2338,7 @@ Next step: backfill those rows or add a nullable migration first.
     freshness.style.setProperty('--source-count', sourceCount);
     freshness.style.setProperty('--review-progress', `${reviewProgress}%`);
     freshness.style.setProperty('--freshness-score', `${sourceConfidenceScore}%`);
-    freshness.title = `Freshness signal: ${freshnessState}; source confidence ${sourceConfidenceScore}%; oldest source check ${freshnessAge.textContent} ago; ${reviewLabel}; source vintage ${oldestReferenceYear}-${newestReferenceYear}; source mix ${sourceMixSummary}; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
+    freshness.title = `Freshness signal: ${freshnessState}; source confidence ${sourceConfidenceScore}%; oldest source check ${freshnessAge.textContent} ago; ${reviewLabel}; source vintage ${oldestReferenceYear}-${newestReferenceYear}; source mix ${sourceMixSummary}; ${explicitCheckCount}/${sourceCount} explicit source checks; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
     freshness.setAttribute('aria-label', `${freshness.title}. Focus for source audit.`);
     freshness.tabIndex = 0;
     const freshnessPanel = document.createElement('div');
@@ -2377,7 +2396,7 @@ Next step: backfill those rows or add a nullable migration first.
         queueName.textContent = source.title;
         const queueMeta = document.createElement('span');
         queueMeta.className = 'freshness-signal__queue-meta';
-        queueMeta.textContent = `checked ${source.checkedLabel} - next ${formatShortDate(source.nextCheckAt)}`;
+        queueMeta.textContent = `${getSourceCheckVerb(source)} ${source.checkedLabel} - next ${formatShortDate(source.nextCheckAt)}`;
         queueStack.append(queueName, queueMeta);
         const queueStatus = document.createElement('span');
         queueStatus.className = 'freshness-signal__queue-status';
@@ -2519,7 +2538,7 @@ Next step: backfill those rows or add a nullable migration first.
         const sourceChecked = document.createElement('span');
         sourceChecked.className = 'freshness-signal__source-checked';
         source.sourceChecked = sourceChecked;
-        sourceChecked.textContent = `checked ${source.checkedLabel} - ${getSourceAgeLabel(source.checkedAt)} ago`;
+        sourceChecked.textContent = `${getSourceCheckVerb(source)} ${source.checkedLabel} - ${getSourceAgeLabel(source.checkedAt)} ago`;
         sourceStack.append(sourceTitle, sourceChecked);
         const sourceState = document.createElement('span');
         sourceState.className = 'freshness-signal__source-state';
@@ -2560,16 +2579,17 @@ Next step: backfill those rows or add a nullable migration first.
       freshness.dataset.scoreState = snapshot.scoreState;
       freshness.style.setProperty('--review-progress', `${snapshot.reviewProgress}%`);
       freshness.style.setProperty('--freshness-score', `${snapshot.sourceConfidenceScore}%`);
-      freshness.title = `Freshness signal: ${snapshot.freshnessState}; source confidence ${snapshot.sourceConfidenceScore}%; oldest source check ${ageLabel} ago; ${snapshot.reviewLabel}; source vintage ${sourceVintageLabel}; source mix ${sourceMixSummary}; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
+      freshness.title = `Freshness signal: ${snapshot.freshnessState}; source confidence ${snapshot.sourceConfidenceScore}%; oldest source check ${ageLabel} ago; ${snapshot.reviewLabel}; source vintage ${sourceVintageLabel}; source mix ${sourceMixSummary}; ${explicitCheckCount}/${sourceCount} explicit source checks; ${sourceCount} citations / ${externalLinkCount} external links tracked`;
       freshness.setAttribute('aria-label', `${freshness.title}. Focus for source audit.`);
       referenceAudit.forEach((source) => {
         const checkedAgeLabel = getSourceAgeLabel(source.checkedAt);
         const sourceReviewLabel = getSourceReviewLabel(source.nextCheckAt);
-        source.badgeChecked.textContent = `checked ${source.checkedLabel} - ${checkedAgeLabel} ago`;
+        const sourceCheckVerb = getSourceCheckVerb(source);
+        source.badgeChecked.textContent = `${sourceCheckVerb} ${source.checkedLabel} - ${checkedAgeLabel} ago`;
         source.badgeNext.textContent = sourceReviewLabel;
         source.badge.dataset.reviewState = getSourceReviewState(source.nextCheckAt);
-        source.badge.setAttribute('aria-label', source.sourceStatus ? `Freshness marker: ${source.label}; checked ${source.checkedLabel}, ${checkedAgeLabel} ago; ${sourceReviewLabel}` : `Source year ${source.label}; checked ${source.checkedLabel}, ${checkedAgeLabel} ago; ${sourceReviewLabel}`);
-        if (source.sourceChecked) source.sourceChecked.textContent = `checked ${source.checkedLabel} - ${checkedAgeLabel} ago`;
+        source.badge.setAttribute('aria-label', source.sourceStatus ? `Freshness marker: ${source.label}; ${sourceCheckVerb} ${source.checkedLabel}, ${checkedAgeLabel} ago${getSourceMetadataQualifier(source)}; ${sourceReviewLabel}` : `Source year ${source.label}; ${sourceCheckVerb} ${source.checkedLabel}, ${checkedAgeLabel} ago${getSourceMetadataQualifier(source)}; ${sourceReviewLabel}`);
+        if (source.sourceChecked) source.sourceChecked.textContent = `${sourceCheckVerb} ${source.checkedLabel} - ${checkedAgeLabel} ago`;
         if (source.reviewQueueRow) source.reviewQueueRow.dataset.reviewState = getSourceReviewState(source.nextCheckAt);
         if (source.reviewQueueStatus) source.reviewQueueStatus.textContent = sourceReviewLabel.replace('review ', '');
       });
