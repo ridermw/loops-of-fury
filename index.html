@@ -281,6 +281,15 @@
       color: var(--fury); font-family: var(--font-display); font-size: 0.48em; font-weight: 700;
       letter-spacing: 0.08em; line-height: 1; text-transform: uppercase; text-shadow: none; }
     .reveal .hygiene-loop__copy { display: block; font-size: 0.56em; line-height: 1.38; color: rgba(238,243,255,0.9); }
+    .reveal .hygiene-loop__handoff { display: grid; grid-template-columns: auto repeat(4, minmax(0, 1fr));
+      gap: 0.34em; align-items: center; width: min(900px, 92%); margin: 0.18em auto 0;
+      padding: 0.38em 0.5em; border: 1px solid rgba(102,224,189,0.24); border-radius: 999px;
+      color: rgba(238,243,255,0.74); background: linear-gradient(90deg, rgba(102,224,189,0.12), rgba(77,140,255,0.08));
+      font-family: var(--font-display); font-size: 0.38em; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; text-shadow: none; }
+    .reveal .hygiene-loop__handoff strong { color: #66e0bd; font-weight: 700; white-space: nowrap; }
+    .reveal .hygiene-loop__handoff span { min-width: 0; padding: 0.22em 0.5em; border-radius: 999px;
+      background: rgba(255,255,255,0.06); text-align: center; white-space: nowrap; }
     .reveal .loop-lifecycle { position: relative; isolation: isolate; gap: 0.42em; padding: 0.42em 0.3em; }
     .reveal .loop-lifecycle::before { content: ""; position: absolute; left: 4%; right: 4%; top: 50%;
       height: 2px; border-radius: 999px; z-index: -1;
@@ -1087,6 +1096,8 @@
       .reveal .hygiene-loop::before,
       .reveal .hygiene-loop::after { display: none; }
       .reveal .hygiene-loop li { min-height: 0; padding-top: 2.76em; }
+      .reveal .hygiene-loop__handoff { grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 16px; }
+      .reveal .hygiene-loop__handoff strong { grid-column: 1 / -1; text-align: center; }
     }
     @media print {
       html, body {
@@ -1337,6 +1348,13 @@ while True:
           <li><span class="hygiene-loop__label">Distill</span><span class="hygiene-loop__copy">Use sub-agents for messy subtasks; return distilled results.</span></li>
           <li><span class="hygiene-loop__label">Govern</span><span class="hygiene-loop__copy">Govern durable memory like code.</span></li>
         </ol>
+        <div class="hygiene-loop__handoff" aria-label="Clean handoff capsule ingredients">
+          <strong>Handoff capsule</strong>
+          <span>goal</span>
+          <span>state</span>
+          <span>evidence</span>
+          <span>next move</span>
+        </div>
         <p class="subtitle">Context is a budget, not a bucket.</p>
       </section>
 
