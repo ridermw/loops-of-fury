@@ -94,8 +94,39 @@
       background:
         radial-gradient(ellipse at 50% 44%, rgba(4,16,46,0.08) 0%, rgba(4,16,46,0.3) 54%, rgba(4,16,46,0.62) 100%),
         linear-gradient(90deg, rgba(4,16,46,0.58), rgba(4,16,46,0) 22%, rgba(4,16,46,0) 78%, rgba(4,16,46,0.58)); }
+    body::before { content: ""; position: fixed; inset: -22vmax; z-index: 0;
+      pointer-events: none; opacity: 0.44; mix-blend-mode: screen;
+      background:
+        linear-gradient(116deg, transparent 0 46%, rgba(255,106,77,0.20) 46.25% 46.55%, transparent 46.8% 100%),
+        linear-gradient(116deg, transparent 0 53%, rgba(156,194,255,0.18) 53.2% 53.45%, transparent 53.7% 100%),
+        repeating-linear-gradient(116deg, rgba(156,194,255,0.07) 0 1px, transparent 1px 19px);
+      transform: translate3d(-3%, 2%, 0) rotate(-4deg);
+      animation: telemetry-field 24s linear infinite;
+      -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 0 34%, rgba(0,0,0,0.52) 58%, transparent 78%);
+      mask-image: radial-gradient(ellipse at 50% 45%, #000 0 34%, rgba(0,0,0,0.52) 58%, transparent 78%); }
     .reveal { position: relative; z-index: 1; }
     .reveal-viewport, .reveal .backgrounds, .reveal .slide-background-content { background: transparent !important; }
+    .loop-telemetry { --loop-progress: 0%; position: fixed; left: clamp(18px, 4vw, 58px);
+      right: clamp(18px, 4vw, 58px); bottom: clamp(16px, 3vh, 34px); z-index: 4;
+      display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem;
+      padding: 0.58rem 0.82rem 0.62rem; color: rgba(238,243,255,0.86);
+      font-family: var(--font-display); font-size: clamp(10px, 1.05vw, 14px); font-weight: 700;
+      letter-spacing: 0.07em; text-transform: uppercase; text-shadow: none; pointer-events: none;
+      background: linear-gradient(90deg, rgba(8,22,62,0.08), rgba(8,22,62,0.72), rgba(8,22,62,0.08));
+      border: 1px solid rgba(156,194,255,0.18); border-left: 0; border-right: 0;
+      box-shadow: 0 18px 60px rgba(2,8,28,0.34), inset 0 1px 0 rgba(255,255,255,0.06);
+      backdrop-filter: blur(10px); }
+    .loop-telemetry::before { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+      background: linear-gradient(90deg, var(--fury), var(--heading), transparent var(--loop-progress));
+      clip-path: inset(0 calc(100% - var(--loop-progress)) 0 0);
+      box-shadow: 0 0 18px rgba(255,106,77,0.7); }
+    .loop-telemetry::after { content: ""; position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 0 38%, rgba(255,255,255,0.14) 44%, transparent 50% 100%);
+      transform: translateX(-120%); animation: telemetry-glint 7s ease-in-out infinite; }
+    .loop-telemetry__phase { color: var(--fury); }
+    .loop-telemetry__title { min-width: 0; overflow: hidden; color: rgba(238,243,255,0.72);
+      text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+    .loop-telemetry__count { color: var(--heading); font-variant-numeric: tabular-nums; }
     .bg-skier { position: fixed; left: 50%; top: 1vh; transform: translate3d(-50%, 0, 0);
       width: 46vw; height: auto;
       opacity: 0.32; z-index: 0; pointer-events: none; user-select: none;
@@ -110,8 +141,16 @@
       from { transform: translate3d(-51.5%, -0.8vh, 0) scale(0.985); }
       to { transform: translate3d(-48.5%, 1.2vh, 0) scale(1.015); }
     }
+    @keyframes telemetry-field {
+      from { transform: translate3d(-3%, 2%, 0) rotate(-4deg); }
+      to { transform: translate3d(3%, -2%, 0) rotate(-4deg); }
+    }
+    @keyframes telemetry-glint {
+      0%, 68% { transform: translateX(-120%); }
+      100% { transform: translateX(120%); }
+    }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier { animation: none; will-change: auto; }
+      .bg-skier, body::before, .loop-telemetry::after { animation: none; will-change: auto; }
     }
   </style>
 
@@ -504,6 +543,34 @@ Next step: backfill those rows or add a nullable migration first.
       transition: 'slide',
       plugins: [RevealHighlight, RevealNotes],
     });
+
+    const telemetry = document.createElement('div');
+    telemetry.className = 'loop-telemetry';
+    telemetry.setAttribute('aria-hidden', 'true');
+    telemetry.innerHTML = '<span class="loop-telemetry__phase"></span><span class="loop-telemetry__title"></span><span class="loop-telemetry__count"></span>';
+    document.body.appendChild(telemetry);
+
+    const phaseEl = telemetry.querySelector('.loop-telemetry__phase');
+    const titleEl = telemetry.querySelector('.loop-telemetry__title');
+    const countEl = telemetry.querySelector('.loop-telemetry__count');
+    const phases = ['discover', 'delegate', 'verify', 'persist', 'decide', 'stop'];
+
+    const updateTelemetry = () => {
+      const total = Reveal.getTotalSlides();
+      const current = Reveal.getSlidePastCount() + 1;
+      const heading = Reveal.getCurrentSlide().querySelector('h1, h2');
+      const title = heading ? heading.textContent.replace(/\s+/g, ' ').trim() : 'Loops of Fury';
+      const progress = total > 1 ? ((current - 1) / (total - 1)) * 100 : 100;
+
+      telemetry.style.setProperty('--loop-progress', `${progress}%`);
+      phaseEl.textContent = `loop / ${phases[(current - 1) % phases.length]}`;
+      titleEl.textContent = title;
+      countEl.textContent = `${String(current).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
+    };
+
+    Reveal.on('ready', updateTelemetry);
+    Reveal.on('slidechanged', updateTelemetry);
+    requestAnimationFrame(updateTelemetry);
   </script>
 </body>
 </html>
