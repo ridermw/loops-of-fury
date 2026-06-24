@@ -205,6 +205,32 @@ export const ISSUE = {
   escalationColor: 'b60205',
 };
 
+// User-directed task intake (issue queue). A capability layered ON TOP of the
+// autonomous weakest-axis polish: in addition to picking the weakest of LOOP.axes,
+// the loop also works GitHub issues a maintainer explicitly labels `loop-task`,
+// oldest-first (a `priority:high|low` label boosts/sinks). The issue title+body
+// becomes the maker instruction.
+//
+// SAFETY POSTURE: a task iteration runs through the EXACT SAME gated spine as a polish
+// iteration (diff-gate + control-manifest + secret-scan + anchors + visual + headless
+// render + live-Pages verify). Intake adds NO new path to `main` — it only chooses WHAT
+// the maker is asked to do. So the loop can only LAND deck-content asks that fit the
+// objective floor (no new/removed slides, headings & citations preserved, :root tokens
+// frozen). An ask needing a structural/visual change is gate-blocked → its issue is left
+// OPEN with a `loop-needs-review` note for a human. When no `loop-task` issue is open the
+// drain is a no-op, so behavior is identical to the polish-only loop.
+export const INTAKE = {
+  enabled: true,
+  taskLabel: 'loop-task',                 // a maintainer applies this to enqueue an ask
+  doneLabel: 'loop-done',                 // loop landed it on main
+  needsReviewLabel: 'loop-needs-review',  // loop couldn't satisfy it within the gates
+  taskColor: '0e8a16',
+  doneColor: 'c2e0c6',
+  needsReviewColor: 'fbca04',
+  retryK: 3,                              // attempts per task before leaving it for review
+  maxTasksPerRun: 20,                     // safety cap on issues worked per run
+};
+
 // Live GitHub Pages verification (D29 critical section; revised — live verify NEVER
 // halts the run). After a GREEN push, poll the Pages build API until the deployed commit
 // == the pushed SHA AND status === 'built', then re-render the LIVE deck URLs through the

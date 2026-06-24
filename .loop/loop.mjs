@@ -20,13 +20,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
-  LOOP, LOOP_DIR, LOOP_STATUS_FILE, RUN_FILE, SCOREBOARD_FILE,
+  LOOP, LOOP_DIR, LOOP_STATUS_FILE, RUN_FILE, SCOREBOARD_FILE, INTAKE,
 } from './config.mjs';
 import { iteration as realIteration } from './driver.mjs';
 import { verify as verifyManifest } from './control-manifest.mjs';
 import { withBrowser, renderDeck } from './render.mjs';
 import { assertDeck } from './check.mjs';
-import { noopMaker, copilotMaker } from './maker.mjs';
+import { noopMaker, copilotMaker, copilotTaskMaker } from './maker.mjs';
 import { initState, shouldStartIteration, decide, categorize } from './brain.mjs';
 import {
   defaultBoard, ensureAxes, pickAxis, recordPick, applyOutcome,
@@ -40,6 +40,9 @@ import * as G from './lib/git.mjs';
 import {
   ensureRunIssue, commentIssue, closeRunIssueClean, escalateRunIssue,
 } from './issue.mjs';
+import {
+  drainTaskQueue, listOpenTasks, ensureTaskLabels, closeTaskDone, markTaskNeedsReview,
+} from './intake.mjs';
 import { liveCheckAfterPush } from './pages.mjs';
 
 const FAILURES_LOG = path.join(LOOP_DIR, 'failures.jsonl');
@@ -329,6 +332,51 @@ async function mainRun() {
       ...outcome, status: 'red', committed: false, reason, liveReverted: true,
     };
   };
+
+  // INTAKE (additive): before the autonomous weakest-axis polish, drain any open
+  // `loop-task` issues a maintainer enqueued. Each task runs through the SAME gated,
+  // live-verified spine (verifiedIteration) — intake only chooses WHAT the maker is asked
+  // to do, never how a commit reaches main. A task that lands is closed with the deploying
+  // SHA; a task the gates won't accept (structural/visual ask outside the objective floor)
+  // is flagged `loop-needs-review` and left OPEN for a human. Empty queue → no-op, so the
+  // polish loop below is reached unchanged. Wrapped so an intake/gh failure never blocks polish.
+  if (commitAndPush && INTAKE.enabled) {
+    try {
+      writeStatus({ phase: 'intake', uuid: run.uuid, ts: iso(nowMs()) });
+      ensureTaskLabels({});
+      const drain = await drainTaskQueue({
+        iteration: verifiedIteration,
+        makerForTask: (task) => (useCopilot
+          ? () => copilotTaskMaker({ task, deck: 'index.html' })
+          : noopMaker),
+        listTasks: () => listOpenTasks({}),
+        beat: () => { beat(run, nowMs(), { iter: true }); saveRun(RUN_FILE, run); },
+        log: (...a) => log('intake:', ...a),
+        now: nowMs,
+        startMs: run.startedMs || nowMs(),
+        maxDurationMs: LOOP.maxDurationMs,
+        onTaskResult: ({ task, satisfied, outcome, attempts }) => {
+          if (satisfied && outcome && outcome.sha) {
+            const short = String(outcome.sha).slice(0, 9);
+            closeTaskDone(task.number, outcome.sha,
+              `Addressed by \`${short}\` on \`main\` (live-verified by the autonomous loop). `
+              + 'Closing as completed.', {});
+            log('intake: task closed done:', `#${task.number}`, short);
+          } else {
+            const why = outcome && outcome.status ? outcome.status : 'no-change';
+            markTaskNeedsReview(task.number,
+              `The autonomous loop attempted this ${attempts} time(s) but could not land it within `
+              + 'its safety gates (no new/removed slides; headings, thesis, and citations preserved; '
+              + `\`:root\` tokens frozen). Last outcome: \`${why}\`. Leaving OPEN for human review.`, {});
+            log('intake: task left for review:', `#${task.number}`, why);
+          }
+        },
+      });
+      log('intake: drained', drain.worked, 'task(s)');
+    } catch (e) {
+      err('intake drain failed (continuing to polish loop) —', e && e.message ? e.message : e);
+    }
+  }
 
   let escalated = false;
   const { state } = await runLoop({
