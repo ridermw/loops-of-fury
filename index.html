@@ -63,16 +63,14 @@
       -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       -webkit-mask-composite: xor; mask-composite: exclude;
-      filter: drop-shadow(0 0 16px rgba(255,106,77,0.44));
-      animation: hero-loop-sweep 5.6s linear infinite; }
+      filter: drop-shadow(0 0 16px rgba(255,106,77,0.44)); }
     .reveal .hero-loop__label { --label-delay: 0ms; position: absolute; z-index: 1;
       display: inline-flex; align-items: center; gap: 0.36em; padding: 0.28em 0.62em 0.32em;
       border: 1px solid rgba(156,194,255,0.28); border-radius: 999px;
       color: rgba(238,243,255,0.82); background: linear-gradient(135deg, rgba(8,22,62,0.86), rgba(77,140,255,0.14));
       box-shadow: 0 12px 34px rgba(2,8,28,0.34), inset 0 1px 0 rgba(255,255,255,0.07);
       backdrop-filter: blur(9px); font-size: clamp(0.32em, 1.05vw, 0.44em); font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
-      animation: hero-label-arrive 640ms calc(320ms + var(--label-delay)) cubic-bezier(.17,.84,.44,1) both; }
+      letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
     .reveal .hero-loop__label::before { content: ""; width: 0.54em; aspect-ratio: 1; border-radius: 50%;
       background: var(--fury); box-shadow: 0 0 14px rgba(255,106,77,0.76); }
     .reveal .hero-loop__label:nth-child(1) { --label-delay: 0ms; left: 3%; top: 48%; }
@@ -158,20 +156,19 @@
         radial-gradient(circle at 50% 50%, rgba(255,106,77,0.16), transparent 24%),
         radial-gradient(ellipse at 50% 52%, rgba(77,140,255,0.18), transparent 56%),
         conic-gradient(from 260deg, rgba(255,106,77,0.28), transparent 18%, rgba(156,194,255,0.22), transparent 52%, rgba(102,224,189,0.18), transparent 76%, rgba(255,106,77,0.28));
-      box-shadow: 0 0 54px rgba(77,140,255,0.16), inset 0 0 38px rgba(255,106,77,0.08);
-      animation: ledger-halo 7.5s linear infinite; }
+      box-shadow: 0 0 54px rgba(77,140,255,0.16), inset 0 0 38px rgba(255,106,77,0.08); }
     .reveal .ledger-stage::after { inset: 12% 16%; border-radius: 50%;
       background:
         linear-gradient(100deg, transparent 0 42%, rgba(255,255,255,0.13) 48%, transparent 54% 100%),
         repeating-linear-gradient(90deg, rgba(156,194,255,0.08) 0 1px, transparent 1px 18px);
-      opacity: 0.48; mix-blend-mode: screen; animation: ledger-scan 4.2s ease-in-out infinite; }
+      opacity: 0.48; mix-blend-mode: screen; }
     .reveal .ledger-orbit { position: absolute; inset: 4% 4% 14%; border-radius: 50%; pointer-events: none; }
     .reveal .ledger-orbit::before { content: ""; position: absolute; inset: 10% 9%; border-radius: 50%;
       border: 1px dashed rgba(156,194,255,0.24); opacity: 0.8; }
     .reveal .ledger-signal { --signal-x: 50%; --signal-y: 50%; --signal-delay: 0ms; position: absolute;
       left: var(--signal-x); top: var(--signal-y); width: 0.42em; aspect-ratio: 1; border-radius: 50%;
       background: var(--fury); box-shadow: 0 0 18px rgba(255,106,77,0.8), 0 0 0 0 rgba(255,106,77,0.34);
-      transform: translate(-50%, -50%); animation: ledger-signal 2.8s var(--signal-delay) ease-out infinite; }
+      transform: translate(-50%, -50%); }
     .reveal .ledger-signal:nth-child(2) { --signal-x: 76%; --signal-y: 24%; --signal-delay: 250ms; background: var(--heading); box-shadow: 0 0 18px rgba(156,194,255,0.7), 0 0 0 0 rgba(156,194,255,0.28); }
     .reveal .ledger-signal:nth-child(3) { --signal-x: 86%; --signal-y: 58%; --signal-delay: 500ms; background: #66e0bd; box-shadow: 0 0 18px rgba(102,224,189,0.72), 0 0 0 0 rgba(102,224,189,0.28); }
     .reveal .ledger-signal:nth-child(4) { --signal-x: 52%; --signal-y: 84%; --signal-delay: 750ms; background: var(--heading); box-shadow: 0 0 18px rgba(156,194,255,0.7), 0 0 0 0 rgba(156,194,255,0.28); }
@@ -191,11 +188,10 @@
       -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       -webkit-mask-composite: xor; mask-composite: exclude;
-      filter: drop-shadow(0 0 16px rgba(255,106,77,0.42)); animation: hero-loop-sweep 4.8s linear infinite; }
+      filter: drop-shadow(0 0 16px rgba(255,106,77,0.42)); }
     .reveal .ledger-counter .big-number { margin: 0; font-size: clamp(2.6em, 7.6vw, 5.6em);
       line-height: 0.78; font-variant-numeric: tabular-nums;
-      text-shadow: 0 0 18px rgba(255,106,77,0.58), 0 0 42px rgba(255,106,77,0.22);
-      animation: ledger-zero-pop 900ms 180ms cubic-bezier(.17,.84,.44,1) both; }
+      text-shadow: 0 0 18px rgba(255,106,77,0.58), 0 0 42px rgba(255,106,77,0.22); }
     .reveal .ledger-counter__label { color: rgba(238,243,255,0.66); font-family: var(--font-display);
       font-size: 0.48em; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
     .reveal .ledger-receipt { position: absolute; left: 50%; bottom: 2%; transform: translateX(-50%);
@@ -210,7 +206,14 @@
       vertical-align: 0.02em; }
     .reveal .ledger-receipt span:nth-child(2)::before { background: var(--heading); box-shadow: 0 0 12px rgba(156,194,255,0.68); }
     .reveal .ledger-receipt span:nth-child(3)::before { background: #66e0bd; box-shadow: 0 0 12px rgba(102,224,189,0.68); }
+    .reveal section.present .hero-loop::after { animation: hero-loop-sweep 5.6s linear infinite; }
+    .reveal section.present .hero-loop__label { animation: hero-label-arrive 640ms calc(320ms + var(--label-delay)) cubic-bezier(.17,.84,.44,1) both; }
     .reveal section.present[data-ledger] .ledger-stage { animation: content-drift 620ms 100ms cubic-bezier(.17,.84,.44,1) both; }
+    .reveal section.present[data-ledger] .ledger-stage::before { animation: ledger-halo 7.5s linear infinite; }
+    .reveal section.present[data-ledger] .ledger-stage::after { animation: ledger-scan 4.2s ease-in-out infinite; }
+    .reveal section.present[data-ledger] .ledger-signal { animation: ledger-signal 2.8s var(--signal-delay) ease-out infinite; }
+    .reveal section.present[data-ledger] .ledger-counter::after { animation: hero-loop-sweep 4.8s linear infinite; }
+    .reveal section.present[data-ledger] .ledger-counter .big-number { animation: ledger-zero-pop 900ms 180ms cubic-bezier(.17,.84,.44,1) both; }
     .reveal .flow { display: flex; gap: 0.32em; align-items: center; justify-content: center; flex-wrap: wrap; }
     .reveal .pill { display: inline-block; border: 1px solid rgba(156,194,255,0.32);
       background: rgba(77,140,255,0.15); border-radius: 999px; padding: 0.24em 0.6em;
