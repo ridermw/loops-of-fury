@@ -661,7 +661,7 @@
     .loop-echo.is-tracing .loop-echo__trail { animation: loop-echo-trace 1200ms 60ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__node { animation: loop-echo-node 760ms calc(160ms + var(--node-delay, 0ms)) cubic-bezier(.17,.84,.44,1) both; }
     .freshness-signal { --source-count: 1; --review-progress: 0%; position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
-      z-index: 4; display: grid; grid-template-columns: auto auto auto auto auto auto auto auto auto; align-items: center; gap: 0.44rem;
+      z-index: 4; display: grid; grid-template-columns: repeat(10, auto); align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
       font-family: var(--font-display); font-size: clamp(9px, 0.86vw, 12px); font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase; text-shadow: none; pointer-events: auto; cursor: help;
@@ -691,6 +691,13 @@
       border: 1px solid rgba(156,194,255,0.16); font-variant-numeric: tabular-nums; }
     .freshness-signal[data-review-state="due"] .freshness-signal__review { color: var(--fury);
       background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.28); }
+    .freshness-signal__score { padding: 0.16rem 0.42rem 0.18rem; border-radius: 999px;
+      color: #66e0bd; background: rgba(102,224,189,0.1); border: 1px solid rgba(102,224,189,0.24);
+      font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .freshness-signal[data-score-state="watch"] .freshness-signal__score { color: var(--heading);
+      background: rgba(77,140,255,0.12); border-color: rgba(156,194,255,0.26); }
+    .freshness-signal[data-score-state="weak"] .freshness-signal__score { color: var(--fury);
+      background: rgba(255,106,77,0.12); border-color: rgba(255,106,77,0.3); }
     .freshness-signal__pulse-train { display: grid; grid-template-columns: repeat(var(--source-count), 0.38rem);
       gap: 0.16rem; align-items: center; padding: 0 0.06rem; }
     .freshness-signal__source-pip { position: relative; display: block; width: 0.38rem; height: 0.38rem;
@@ -813,7 +820,7 @@
       border-radius: 50%; border: 1px solid currentColor; opacity: 0.58; }
     .freshness-signal__vintage-scale { display: grid; grid-template-columns: 1fr auto; gap: 0.7rem;
       color: rgba(238,243,255,0.48); font-size: 0.76em; font-variant-numeric: tabular-nums; }
-    .freshness-signal__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    .freshness-signal__stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 0.42rem; margin: 0.72rem 0; }
     .freshness-signal__stat { padding: 0.48rem 0.5rem; border-radius: 12px;
       background: rgba(255,255,255,0.055); border: 1px solid rgba(156,194,255,0.15); }
