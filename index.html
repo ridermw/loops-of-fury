@@ -848,6 +848,52 @@
     .loop-echo.is-tracing .loop-echo__trail { animation: loop-echo-trace 1200ms 60ms cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__ghost-path { animation: loop-echo-ghost 1400ms var(--ghost-delay, 0ms) cubic-bezier(.17,.84,.44,1) both; }
     .loop-echo.is-tracing .loop-echo__node { animation: loop-echo-node 760ms calc(160ms + var(--node-delay, 0ms)) cubic-bezier(.17,.84,.44,1) both; }
+    .loop-finale { --seal-x: 50vw; --seal-y: 42vh; position: fixed; inset: 0; z-index: 3;
+      pointer-events: none; visibility: hidden; opacity: 0; mix-blend-mode: screen;
+      contain: layout paint style; isolation: isolate; }
+    .loop-finale__ring,
+    .loop-finale__core,
+    .loop-finale__spark { position: absolute; left: var(--seal-x); top: var(--seal-y); }
+    .loop-finale__ring { width: clamp(280px, 56vw, 820px); aspect-ratio: 1.72;
+      border-radius: 50%; transform: translate(-50%, -50%) scale(0.72) rotate(-4deg);
+      border: 1px solid rgba(156,194,255,0.18);
+      background:
+        radial-gradient(ellipse at 50% 50%, rgba(var(--phase-accent-rgb),0.2), transparent 34%),
+        radial-gradient(ellipse at 50% 50%, rgba(77,140,255,0.18), transparent 62%);
+      box-shadow: inset 0 0 42px rgba(156,194,255,0.08), 0 0 54px rgba(var(--phase-accent-rgb),0.16);
+      opacity: 0; }
+    .loop-finale__ring::before,
+    .loop-finale__ring::after { content: ""; position: absolute; border-radius: inherit; pointer-events: none; }
+    .loop-finale__ring::before { inset: -10px; padding: 2px;
+      background: conic-gradient(from 230deg, transparent 0 38%, var(--fury) 45%, var(--heading) 52%, #66e0bd 58%, transparent 66% 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      filter: drop-shadow(0 0 20px rgba(var(--phase-accent-rgb),0.44)); }
+    .loop-finale__ring::after { inset: 20%;
+      border: 1px dashed rgba(238,243,255,0.28);
+      transform: rotate(7deg); opacity: 0.72; }
+    .loop-finale__core { width: clamp(26px, 3.8vw, 52px); aspect-ratio: 1; border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.28);
+      background: radial-gradient(circle, rgba(255,255,255,0.98) 0 18%, var(--phase-accent) 28% 100%);
+      box-shadow: 0 0 26px rgba(var(--phase-accent-rgb),0.92), 0 0 0 12px rgba(var(--phase-accent-rgb),0.12);
+      opacity: 0; }
+    .loop-finale__spark { --seal-angle: 0deg; --seal-distance: 110px; --seal-delay: 0ms;
+      width: clamp(6px, 0.8vw, 11px); aspect-ratio: 1; border-radius: 50%;
+      color: var(--spark-color, var(--phase-accent));
+      background: radial-gradient(circle, rgba(255,255,255,0.96) 0 22%, currentColor 30% 100%);
+      box-shadow: 0 0 18px currentColor, 0 0 0 5px color-mix(in srgb, currentColor 14%, transparent);
+      transform: translate(-50%, -50%) rotate(var(--seal-angle)) translateX(0) scale(0.38);
+      opacity: 0; }
+    .loop-finale__spark::before { content: ""; position: absolute; right: 48%; top: 50%;
+      width: clamp(34px, 5vw, 76px); height: 2px; border-radius: 999px;
+      transform: translateY(-50%); background: linear-gradient(90deg, transparent, currentColor);
+      opacity: 0.72; }
+    .loop-finale.is-sealing { visibility: visible; animation: finale-presence 1500ms cubic-bezier(.17,.84,.44,1) both; }
+    .loop-finale.is-sealing .loop-finale__ring { animation: finale-ring-seal 1500ms cubic-bezier(.17,.84,.44,1) both; }
+    .loop-finale.is-sealing .loop-finale__ring::before { animation: hero-loop-sweep 1500ms cubic-bezier(.17,.84,.44,1) both; }
+    .loop-finale.is-sealing .loop-finale__core { animation: finale-core-lock 980ms 120ms cubic-bezier(.17,.84,.44,1) both; }
+    .loop-finale.is-sealing .loop-finale__spark { animation: finale-spark-crown 980ms var(--seal-delay) cubic-bezier(.17,.84,.44,1) both; }
     .freshness-signal { --source-count: 1; --review-progress: 0%; --freshness-ring-color: #66e0bd; position: fixed; top: clamp(14px, 2.6vh, 30px); right: clamp(18px, 4vw, 58px);
       z-index: 4; display: grid; grid-template-columns: repeat(10, auto); align-items: center; gap: 0.44rem;
       padding: 0.46rem 0.72rem; color: rgba(238,243,255,0.8);
@@ -1246,6 +1292,28 @@
       34% { opacity: 1; transform: scale(1.18); }
       100% { opacity: 0; transform: scale(0.62); }
     }
+    @keyframes finale-presence {
+      0% { opacity: 0; }
+      14%, 78% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    @keyframes finale-ring-seal {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.66) rotate(-8deg); filter: blur(8px) saturate(0.84); }
+      24% { opacity: 0.96; filter: blur(0) saturate(1.22); }
+      72% { opacity: 0.86; transform: translate(-50%, -50%) scale(1.02) rotate(1deg); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1) rotate(4deg); filter: blur(4px) saturate(1); }
+    }
+    @keyframes finale-core-lock {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.28); }
+      38% { opacity: 1; transform: translate(-50%, -50%) scale(1.24); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.82); }
+    }
+    @keyframes finale-spark-crown {
+      0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--seal-angle)) translateX(0) scale(0.38); filter: blur(6px); }
+      22% { opacity: 0.95; filter: blur(0) saturate(1.25); }
+      72% { opacity: 0.78; }
+      100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--seal-angle)) translateX(var(--seal-distance)) scale(1.04); filter: blur(2px) saturate(1); }
+    }
     @keyframes freshness-ping {
       0% { box-shadow: 0 0 0 0 rgba(255,106,77,0.5), 0 0 18px rgba(255,106,77,0.72); }
       72%, 100% { box-shadow: 0 0 0 9px rgba(255,106,77,0), 0 0 18px rgba(255,106,77,0.72); }
@@ -1386,7 +1454,7 @@
       100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-spotlight, .loop-spotlight::before, .loop-spotlight::after, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .loop-echo__glow, .loop-echo__trail, .loop-echo__ghost-path, .loop-echo__node, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
+      .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-spotlight, .loop-spotlight::before, .loop-spotlight::after, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .loop-echo__glow, .loop-echo__trail, .loop-echo__ghost-path, .loop-echo__node, .loop-finale, .loop-finale__ring, .loop-finale__ring::before, .loop-finale__core, .loop-finale__spark, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .loop-telemetry__comet,
       .reveal pre.loop-code::before, .reveal pre.loop-code::after,
       .reveal .hero-loop::after, .reveal .hero-loop__label, .reveal .hero-loop__label::before, .reveal .hero-loop__runner,
@@ -1436,7 +1504,7 @@
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
-      body::before, body::after, .bg-skier, .loop-spotlight, .loop-telemetry, .loop-beacon, .loop-burst, .loop-echo, .freshness-signal, .quote-transmission__halo, .quote-transmission__ticks {
+      body::before, body::after, .bg-skier, .loop-spotlight, .loop-telemetry, .loop-beacon, .loop-burst, .loop-echo, .loop-finale, .freshness-signal, .quote-transmission__halo, .quote-transmission__ticks {
         display: none !important;
       }
       .reveal pre.loop-code::before, .reveal pre.loop-code::after {
@@ -1976,6 +2044,25 @@ Next step: backfill those rows or add a nullable migration first.
       </svg>`;
     document.body.appendChild(echo);
 
+    const finale = document.createElement('div');
+    finale.className = 'loop-finale';
+    finale.setAttribute('aria-hidden', 'true');
+    const finaleRing = document.createElement('span');
+    finaleRing.className = 'loop-finale__ring';
+    const finaleCore = document.createElement('span');
+    finaleCore.className = 'loop-finale__core';
+    const finalePalette = ['var(--fury)', 'var(--heading)', '#66e0bd', 'var(--accent)', 'rgba(238,243,255,0.92)'];
+    const finaleSparks = Array.from({ length: 18 }, (_, index) => {
+      const spark = document.createElement('span');
+      spark.className = 'loop-finale__spark';
+      spark.style.setProperty('--spark-color', finalePalette[index % finalePalette.length]);
+      spark.style.setProperty('--seal-delay', `${index * 18}ms`);
+      finale.appendChild(spark);
+      return spark;
+    });
+    finale.prepend(finaleRing, finaleCore);
+    document.body.appendChild(finale);
+
     const freshness = document.createElement('div');
     freshness.className = 'freshness-signal';
     freshness.setAttribute('role', 'note');
@@ -2498,7 +2585,9 @@ Next step: backfill those rows or add a nullable migration first.
     let cometTimer;
     let skierTimer;
     let echoTimer;
+    let finaleTimer;
     let lastProgress;
+    let lastFinaleKey;
     let pointerRenderFrame;
     let spotlightFrame;
     let spotlightX = window.innerWidth * 0.5;
@@ -2510,7 +2599,7 @@ Next step: backfill those rows or add a nullable migration first.
     const spotlightEl = document.querySelector('.loop-spotlight');
 
     const clearLoopEffects = () => {
-      [beaconTimer, burstTimer, cometTimer, skierTimer, echoTimer].forEach(clearTimeout);
+      [beaconTimer, burstTimer, cometTimer, skierTimer, echoTimer, finaleTimer].forEach(clearTimeout);
       cancelAnimationFrame(pointerRenderFrame);
       cancelAnimationFrame(spotlightFrame);
       pointerRenderFrame = undefined;
@@ -2520,6 +2609,7 @@ Next step: backfill those rows or add a nullable migration first.
       beacon.classList.remove('is-pulsing');
       burst.classList.remove('is-firing');
       echo.classList.remove('is-tracing');
+      finale.classList.remove('is-sealing');
       if (skierEl) skierEl.classList.remove('is-carving');
     };
 
@@ -2785,6 +2875,37 @@ Next step: backfill those rows or add a nullable migration first.
       lastProgress = progress;
     };
 
+    const sealFinalLoop = (current, total) => {
+      const finaleKey = `${current}/${total}`;
+      if (current !== total) {
+        lastFinaleKey = undefined;
+        finale.classList.remove('is-sealing');
+        return;
+      }
+      if (reducedMotion.matches || lastFinaleKey === finaleKey) return;
+
+      const currentSlide = Reveal.getCurrentSlide();
+      const anchor = currentSlide ? currentSlide.querySelector('h1, h2, .references, .grid') : null;
+      const bounds = anchor ? anchor.getBoundingClientRect() : { left: window.innerWidth * 0.5, top: window.innerHeight * 0.42, width: 0, height: 0 };
+      const x = clamp(bounds.left + bounds.width / 2, window.innerWidth * 0.24, window.innerWidth * 0.76);
+      const y = clamp(bounds.top + bounds.height / 2, window.innerHeight * 0.22, window.innerHeight * 0.62);
+      finale.style.setProperty('--seal-x', `${x}px`);
+      finale.style.setProperty('--seal-y', `${y}px`);
+      finaleSparks.forEach((spark, index) => {
+        const angle = -92 + index * 20 + (total % 4) * 5;
+        const distance = 78 + (index % 5) * 15;
+        spark.style.setProperty('--seal-angle', `${angle}deg`);
+        spark.style.setProperty('--seal-distance', `clamp(${distance}px, ${8 + (index % 4)}vw, ${distance + 72}px)`);
+      });
+
+      lastFinaleKey = finaleKey;
+      finale.classList.remove('is-sealing');
+      void finale.offsetWidth;
+      finale.classList.add('is-sealing');
+      clearTimeout(finaleTimer);
+      finaleTimer = setTimeout(() => finale.classList.remove('is-sealing'), 1550);
+    };
+
     const updateTelemetry = () => {
       const slides = Reveal.getSlides();
       const total = Math.max(1, slides.length || Reveal.getTotalSlides());
@@ -2814,6 +2935,7 @@ Next step: backfill those rows or add a nullable migration first.
       titleEl.textContent = title;
       countEl.textContent = `${String(current).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
       launchComet(progress);
+      sealFinalLoop(current, total);
     };
 
     const syncLoopChrome = () => {
