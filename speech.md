@@ -16,9 +16,15 @@ By the end you will have a shared vocabulary, the hard parts to watch for, and a
 
 ## Slide 2 — Why this matters (Boris Cherny)
 
-Boris Cherny, who leads Claude Code at Anthropic, put it bluntly: I do not prompt Claude anymore. I have loops that are running. My job is to write loops.
+The quote on the screen is Boris Cherny — creator and head of Claude Code at Anthropic, by most measures the fastest-growing AI coding tool in the world. His background is not what you’d expect: he studied economics, dropped out at eighteen to run a startup, did a stint at a hedge fund, then spent five years as a principal engineer at Meta before joining Anthropic in September 2024. Claude Code literally began as a toy he built to tell him what song he was listening to; he shipped the first internal version a couple of months later, and twenty percent of Anthropic’s engineers were using it on day one.
 
-That is the whole shift in one sentence. The unit of work is moving from the prompt to the loop. Hold onto that quote — everything else today is how to do it responsibly.
+When and where did he say this? It was the spark for the whole “loop engineering” moment, in mid-2026. Cherny said publicly that he no longer prompts Claude directly, and that — his words — “my job is to write loops.” Within that same week Peter Steinberger told developers to go design the loops that prompt their agents, and that Sunday Google’s Addy Osmani published the post that actually gave the pattern its name. So this one line is the trigger; the term we use all talk was coined right off the back of it.
+
+Why did he say it — what’s the context? He is automating his own job, deliberately. By his own account he had not written a line of code himself in more than six months, and he calls coding, for the work he does, effectively “solved.” And his workflow is concrete loops, not vibes: one he calls “babysit-prs” runs every five minutes to fix failing builds, another called “pr-pruner” runs hourly to close stale PRs, hundreds of agent runs fire overnight, and every fix the agents make is written back into a shared CLAUDE.md that is checked into the repo, so the system gets smarter over time. That is what “I write loops” actually looks like in practice.
+
+Has he walked it back, or doubled down? He doubled down — hard. In a follow-up Platformer interview he predicted the title “software engineer” could start to disappear by the end of the year, dissolving into a broader “builder” role as designers, PMs, and managers begin shipping their own code; he compares the shift to the printing press. One nuance to keep in your back pocket: he is not doom about jobs — he predicts a hundred times more people writing code with agents, just not called “engineers.” So if someone in the room pushes back, that is your answer: he has gone further, not softer, and he thinks the pie gets bigger.
+
+The reason this opens the talk: it relocates the unit of work. For two years the unit was the prompt, and you were the runtime. Cherny’s claim is that the unit is now the loop, and your job moved up a level — from operating the machine to designing the line the machine sits on. Everything else today is how to do that responsibly.
 
 ---
 
@@ -34,11 +40,13 @@ You step out of the inner loop — but you stay accountable at the outer loop. T
 
 ## Slide 4 — The trivial loop
 
-Here is the agent loop everyone already has. The model produces tool calls, you run the tools, append the results to context, and repeat until it stops.
+On the screen is the entire agent loop, and I want you to notice how boring it is. While true: call the model with the current context; if it asked to use tools, run them and append the results; otherwise, break. That is it. Four or five lines — a first-year CS student writes this in their sleep.
 
-Nobody is competing on this while statement. The loop itself is trivial — a first-year could write it.
+Why do I keep calling it trivial, and why does that matter? Three reasons. First, it is completely undifferentiated: every serious agent system on earth has this exact inner loop. Claude Code, Codex, LangChain, the raw OpenAI and Anthropic SDKs — open any of them and you find the same model-to-tools-to-context-and-repeat. Nobody has a secret while-statement. The New Stack put it bluntly this month: the loop is twenty lines.
 
-So if the loop is trivial, the obvious question is: what are we actually engineering?
+Second, the loop contains no judgment. The while-statement does not know what work to do, what “done” means, when it is safe to act, or when to stop — it just spins. All of the intelligence is rented from the model you are calling, which is a commodity everyone can buy, and all of the value you add lives in what you wrap around the loop, not in the loop itself.
+
+Third — and this is the punchline — because the loop is trivial, the loop is not where the engineering is. If those twenty lines were the hard part, everyone would already be winning, and they are not. The hard, differentiating, career-defining work is everything outside the while: the harness that hands the agent its tools, the verifier that decides whether the output is actually real, the memory that survives a single run, and the brakes that stop it. So the honest question this slide sets up — the one the rest of the talk answers — is simple: if the loop is this trivial, what are we actually engineering?
 
 ---
 
@@ -54,11 +62,15 @@ That diagram is basically the whole talk. Hold the picture; we will fill in each
 
 ## Slide 6 — Four floors
 
-Picture four floors. Prompt engineering asks: what should I say. Context engineering asks: what should the model see.
+Four floors — and the fastest way to make them stick is one concrete example of each, climbing the same bug all the way up.
 
-Harness engineering asks: what tools, state, errors, and permissions surround one single run.
+Ground floor, prompt engineering — what should I say? You turn “fix the bug” into “Fix the failing test test_expired_token in test_auth.py; the token lifetime check is off by one, so it should return 401, not 403.” Same model, same tools — you just worded the single instruction better. That is the whole floor.
 
-Loop engineering sits on top and asks: what recurring system drives work toward a goal across many runs. Today we are living on the top floor.
+Second floor, context engineering — what should the model see? Now you stop pasting the whole two-hundred-file repo into the window. You feed it just the three relevant files, the failing test output, the API contract, and your CLAUDE.md conventions, and you trim the stale stuff as the run goes. You are curating the field of view, not the sentence.
+
+Third floor, harness engineering — what tools, state, errors, and permissions wrap a single run? You give the agent a run-tests tool, an idempotent open-PR tool so a retry cannot open five duplicate PRs, read-only database credentials so it cannot drop a table, and error messages that say “column user_id is nullable in three rows — backfill first” instead of just “failed.” You are designing the environment of one run.
+
+Top floor, loop engineering — what recurring system drives work across many runs? This is Cherny’s babysit-prs: every five minutes, discover the failing builds, send a maker to fix each one in its own worktree, send a separate checker to verify it against the tests, write what it learned back to memory, and stop when the build is green. Stripe’s Minions loop is the same floor at scale — roughly thirteen hundred pull requests a week. Notice the ladder: say it better, show it better, equip one run, then orchestrate many. Today we live on the top floor — but every floor underneath still has to be solid.
 
 ---
 
@@ -122,9 +134,15 @@ So on Copilot CLI there is no native goal or loop command — which means you wr
 
 ## Slide 13 — Hard part 1: stopping
 
-Now the four hard parts. The first is stopping.
+First of the four hard parts: stopping. The trap hiding in here is the difference between a turn and a task, so let us be precise about both.
 
-An agent ending its turn is not the same as completing the task. Done has to mean the tests pass — not that the agent feels good about its work.
+A “turn” is one trip around that trivial loop from earlier: the model thinks, calls some tools, reads the results, and eventually stops emitting tool calls. That “else: break” is the turn ending. But look at what actually happened — the model decided to stop talking. That is a conversational boundary, an inference decision. It is not a measurement of whether the work is correct.
+
+So why does a turn ending not mean the task is done? Because the model can end its turn for at least four reasons that have nothing to do with success: it genuinely finished; or it ran out of ideas; or it bumped into a context limit; or — the dangerous one — it talked itself into believing it was done when it was not. That last one has a name, reward hacking, and it is exactly why “the agent feels finished” is worthless as a stop signal. “Done” has to be defined outside the agent, by something a machine can check: the tests pass, the build is green, the checker agent exits zero. The maker ending its turn is a proposal. The checker confirming the done-condition is the truth.
+
+Then the obvious question: if the turn ends but the task is not actually finished, how does the task ever get finished? This is the heart of the whole talk — the outer loop finishes it, not the turn. When a turn ends, the loop runs the verifier. If the done-condition holds, great, it stops. If it does not, the loop takes the failure, turns it into the next prompt — this is why good error messages matter so much — and kicks off a fresh turn. It retries, re-prompts, or escalates. The task is finished when the verifier confirms the done-condition, however many turns that takes, or when the loop stops for an honest reason: budget spent, stalled, or needs-a-human.
+
+Cherny’s “babysit-prs every five minutes” is exactly this shape: each turn ends, and the loop re-fires until CI is genuinely green. The turn is just a checkpoint; the loop owns completion. Hold onto that distinction — turn versus task — because every failure mode later in this talk is some version of confusing the two.
 
 ---
 
