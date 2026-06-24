@@ -79,6 +79,17 @@
     .reveal .hero-loop__label:nth-child(4) { --label-delay: 210ms; --phase-delay: 2790ms; right: 18%; top: 6%; }
     .reveal .hero-loop__label:nth-child(5) { --label-delay: 280ms; --phase-delay: 3720ms; right: 4%; top: 48%; }
     .reveal .hero-loop__label:nth-child(6) { --label-delay: 350ms; --phase-delay: 4650ms; left: 50%; bottom: 0; transform: translateX(-50%); }
+    .reveal .hero-loop__runner { position: absolute; z-index: 2; left: 3%; top: 56%;
+      width: clamp(12px, 1.4vw, 18px); aspect-ratio: 1; border-radius: 50%;
+      pointer-events: none; opacity: 0; transform: translate(-50%, -50%) scale(0.72);
+      background: radial-gradient(circle, rgba(255,255,255,0.98) 0 22%, var(--phase-accent) 34% 100%);
+      box-shadow: 0 0 18px rgba(var(--phase-accent-rgb),0.92), 0 0 0 7px rgba(var(--phase-accent-rgb),0.12);
+      will-change: left, top, transform, opacity; }
+    .reveal .hero-loop__runner::before { content: ""; position: absolute; right: 50%; top: 50%;
+      width: clamp(34px, 5.8vw, 78px); height: 2px; border-radius: 999px;
+      transform: translateY(-50%);
+      background: linear-gradient(90deg, transparent, rgba(156,194,255,0.42), rgba(var(--phase-accent-rgb),0.92));
+      filter: drop-shadow(0 0 12px rgba(var(--phase-accent-rgb),0.48)); opacity: 0.72; }
     .reveal ul li::marker { color: var(--fury); }
     .reveal section > ul:not(.references),
     .reveal .grid > ul { display: grid; gap: 0.36em; margin: 0.68em auto 0; padding: 0;
@@ -275,6 +286,9 @@
     }
     .reveal section.present .hero-loop__label::before {
       animation: hero-phase-dot 5.6s calc(980ms + var(--phase-delay)) cubic-bezier(.17,.84,.44,1) infinite;
+    }
+    .reveal section.present .hero-loop__runner {
+      animation: hero-runner-orbit 5.6s 980ms cubic-bezier(.17,.84,.44,1) infinite;
     }
     .reveal section.present[data-ledger] .ledger-stage { animation: content-drift 620ms 100ms cubic-bezier(.17,.84,.44,1) both; }
     .reveal section.present[data-ledger] .ledger-stage::before { animation: ledger-halo 7.5s linear infinite; }
@@ -995,6 +1009,20 @@
         box-shadow: 0 0 20px rgba(var(--phase-accent-rgb),0.9), 0 0 0 6px rgba(var(--phase-accent-rgb),0.14);
       }
     }
+    @keyframes hero-runner-orbit {
+      0%, 100% { left: 4%; top: 56%; opacity: 0.92; transform: translate(-50%, -50%) scale(0.82); }
+      5% { opacity: 1; transform: translate(-50%, -50%) scale(1.22); }
+      16.66% { left: 22%; top: 17%; transform: translate(-50%, -50%) scale(0.88); }
+      21.66% { transform: translate(-50%, -50%) scale(1.18); }
+      33.33% { left: 50%; top: 11%; transform: translate(-50%, -50%) scale(0.9); }
+      38.33% { transform: translate(-50%, -50%) scale(1.2); }
+      50% { left: 78%; top: 17%; transform: translate(-50%, -50%) scale(0.88); }
+      55% { transform: translate(-50%, -50%) scale(1.18); }
+      66.66% { left: 94%; top: 56%; transform: translate(-50%, -50%) scale(0.9); }
+      71.66% { transform: translate(-50%, -50%) scale(1.2); }
+      83.33% { left: 50%; top: 88%; transform: translate(-50%, -50%) scale(0.88); }
+      88.33% { transform: translate(-50%, -50%) scale(1.18); }
+    }
     @keyframes telemetry-field {
       from { transform: translate3d(-3%, 2%, 0) rotate(-4deg); }
       to { transform: translate3d(3%, -2%, 0) rotate(-4deg); }
@@ -1157,7 +1185,7 @@
     @media (prefers-reduced-motion: reduce) {
       .bg-skier, .bg-skier::before, .bg-skier::after, .bg-skier svg, body::before, .loop-telemetry::after, .loop-beacon, .loop-beacon::before, .loop-beacon::after, .loop-beacon__spark, .loop-burst__spark, .loop-echo__glow, .loop-echo__trail, .loop-echo__ghost-path, .loop-echo__node, .freshness-signal::before, .loop-telemetry__pip, .loop-telemetry__preview, .loop-telemetry__pip.is-current::after,
       .loop-telemetry__comet,
-      .reveal .hero-loop::after, .reveal .hero-loop__label, .reveal .hero-loop__label::before,
+      .reveal .hero-loop::after, .reveal .hero-loop__label, .reveal .hero-loop__label::before, .reveal .hero-loop__runner,
       .reveal .slides section.present::before, .reveal .slides section.present::after,
       .reveal section.present > h1, .reveal section.present > h2,
       .reveal section.present > h1::before, .reveal section.present > h1::after,
@@ -1240,6 +1268,7 @@
           <span class="hero-loop__label">Persist</span>
           <span class="hero-loop__label">Decide</span>
           <span class="hero-loop__label">Stop</span>
+          <span class="hero-loop__runner"></span>
         </div>
         <p class="subtitle">Stop hand-cranking agents. Build the loop that prompts, verifies, remembers, and stops them.</p>
         <aside class="notes">Open with the idea that this is not another prompt-engineering talk. It is a shift in where engineering effort goes.</aside>
